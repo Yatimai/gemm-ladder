@@ -3,7 +3,9 @@
 The rung rebuilds, one mechanism at a time, the fp16 GEMM of cuBLAS on the T4 (sm_75), from NVIDIA's own tensor-core
 sample to a kernel of our own. The format is fixed: A (M x K) and B (K x N) fp16 row-major, fp32 accumulation, C (M x N)
 fp16 row-major; a shape is written M x N x K. The target at each shape is the judge's **reference**: the faster of
-cuBLASLt's best configuration and cuBLAS's default call (cublasGemmEx).
+cuBLAS's default call (cublasGemmEx) and the fastest cuBLASLt configuration the judge's search finds (the first
+configurations cuBLASLt's heuristic offers at several workspace sizes, and variations around the first of each family:
+judge/README.md; below, "cuBLASLt's best configuration").
 
 ## Progression
 

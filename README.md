@@ -2,11 +2,13 @@
 
 The same GEMM (fp16 inputs, fp32 accumulation, fp16 output) on four generations of NVIDIA GPUs. Each rung starts from
 NVIDIA's own tensor-core sample, rebuilds cuBLAS's recipe step by step (read under ncu or in cuBLASLt's settings), then
-goes beyond it. The score is taken against the judge's reference, the faster of cuBLASLt's best configuration and
-cuBLAS's default call (cublasGemmEx), at 17 shapes written M x N x K: the four GEMM of a Llama-3-8B layer, qkv (N 6144,
-K 4096), o (4096, 4096), gateup (28672, 4096) and down (4096, 14336), at M = 16, 128, 512 and 2048 tokens, plus 2048 x
-2560 x 2048, this ladder's own shape, named ladder. The score is the geometric mean of the time ratios, measured in two
-containers (two Modal GPU instances, which may land on two different cards).
+goes beyond it. The score is taken against the judge's reference, the faster of cuBLAS's default call (cublasGemmEx) and
+the fastest cuBLASLt configuration the judge's search finds (the first configurations cuBLASLt's heuristic offers at
+several workspace sizes, and variations around the first of each family: judge/README.md; below, "cuBLASLt's best
+configuration"), at 17 shapes written M x N x K: the four GEMM of a Llama-3-8B layer, qkv (N 6144, K 4096), o (4096,
+4096), gateup (28672, 4096) and down (4096, 14336), at M = 16, 128, 512 and 2048 tokens, plus 2048 x 2560 x 2048, this
+ladder's own shape, named ladder. The score is the geometric mean of the time ratios, measured in two containers (two
+Modal GPU instances, which may land on two different cards).
 
 ## The rungs
 
