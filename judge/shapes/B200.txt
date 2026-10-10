@@ -1,0 +1,22 @@
+# Shapes of the B200 (fixed before any measurement): the linear layers of a 70-billion-parameter model (Llama-3-70B:
+# hidden size 8192, MLP 28672, QKV 8192 + 2 x 1024), M = the number of tokens, plus gemm-ladder's own shape on the
+# B200 (the one at which cuBLAS's kernel is read under ncu, 8192 x 8192 x 8192). The same layers as the A100's and the
+# H100's.
+# M N K label
+16 10240 8192 qkv_m16
+128 10240 8192 qkv_m128
+512 10240 8192 qkv_m512
+2048 10240 8192 qkv_m2048
+16 8192 8192 o_m16
+128 8192 8192 o_m128
+512 8192 8192 o_m512
+2048 8192 8192 o_m2048
+16 57344 8192 gateup_m16
+128 57344 8192 gateup_m128
+512 57344 8192 gateup_m512
+2048 57344 8192 gateup_m2048
+16 8192 28672 down_m16
+128 8192 28672 down_m128
+512 8192 28672 down_m512
+2048 8192 28672 down_m2048
+8192 8192 8192 ladder

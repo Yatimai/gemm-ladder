@@ -1,0 +1,8 @@
+kernels profiled: 2
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 468 (/tmp/s/verif_ref_simple)
+==PROF== Profiling "simple_wmma_gemm" - 0: 0%....50%....100% - 33 passes
+==PROF== Profiling "turing_fp16_s1688gemm_fp16_25..." - 1: 0%....50%....100% - 33 passes
+once: done (cuBLASLt configuration given)
+==PROF== Disconnected from process 468
+==PROF== Report: /tmp/s/ref_simple_ncu.ncu-rep

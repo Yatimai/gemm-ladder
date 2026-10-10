@@ -1,0 +1,10 @@
+kernels profiled: 4
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 211 (/tmp/s/verif_step4)
+==PROF== Profiling "gemm" - 0: 0%....50%....100% - 33 passes
+==PROF== Profiling "gemm" - 1: 0%....50%....100% - 33 passes
+==PROF== Profiling "gemm" - 2: 0%....50%....100% - 33 passes
+==PROF== Profiling "turing_fp16_s1688gemm_fp16_25..." - 3: 0%....50%....100% - 33 passes
+once: done (cuBLASLt configuration given)
+==PROF== Disconnected from process 211
+==PROF== Report: /tmp/s/step4_ncu.ncu-rep

@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.o
+*.cubin
+results/*/bin/
+*.ncu-rep

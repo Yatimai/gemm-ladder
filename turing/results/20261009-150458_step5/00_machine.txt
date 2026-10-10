@@ -1,0 +1,4 @@
+Tesla T4, 610.57.04, 1590 MHz, 70.00 W
+Build cuda_13.1.r13.1/compiler.37061995_0
+Version 2025.4.1.0 (build 37053803) (public-release)
+Fri Oct  9 13:04:09 UTC 2026

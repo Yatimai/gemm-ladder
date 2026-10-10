@@ -1,0 +1,336 @@
+build: rc 0
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_Z4fillP6__halfmj' for 'sm_75'
+ptxas info    : Function properties for _Z4fillP6__halfmj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 12 registers, used 0 barriers, 372 bytes cmem[0]
+ptxas info    : Compile time = 3.333 ms
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_ZN5step64gemmILi128ELi256ELb0EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step64gemmILi128ELi256ELb0EEEvPK6__halfS3_PS1_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 254 registers, used 1 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 461.330 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi128ELi128ELb0EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step64gemmILi128ELi128ELb0EEEvPK6__halfS3_PS1_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 254 registers, used 1 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 449.457 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi64ELi256ELb0EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step64gemmILi64ELi256ELb0EEEvPK6__halfS3_PS1_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 240 registers, used 1 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 419.487 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi64ELi128ELb0EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step64gemmILi64ELi128ELb0EEEvPK6__halfS3_PS1_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 254 registers, used 1 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 428.427 ms
+ptxas info    : Compiling entry function '_ZN5step610gemm_splitILi128ELi256ELb0EEEvPK6__halfS3_PS1_iiiS4_Pj' for 'sm_75'
+ptxas info    : Function properties for _ZN5step610gemm_splitILi128ELi256ELb0EEEvPK6__halfS3_PS1_iiiS4_Pj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 253 registers, used 1 barriers, 408 bytes cmem[0]
+ptxas info    : Compile time = 496.788 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi128ELi256ELb1EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step64gemmILi128ELi256ELb1EEEvPK6__halfS3_PS1_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 254 registers, used 1 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 471.800 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi128ELi128ELb1EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step64gemmILi128ELi128ELb1EEEvPK6__halfS3_PS1_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 254 registers, used 1 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 415.761 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi64ELi256ELb1EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step64gemmILi64ELi256ELb1EEEvPK6__halfS3_PS1_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 246 registers, used 1 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 383.691 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi64ELi128ELb1EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step64gemmILi64ELi128ELb1EEEvPK6__halfS3_PS1_iii
+    8 bytes stack frame, 4 bytes spill stores, 8 bytes spill loads
+ptxas info    : Used 255 registers, used 1 barriers, 8 bytes cumulative stack size, 388 bytes cmem[0]
+ptxas info    : Compile time = 452.665 ms
+ptxas info    : Compiling entry function '_ZN5step610gemm_splitILi128ELi256ELb1EEEvPK6__halfS3_PS1_iiiS4_Pj' for 'sm_75'
+ptxas info    : Function properties for _ZN5step610gemm_splitILi128ELi256ELb1EEEvPK6__halfS3_PS1_iiiS4_Pj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 253 registers, used 1 barriers, 408 bytes cmem[0]
+ptxas info    : Compile time = 458.069 ms
+ptxas info    : Compiling entry function '_ZN5step610gemm_wavesILi128ELi256ELb1EEEvPK6__halfS3_PS1_iiiPj' for 'sm_75'
+ptxas info    : Function properties for _ZN5step610gemm_wavesILi128ELi256ELb1EEEvPK6__halfS3_PS1_iiiPj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 255 registers, used 1 barriers, 400 bytes cmem[0]
+ptxas info    : Compile time = 434.420 ms
+ptxas info    : Compiling entry function '_ZN5step610gemm_wavesILi128ELi256ELb0EEEvPK6__halfS3_PS1_iiiPj' for 'sm_75'
+ptxas info    : Function properties for _ZN5step610gemm_wavesILi128ELi256ELb0EEEvPK6__halfS3_PS1_iiiPj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 255 registers, used 1 barriers, 400 bytes cmem[0]
+ptxas info    : Compile time = 425.451 ms
+ptxas info    : Compiling entry function '_ZN5step610gemm_bandsILi256ELb1EEEvPK6__halfS3_PS1_iiiiiS4_Pj' for 'sm_75'
+ptxas info    : Function properties for _ZN5step610gemm_bandsILi256ELb1EEEvPK6__halfS3_PS1_iiiiiS4_Pj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 70 registers, used 1 barriers, 416 bytes cmem[0]
+ptxas info    : Compile time = 25.973 ms
+ptxas info    : Compiling entry function '_ZN5step610gemm_bandsILi256ELb0EEEvPK6__halfS3_PS1_iiiiiS4_Pj' for 'sm_75'
+ptxas info    : Function properties for _ZN5step610gemm_bandsILi256ELb0EEEvPK6__halfS3_PS1_iiiiiS4_Pj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 70 registers, used 1 barriers, 416 bytes cmem[0]
+ptxas info    : Compile time = 16.790 ms
+ptxas info    : Compiling entry function '_ZN5step610gemm_bandsILi128ELb1EEEvPK6__halfS3_PS1_iiiiiS4_Pj' for 'sm_75'
+ptxas info    : Function properties for _ZN5step610gemm_bandsILi128ELb1EEEvPK6__halfS3_PS1_iiiiiS4_Pj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 66 registers, used 1 barriers, 416 bytes cmem[0]
+ptxas info    : Compile time = 20.029 ms
+ptxas info    : Compiling entry function '_ZN5step610gemm_bandsILi128ELb0EEEvPK6__halfS3_PS1_iiiiiS4_Pj' for 'sm_75'
+ptxas info    : Function properties for _ZN5step610gemm_bandsILi128ELb0EEEvPK6__halfS3_PS1_iiiiiS4_Pj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 66 registers, used 1 barriers, 416 bytes cmem[0]
+ptxas info    : Compile time = 15.373 ms
+ptxas info    : Compiling entry function '_ZN5step54gemmILi128ELi256EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step54gemmILi128ELi256EEEvPK6__halfS3_PS1_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 254 registers, used 1 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 405.549 ms
+ptxas info    : Compiling entry function '_ZN5step54gemmILi128ELi128EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step54gemmILi128ELi128EEEvPK6__halfS3_PS1_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 254 registers, used 1 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 414.912 ms
+ptxas info    : Compiling entry function '_ZN5step54gemmILi64ELi256EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step54gemmILi64ELi256EEEvPK6__halfS3_PS1_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 240 registers, used 1 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 377.255 ms
+ptxas info    : Compiling entry function '_ZN5step54gemmILi64ELi128EEEvPK6__halfS3_PS1_iii' for 'sm_75'
+ptxas info    : Function properties for _ZN5step54gemmILi64ELi128EEEvPK6__halfS3_PS1_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 254 registers, used 1 barriers, 388 bytes cmem[0]
+ptxas info    : Compile time = 384.713 ms
+
+== plain run: rc 0
+shape 16 x 256 x 64, v0: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v1: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v2: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v3: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v4: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v5: max error / max |ref| = 2.80e-04
+shape 144 x 256 x 64, v0: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v1: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v2: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v3: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v4: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v5: max error / max |ref| = 3.03e-04
+shape 128 x 512 x 128, v0: max error / max |ref| = 5.28e-04
+shape 128 x 512 x 128, v1: max error / max |ref| = 5.28e-04
+shape 128 x 512 x 128, v2: max error / max |ref| = 5.28e-04
+shape 128 x 512 x 128, v3: max error / max |ref| = 5.28e-04
+shape 128 x 512 x 128, v4: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v5: max error / max |ref| = 2.34e-04
+shape 208 x 512 x 192, v0: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v1: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v2: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v3: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v4: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v5: max error / max |ref| = 3.35e-04
+shape 272 x 5376 x 128, v0: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v1: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v2: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v3: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v4: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v5: max error / max |ref| = 3.96e-04
+shape 1168 x 512 x 64, v0: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v1: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v2: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v3: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v4: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v5: max error / max |ref| = 2.83e-04
+shape 144 x 512 x 256, v0: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v1: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v2: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v3: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v4: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v5: max error / max |ref| = 3.34e-04
+shape 528 x 2560 x 64, v0: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v1: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v2: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v3: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v4: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v5: max error / max |ref| = 2.88e-04
+shape 528 x 5376 x 64, v0: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v1: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v2: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v3: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v4: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v5: max error / max |ref| = 2.83e-04
+shape 16 x 1024 x 1024, v0: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v1: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v2: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v3: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v4: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v5: max error / max |ref| = 3.36e-04
+shape 16 x 6144 x 128, v0: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v1: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v2: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v3: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v4: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v5: max error / max |ref| = 2.32e-04
+OK (tolerance 2e-3)
+== memcheck: rc 0
+128 x 512 x 128, v5: max error / max |ref| = 2.34e-04
+shape 208 x 512 x 192, v0: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v1: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v2: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v3: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v4: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v5: max error / max |ref| = 3.35e-04
+shape 272 x 5376 x 128, v0: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v1: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v2: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v3: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v4: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v5: max error / max |ref| = 3.96e-04
+shape 1168 x 512 x 64, v0: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v1: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v2: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v3: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v4: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v5: max error / max |ref| = 2.83e-04
+shape 144 x 512 x 256, v0: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v1: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v2: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v3: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v4: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v5: max error / max |ref| = 3.34e-04
+shape 528 x 2560 x 64, v0: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v1: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v2: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v3: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v4: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v5: max error / max |ref| = 2.88e-04
+shape 528 x 5376 x 64, v0: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v1: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v2: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v3: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v4: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v5: max error / max |ref| = 2.83e-04
+shape 16 x 1024 x 1024, v0: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v1: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v2: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v3: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v4: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v5: max error / max |ref| = 3.36e-04
+shape 16 x 6144 x 128, v0: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v1: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v2: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v3: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v4: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v5: max error / max |ref| = 2.32e-04
+OK (tolerance 2e-3)
+========= ERROR SUMMARY: 0 errors
+
+== racecheck: rc 0
+ref| = 2.34e-04
+shape 208 x 512 x 192, v0: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v1: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v2: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v3: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v4: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v5: max error / max |ref| = 3.35e-04
+shape 272 x 5376 x 128, v0: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v1: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v2: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v3: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v4: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v5: max error / max |ref| = 3.96e-04
+shape 1168 x 512 x 64, v0: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v1: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v2: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v3: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v4: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v5: max error / max |ref| = 2.83e-04
+shape 144 x 512 x 256, v0: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v1: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v2: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v3: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v4: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v5: max error / max |ref| = 3.34e-04
+shape 528 x 2560 x 64, v0: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v1: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v2: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v3: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v4: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v5: max error / max |ref| = 2.88e-04
+shape 528 x 5376 x 64, v0: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v1: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v2: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v3: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v4: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v5: max error / max |ref| = 2.83e-04
+shape 16 x 1024 x 1024, v0: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v1: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v2: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v3: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v4: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v5: max error / max |ref| = 3.36e-04
+shape 16 x 6144 x 128, v0: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v1: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v2: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v3: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v4: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v5: max error / max |ref| = 2.32e-04
+OK (tolerance 2e-3)
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+
+== synccheck: rc 0
+128 x 512 x 128, v5: max error / max |ref| = 2.34e-04
+shape 208 x 512 x 192, v0: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v1: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v2: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v3: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v4: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v5: max error / max |ref| = 3.35e-04
+shape 272 x 5376 x 128, v0: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v1: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v2: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v3: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v4: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v5: max error / max |ref| = 3.96e-04
+shape 1168 x 512 x 64, v0: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v1: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v2: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v3: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v4: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v5: max error / max |ref| = 2.83e-04
+shape 144 x 512 x 256, v0: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v1: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v2: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v3: max error / max |ref| = 5.53e-04
+shape 144 x 512 x 256, v4: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v5: max error / max |ref| = 3.34e-04
+shape 528 x 2560 x 64, v0: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v1: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v2: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v3: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v4: max error / max |ref| = 2.88e-04
+shape 528 x 2560 x 64, v5: max error / max |ref| = 2.88e-04
+shape 528 x 5376 x 64, v0: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v1: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v2: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v3: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v4: max error / max |ref| = 2.83e-04
+shape 528 x 5376 x 64, v5: max error / max |ref| = 2.83e-04
+shape 16 x 1024 x 1024, v0: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v1: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v2: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v3: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v4: max error / max |ref| = 3.76e-04
+shape 16 x 1024 x 1024, v5: max error / max |ref| = 3.36e-04
+shape 16 x 6144 x 128, v0: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v1: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v2: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v3: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v4: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v5: max error / max |ref| = 2.32e-04
+OK (tolerance 2e-3)
+========= ERROR SUMMARY: 0 errors
+

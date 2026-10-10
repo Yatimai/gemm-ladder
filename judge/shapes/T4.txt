@@ -1,0 +1,20 @@
+# Shapes of the T4 (fixed before any measurement): the linear layers of an 8-billion-parameter model (Llama-3-8B:
+# hidden size 4096, MLP 14336, QKV 4096 + 2 x 1024), M = the number of tokens, plus gemm-ladder's own shape on the T4.
+# M N K label
+16 6144 4096 qkv_m16
+128 6144 4096 qkv_m128
+512 6144 4096 qkv_m512
+2048 6144 4096 qkv_m2048
+16 4096 4096 o_m16
+128 4096 4096 o_m128
+512 4096 4096 o_m512
+2048 4096 4096 o_m2048
+16 28672 4096 gateup_m16
+128 28672 4096 gateup_m128
+512 28672 4096 gateup_m512
+2048 28672 4096 gateup_m2048
+16 4096 14336 down_m16
+128 4096 14336 down_m128
+512 4096 14336 down_m512
+2048 4096 14336 down_m2048
+2048 2560 2048 ladder

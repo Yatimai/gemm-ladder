@@ -1,0 +1,30 @@
+candidate turing/step2.cu; step2.cuh md5 3c2bd54e7054d62a6bcc086c98e5d0f0; step3.cuh md5 8ae1be6884705e196ca656cc72a744c2; step1.cuh md5 ff7c8419e628780ce2f339c020031bc2; step2.cu md5 fbd086258417673f22e02cdf9f1ce6c1; step4.cuh md5 949d4b0034d21135dabd1208aec95b06; step6.cuh md5 2376d2328f1d5fadba03728dd645596d; step5.cuh md5 eba25247fafc32e257e2df0eaa759b77; nvidia_sample.cuh md5 4ecbf1f4d805556d4a224c6bf91d4495
+probe_t4.cu md5 387ae27f; modal_probe_t4.py md5 8a1660f7; variant Tesla_T4|70W|lt130201|cuda13030 (try 1/4)
+Tesla T4, 610.57.04, 1590 MHz, 70.00 W, 35
+build rc 0
+
+limit per shape: 144 s
+== energy 2048 2560 2048
+shape 2048 x 2560 x 2048; heuristic: 8 results
+ARM lt     : 60.173 mJ per GEMM | 813.0 us | SM 747 MHz | MEM 5000 MHz | 70.1 W | G 23 | rounds 802.0 809.5 814.7 813.0 818.0 us | err 3.60e-04 / graph 3.77e-04
+ARM v0     : 57.623 mJ per GEMM | 836.5 us | SM 1011 MHz | MEM 5000 MHz | 69.8 W | G 17 | rounds 828.6 834.2 836.5 838.1 838.8 us | err 3.60e-04 / graph 3.77e-04
+ARM v1     : 68.710 mJ per GEMM | 920.5 us | SM 1089 MHz | MEM 5000 MHz | 69.6 W | G 14 | rounds 917.7 919.8 920.5 921.8 923.7 us | err 3.60e-04 / graph 3.77e-04
+ARM v2     : 61.781 mJ per GEMM | 909.2 us | SM 1067 MHz | MEM 5000 MHz | 69.8 W | G 15 | rounds 905.3 909.2 908.9 911.3 913.5 us | err 3.60e-04 / graph 3.65e-04
+== energy 2048 28672 4096
+shape 2048 x 28672 x 4096; heuristic: 3 results
+ARM lt     : 1412.433 mJ per GEMM | 20127.0 us | SM 652 MHz | MEM 5000 MHz | 69.2 W | G 3 | rounds 20052.4 20160.8 20133.5 20121.2 20127.0 us | err 2.55e-04 / graph 2.52e-04
+ARM v0     : 1465.104 mJ per GEMM | 21655.7 us | SM 816 MHz | MEM 5000 MHz | 70.1 W | G 3 | rounds 21531.7 21645.3 21663.6 21655.7 21707.2 us | err 2.55e-04 / graph 2.52e-04
+ARM v1     : 1612.104 mJ per GEMM | 23339.9 us | SM 936 MHz | MEM 5000 MHz | 69.6 W | G 3 | rounds 23213.6 23339.9 23322.1 23357.2 23427.7 us | err 2.55e-04 / graph 2.52e-04
+ARM v2     : 1614.688 mJ per GEMM | 22758.7 us | SM 899 MHz | MEM 5000 MHz | 69.9 W | G 3 | rounds 22719.8 22766.4 22753.6 22758.7 22804.4 us | err 2.55e-04 / graph 2.52e-04
+== energy 512 6144 4096
+shape 512 x 6144 x 4096; heuristic: 6 results
+ARM lt     : 69.815 mJ per GEMM | 999.0 us | SM 762 MHz | MEM 5000 MHz | 69.9 W | G 36 | rounds 995.1 994.7 1000.1 999.0 999.5 us | err 5.09e-04 / graph 4.85e-04
+ARM v0     : 81.182 mJ per GEMM | 1170.7 us | SM 1020 MHz | MEM 5000 MHz | 69.4 W | G 24 | rounds 1170.7 1164.1 1168.9 1171.9 1171.2 us | err 2.92e-04 / graph 2.85e-04
+ARM v1     : 88.047 mJ per GEMM | 1299.6 us | SM 1109 MHz | MEM 5000 MHz | 69.3 W | G 20 | rounds 1298.0 1299.6 1299.2 1299.8 1300.2 us | err 2.92e-04 / graph 2.88e-04
+ARM v2     : 94.609 mJ per GEMM | 1286.3 us | SM 1076 MHz | MEM 5000 MHz | 69.5 W | G 17 | rounds 1283.9 1285.2 1286.3 1286.3 1286.4 us | err 2.92e-04 / graph 2.88e-04
+== energy 128 4096 4096
+shape 128 x 4096 x 4096; heuristic: 5 results
+ARM lt     : 15.701 mJ per GEMM | 220.7 us | SM 790 MHz | MEM 5000 MHz | 69.6 W | G 137 | rounds 219.9 220.7 220.8 220.9 220.6 us | err 2.92e-04 / graph 2.75e-04
+ARM v0     : 21.456 mJ per GEMM | 296.5 us | SM 1375 MHz | MEM 5000 MHz | 69.6 W | G 75 | rounds 295.9 296.4 296.7 296.5 296.7 us | err 2.92e-04 / graph 2.95e-04
+ARM v1     : 21.531 mJ per GEMM | 324.4 us | SM 1416 MHz | MEM 5000 MHz | 69.7 W | G 68 | rounds 324.2 324.3 324.4 324.4 324.5 us | err 2.92e-04 / graph 2.75e-04
+ARM v2     : 21.282 mJ per GEMM | 303.8 us | SM 1378 MHz | MEM 5000 MHz | 69.8 W | G 75 | rounds 303.4 303.6 303.8 303.9 304.0 us | err 2.92e-04 / graph 2.95e-04
