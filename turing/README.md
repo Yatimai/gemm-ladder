@@ -49,27 +49,27 @@ Paths start from this folder (`results/`, `emu/`) or from the repository's root 
   read against the previous step in the same container.
 
 Each step's probe runs in two series, each run in a container of its own; at each step, the two probes that
-decide ran at the same time, so on two different cards (`results/two_cards.txt`). A mechanism's case is the time
-without it over the step's, minus 1 (above 0: it saves time), or, measured added, the time with it over the time
-without it, minus 1 (below 0: it saves time); its mean, the geometric mean of these time ratios over the shapes where
-it acts (the cases without a dash), minus 1, in % to one decimal. A mechanism stays if, in both series, its mean shows
-a saving of more than twice the noise of its probe; two that work only together count as one (2a and 2b). All stay:
+decide ran at the same time, so on two different cards (`results/two_cards.txt`). "Faster" is the geometric mean,
+over the shapes where a mechanism acts (the cases without a dash), of the time without it over the time with it,
+minus 1, in % to one decimal. Most mechanisms are measured removed from the step; two are measured added to the
+version without them, 1c (the only copy in step 1's code) and 6b without its hint, and their cases (`results/README.md`)
+are turned here the same way. A mechanism stays if, in both series, it saves more than twice the noise of its probe;
+two that work only together count as one (2a and 2b; 2a alone saves no time: step 2). All stay:
 
-| step | mechanism | case | shapes | mean, series 1 | twice the noise | mean, series 2 | twice the noise |
+| step | mechanism | measured | shapes | faster, series 1 | twice the noise | faster, series 2 | twice the noise |
 |---|---|---|---:|---:|---:|---:|---:|
-| 1 | 1a | without it | 17 | +5.9 % | 0.4 % | +3.5 % | 1.6 % |
-| 1 | 1b | without it | 17 | +23.7 % | 0.4 % | +23.8 % | 1.6 % |
-| 1 | 1c | added to step 0 | 17 | -4.2 % | 0.4 % | -4.0 % | 1.6 % |
-| 2 | 2a alone | added to step 1 | 17 | +1.9 % | 0.6 % | +0.7 % | 2.6 % |
-| 2 | 2a and 2b | without both (step 1) | 17 | +6.9 % | 0.6 % | +8.6 % | 2.6 % |
-| 3 | 3a | without it | 17 | +2.2 % | 1.2 % | +1.6 % | 0.6 % |
-| 3 | 3b | without it | 17 | +4.5 % | 1.2 % | +3.1 % | 0.6 % |
-| 4 | 4a | without it (step 3) | 17 | +9.4 % | 0.6 % | +7.6 % | 0.8 % |
-| 5 | 5a | without it | 4 | +49.5 % | 1.2 % | +45.0 % | 4.2 % |
-| 6 | 6a | without it | 13 | +3.2 % | 0.6 % | +3.4 % | 0.8 % |
-| 6 | 6b | without its hint, added to step 6 without 6b | 4 | -15.4 % | 0.6 % | -11.8 % | 0.8 % |
-| 6 | 6b's hint | without it | 2 | +1.9 % | 0.6 % | +1.9 % | 0.8 % |
-| 6 | 6c | without it | 2 | +12.0 % | 0.6 % | +11.9 % | 0.8 % |
+| 1 | 1a | removed | 17 | +5.9 % | 0.4 % | +3.5 % | 1.6 % |
+| 1 | 1b | removed | 17 | +23.7 % | 0.4 % | +23.8 % | 1.6 % |
+| 1 | 1c | added to step 0 | 17 | +4.4 % | 0.4 % | +4.2 % | 1.6 % |
+| 2 | 2a and 2b | removed together (step 1) | 17 | +6.9 % | 0.6 % | +8.6 % | 2.6 % |
+| 3 | 3a | removed | 17 | +2.2 % | 1.2 % | +1.6 % | 0.6 % |
+| 3 | 3b | removed | 17 | +4.5 % | 1.2 % | +3.1 % | 0.6 % |
+| 4 | 4a | removed (step 3) | 17 | +9.4 % | 0.6 % | +7.6 % | 0.8 % |
+| 5 | 5a | removed | 4 | +49.5 % | 1.2 % | +45.0 % | 4.2 % |
+| 6 | 6a | removed | 13 | +3.2 % | 0.6 % | +3.4 % | 0.8 % |
+| 6 | 6b | added without its hint to step 6 without 6b | 4 | +18.2 % | 0.6 % | +13.4 % | 0.8 % |
+| 6 | 6b's hint | removed | 2 | +1.9 % | 0.6 % | +1.9 % | 0.8 % |
+| 6 | 6c | removed | 2 | +12.0 % | 0.6 % | +11.9 % | 0.8 % |
 
 ## Step 0: NVIDIA's compute_gemm, adapted
 
