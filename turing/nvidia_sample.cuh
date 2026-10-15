@@ -1,6 +1,5 @@
 /* Derived from NVIDIA's CUDA sample cudaTensorCoreGemm (cuda-samples v12.4, Samples/3_CUDA_Features/cudaTensorCoreGemm),
- * whose notice follows. The two kernels below keep the sample's structure and change only what the judge's format
- * requires; every change is listed in the comment above each kernel.
+ * whose notice follows. The comment above each kernel lists what it keeps from the sample and what it changes.
  *
  * Copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
  *
@@ -41,8 +40,7 @@ using namespace nvcuda;
 // ---------------------------------------------------------------- the reference point: simple_wmma_gemm
 // One warp per 16 x 16 tile of C; A and B fragments loaded straight from global memory; no shared memory.
 // Changes: B row-major (matrix_b fragment row_major, leading dimension N); the fp32 accumulator converted to an fp16
-// fragment and stored to C (no alpha, beta or C read). The sample's two bound tests are kept as they are (an early exit
-// instead lets nvcc batch the loads of 4 K steps: about 64 registers against 36).
+// fragment and stored to C (no alpha, beta or C read). The sample's two bound tests are kept as they are.
 // Launch as in the sample: block (128, 4) = 16 warps, 4 along M and 4 along N.
 __global__ void simple_wmma_gemm(const half* A, const half* B, half* C, int M, int N, int K)
 {
@@ -71,7 +69,7 @@ __global__ void simple_wmma_gemm(const half* A, const half* B, half* C, int M, i
     }
 }
 
-// ---------------------------------------------------------------- step 0: compute_gemm
+// ---------------------------------------------------------------- step 0: NVIDIA's compute_gemm, adapted
 // Kept from the sample: a 128 x 128 tile per block, 8 warps of 32 x 64 (2 x 4 wmma fragments of 16 x 16); a K64 slice
 // of A and B per iteration in shared memory (CHUNK_K = 4, the sample's value for 64 KB of shared memory), copied in
 // 16-byte loads (warps 0-3 copy A, warps 4-7 copy B), rows padded by SKEW_HALF = 16 halves; one barrier after the copy
@@ -82,10 +80,7 @@ __global__ void simple_wmma_gemm(const half* A, const half* B, half* C, int M, i
 // tile; 38 912 bytes here); the output in fp16, through shared memory half a tile (64 rows) at a time at a pitch of 128
 // + 8 halves (no bank conflict), then 16-byte stores; M, N, K at run time (N a multiple of 128, K of 64, M of 16);
 // edges in M: a tile that holds 128 rows runs the sample's copy as is, a tile cut by M clamps the row of A each thread
-// loads to M - 1 (rows past M are computed and never written), so only edge tiles pay for the clamp.
-// Not a change of ours but worth knowing: the sample is compiled at fixed sizes, so nvcc unrolls its whole K loop
-// (8 192 HMMA in one straight block, all of its integer instructions before the second K64); with K known at run time,
-// the loop here stays a loop.
+// loads to M - 1 (rows >= M are computed and never written), so only edge tiles pay for the clamp.
 constexpr int kChunkK = 4;
 constexpr int kSkew = 16;
 constexpr int kAStride = kChunkK * 16 + kSkew;   // 80 halves

@@ -5,17 +5,21 @@ For each step <s> of the rung's folder: verif.cu + <s>.cu are built; compute-san
 and synccheck run ./verif on small shapes with edges in M (an error makes the tool's exit code 9); ncu (--set full,
 clocks not locked, demangled names) profiles one call of each variant of the step (g_var, when the step has some) and
 one of cuBLASLt at the main shape, in the same
-process, on inputs drawn like the judge's; cuBLASLt runs the best configuration the judge found at that shape for the
+process, on inputs drawn like the judge's; cuBLASLt runs the configuration given by --cublaslt or, without it, the
+configuration the judge ranks first at that shape for the
 EXACT card line of --variant (rank 0 of judge/reference/<card>.txt, newest pass first); if the cache has none, the session
 refuses before asking for a GPU. All the steps of a session share one container, so their clock-dependent counters
 compare. Results land in <rung>/results/<date>-<time>_<steps>/ (<date>-<time>-2_<steps> when two sessions end in the
 same second).
 
 Usage (from the repository's root):
-  modal run modal/session.py --rung turing --steps step0,ref_simple --variant "<card line>" [--tries N]
+  modal run modal/session.py --rung turing --steps step0,ref_simple --variant "<card line>" [--tries N] [--cublaslt <hex>]
 --variant (required): as in the judge, the GPU container reads its card line (Tesla_T4|70W|lt130201|cuda13030, for
 instance) before any work and stops if it differs; at most N tries, each in a fresh container. 00_run.txt gives the md5 of
-this file and of each file sent, the cuBLASLt configuration taken from the judge's cache, and the variant and the try.
+this file and of each file sent, the cuBLASLt configuration (where it comes from, --cublaslt or the judge's cache, and its
+hexadecimal), and the variant and the try.
+--cublaslt: a cuBLASLt configuration as a REFERENCE line of the judge's output writes it, 128 lower-case hexadecimal
+digits (a cublasLtMatmulAlgo_t, as verif.cu reads it); the judge's cache is then not read.
 """
 import datetime
 import hashlib
@@ -27,19 +31,17 @@ import modal
 HERE = pathlib.Path(__file__).resolve().parent
 REPO = HERE.parent
 CARD = {"turing": ("T4", "sm_75", "2048 2560 2048", "ladder", "t4.txt", "Tesla_T4|70W|"),
-        # Ampere: the A100-SXM4-80GB capped at 400 W only; under "A100-80GB" Modal also serves 500 W SXM4 and 300 W PCIe cards:
-        # the container checks its card (name and power cap) and stops at once otherwise; main() tries again (--tries).
+        # Ampere: the A100-SXM4-80GB capped at 400 W only: the container checks its card (name and power cap) and stops
+        # at once otherwise; main() tries again (--tries).
         "ampere": ("A100", "sm_80", "3456 4096 2048", "ladder", "a100.txt", "NVIDIA_A100-SXM4-80GB|400W|"),
-        # Blackwell: the B200 at its 1000 W cap (the judge's card line); sm_100a needs the -gencode form (see GEN below)
+        # Blackwell: the B200 at its 1000 W cap (the judge's card line); sm_100a needs the -gencode form (see gen below)
         "blackwell": ("B200", "sm_100a", "8192 8192 8192", "ladder", "b200.txt", "NVIDIA_B200|1000W|"),
-        # Hopper: the H100 SXM at its 700 W cap only; under "H100" Modal also serves H100 NVL cards at 400 W (checked the same way)
+        # Hopper: the H100 SXM at its 700 W cap only (checked the same way)
         "hopper": ("H100", "sm_90a", "4608 5632 8192", "ladder", "h100.txt", "NVIDIA_H100_80GB_HBM3|700W|")}
 EXPECTED_GPU = {"A100": ("A100-SXM4-80GB", 400.0), "B200": ("B200", 1000.0), "H100": ("H100 80GB HBM3", 700.0)}   # name as nvidia-smi gives it, power cap (W)
-# Time limits (s) of the plain run, of each sanitizer tool and of ncu: short on the B200, where a hung kernel costs most.
-# The rule, on every card (verif.cu says it too): each run of verif gets GEMM_LADDER_BUDGET = its limit - BUDGET_MARGIN, so
-# that verif's HANG diagnostic (shape, variant) always comes before the limit cuts the run, under every tool. The limits of
-# the plain run and of the sanitizer tools are the time a correct run had before the budget, plus BUDGET_MARGIN (the
-# budget equals that time).
+# Time limits (s) of the plain run, of each sanitizer tool and of ncu: short on the B200.
+# The rule, on every card (verif.cu says it too): the plain run and each sanitizer tool get GEMM_LADDER_BUDGET = their
+# limit - BUDGET_MARGIN.
 BUDGET_MARGIN = 60
 LIMITS = {"T4": (1260, 1860, 2400), "A100": (1260, 1860, 2400), "B200": (360, 360, 1200), "H100": (360, 660, 1200)}
 CACHE = REPO / "judge" / "reference"
@@ -160,21 +162,28 @@ def fresh_dir(parent: pathlib.Path, stamp: str, tail: str) -> pathlib.Path:
 
 
 @app.local_entrypoint()
-def main(rung: str, steps: str, variant: str = "", tries: int = 1):
+def main(rung: str, steps: str, variant: str = "", tries: int = 1, cublaslt: str = ""):
     if not re.fullmatch(r"[A-Za-z0-9_.-]+\|\d+W\|lt\d+\|cuda\d+", variant):
         raise SystemExit("--variant (required): the exact card line of the rung, for instance Tesla_T4|70W|lt130201|cuda13030")
     if not 1 <= tries <= 10:
         raise SystemExit("--tries: an integer from 1 to 10")
+    if cublaslt and not re.fullmatch(r"[0-9a-f]{128}", cublaslt):   # 2 x sizeof(cublasLtMatmulAlgo_t), as verif.cu reads it
+        raise SystemExit("--cublaslt: 128 lower-case hexadecimal digits, a cublasLtMatmulAlgo_t as a REFERENCE line of the "
+                         "judge's output writes it")
     card, arch, shape, shape_name, cache, card_prefix = CARD[rung]
     if not variant.startswith(card_prefix):
         raise SystemExit(f"--variant {variant}: not a card line of the {rung} rung ({card_prefix}...)")
     algo = ""
-    for line in (CACHE / cache).read_text().splitlines():   # newest pass first: the first rank-0 line of this card line wins
+    if cublaslt:   # the configuration given, in place of rank 0 of the judge's cache (not read)
+        algo = cublaslt
+        algo_line = f"cuBLASLt at {shape_name}: configuration given by --cublaslt: {algo}"
+        print(f"cuBLASLt at {shape_name}: configuration given by --cublaslt")
+    for line in ([] if cublaslt else (CACHE / cache).read_text().splitlines()):   # newest pass first: the first rank-0 line of this card line wins
         m = line.split()
         if len(m) == 9 and m[0] == "REFERENCE" and m[1] == shape_name and m[5] == variant and m[6] == "0":
             algo = m[8]
-            algo_line = f"cuBLASLt at {shape_name}: best configuration of {m[5]} (judge's cache): {algo}"
-            print(f"cuBLASLt at {shape_name}: best configuration of {m[5]} (judge's cache)")
+            algo_line = f"cuBLASLt at {shape_name}: configuration ranked first for {m[5]} (judge's cache): {algo}"
+            print(f"cuBLASLt at {shape_name}: configuration ranked first for {m[5]} (judge's cache)")
             break
     if not algo:   # no silent fallback on cuBLASLt's heuristic
         raise SystemExit(f"no rank-0 configuration of {variant} at {shape_name} in judge/reference/{cache}: run the judge's "

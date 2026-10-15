@@ -29,120 +29,99 @@ CXX = os.environ.get("CXX", "g++")
 
 # (header, the bug, exact text, its replacement)
 BUGS = [
-    # step 6: 6c's bands (the counters, the last block, the parts, the slices of K, the bounds in M, the barriers)
-    ("step6.cuh", "6c: the band's counter not put back to zero by the last block",
+    # step 6: 6b's bands (the counters, the last block, the parts, the slices of K, the bounds in M, the barriers)
+    ("step6.cuh", "6b: the band's counter not put back to zero by the last block",
      "        if (threadIdx.x == 0) counts[b] = 0;   // for the next call\n",
      ""),
-    ("step6.cuh", "6c: the first block to arrive taken as the last (it sums parts not yet written)",
+    ("step6.cuh", "6b: the first block to arrive taken as the last (it sums parts not yet written)",
      "*last = arrive(&counts[b]) == (unsigned)slices - 1;",
      "*last = arrive(&counts[b]) == 0u;"),
-    ("step6.cuh", "6c: a block's part at its band's index, not its own (the slices of a band overwrite each other)",
+    ("step6.cuh", "6b: a block's part at its band's index, not its own (the slices of a band overwrite each other)",
      "half* part = parts + (size_t)(first + s) * 16 * BN;",
      "half* part = parts + (size_t)b * 16 * BN;"),
-    ("step6.cuh", "6c: the sum stops one slice short",
+    ("step6.cuh", "6b: the sum stops one slice short",
      "for (int ss = 0; ss < slices; ss++) {",
      "for (int ss = 0; ss < slices - 1; ss++) {"),
-    ("step6.cuh", "6c: a slice's first step without the longer slices before it (K's steps overlap, one is left out)",
+    ("step6.cuh", "6b: a slice's first step without the longer slices before it (K's steps overlap, one is left out)",
      "const int k0 = s * perSlice + min(s, longer),",
      "const int k0 = s * perSlice,"),
-    ("step6.cuh", "6c: the longer slices without their extra step",
+    ("step6.cuh", "6b: the longer slices without their extra step",
      "nk = perSlice + (s < longer);",
      "nk = perSlice;"),
-    ("step6.cuh", "6c: A's rows past M loaded (reads past A's last row)",
+    ("step6.cuh", "6b: A's rows >= M loaded (reads after A's last row)",
      "aLoads = aStores && ar < M;",
      "aLoads = aStores;"),
-    ("step6.cuh", "6c: C's rows past M written (one slice)",
-     "if (r < M) step3::st16<true>((int4*)&C[(size_t)r * N + col0] + ch % G::kBChunks, mine[u]);",
-     "step3::st16<true>((int4*)&C[(size_t)r * N + col0] + ch % G::kBChunks, mine[u]);"),
-    ("step6.cuh", "6c: the copy's test i + 3 < nk removed (loads past the slice's last step)",
+    ("step6.cuh", "6b: C's rows >= M written (one slice)",
+     "if (r < M) *((int4*)&C[(size_t)r * N + col0] + ch % G::kBChunks) = mine[u];",
+     "*((int4*)&C[(size_t)r * N + col0] + ch % G::kBChunks) = mine[u];"),
+    ("step6.cuh", "6b: the copy's test i + 3 < nk removed (loads after the slice's last step)",
      "        if (i + 3 < nk) fetch(ra[1 - st], rb[1 - st]);\n",
      "        fetch(ra[1 - st], rb[1 - st]);\n"),
-    ("step6.cuh", "6c: no barrier in the loop (between a stage's stores and the next step's reads)",
+    ("step6.cuh", "6b: no barrier in the loop (between a stage's stores and the next step's reads)",
      "        if (i + 1 < nk) store(1 - st, 1 - st);\n        __syncthreads();\n",
      "        if (i + 1 < nk) store(1 - st, 1 - st);\n"),
-    ("step6.cuh", "6c: no barrier after the prologue's stores",
+    ("step6.cuh", "6b: no barrier after the prologue's stores",
      "    rb[0][1] = rb2[1];\n    __syncthreads();\n",
      "    rb[0][1] = rb2[1];\n"),
-    ("step6.cuh", "6c: no barrier between the output's fragment stores and their copy",
+    ("step6.cuh", "6b: no barrier between the output's fragment stores and their copy",
      "    __syncthreads();\n    int4 mine[G::kOPer];\n",
      "    int4 mine[G::kOPer];\n"),
-    # step 6: 6d's K in two halves
-    ("step6.cuh", "6d: the tile's counter not put back to zero by the second block",
-     "    if (threadIdx.x == 0) counts[t] = 0;   // for the next call\n",
+    # step 6: 6c's K in two halves
+    ("step6.cuh", "6c: the tile's counter not put back to zero by the second block",
+     "        if (threadIdx.x == 0) counts[t] = 0;   // for the next call\n",
      ""),
-    ("step6.cuh", "6d: the first block to arrive sums (the other part not yet written)",
+    ("step6.cuh", "6c: the first block to arrive sums (the other part not yet written)",
      "*last = arrive(&counts[t]) == 1u;",
      "*last = arrive(&counts[t]) == 0u;"),
-    ("step6.cuh", "6d: both blocks over the whole of K (C twice the product)",
-     "t, s * halfK, (s + 1) * halfK);",
-     "t, 0, K);"),
-    ("step6.cuh", "6d: both slices into slice 0's part",
+    ("step6.cuh", "6c: both halves of a tile over the whole of K (C twice the product)",
+     "A + (size_t)s * halfK, B + (size_t)s * halfK * N, parts + (size_t)s * M * N, M, N, K, t,\n"
+     "                      halfK);",
+     "A, B, parts + (size_t)s * M * N, M, N, K, t,\n                      K);"),
+    ("step6.cuh", "6c: both slices into slice 0's part",
      "parts + (size_t)s * M * N, M, N, K,",
      "parts, M, N, K,"),
-    ("step6.cuh", "6d: the sum reads slice 1's part twice",
+    ("step6.cuh", "6c: the sum reads slice 1's part twice",
      "ld16_part((const int4*)&parts[(size_t)ss * M * N + (size_t)r * N + col0] + cc);",
      "ld16_part((const int4*)&parts[(size_t)M * N + (size_t)r * N + col0] + cc);"),
-    ("step6.cuh", "6d: the sum without the bound r < M (rows of a tile cut by M)",
-     "        if (r >= M) continue;\n",
+    ("step6.cuh", "6c: the sum without the bound r < M (rows of a tile cut by M)",
+     "            if (r >= M) continue;\n",
      ""),
-    # step 6: 6b's waves (its grid barrier is not emulated: see README.md)
-    ("step6.cuh", "6b: the tiles past the last not skipped (the last wave's blocks without a tile)",
-     "        if (t < tiles) tile<BM, BN, kCg, true>(shmem, A, B, C, M, N, K, t, 0, K);\n",
-     "        tile<BM, BN, kCg, true>(shmem, A, B, C, M, N, K, t, 0, K);\n"),
-    ("step6.cuh", "6b: the waves rounded down (the last, partial wave never computed)",
-     "waves = (tiles + gridDim.x - 1) / gridDim.x;",
-     "waves = tiles / gridDim.x;"),
-    ("step6.cuh", "6b: a block without a tile in the next wave skips the barrier before it (a hang on the GPU)",
-     "        if (w + 1 < waves) grid_barrier(sync, gridDim.x);",
-     "        if (w + 1 < waves && t + gridDim.x < tiles) grid_barrier(sync, gridDim.x);"),
-    # step 6: compute_tile's K range (6d)
-    ("step6.cuh", "compute_tile: the loop from 0, not kBegin (the second half of K computes from its start)",
-     "for (int k0 = kBegin; k0 < kEnd; k0 += 64) {",
-     "for (int k0 = 0; k0 < kEnd; k0 += 64) {"),
-    ("step6.cuh", "compute_tile: the prologue's second slice loaded from kBegin + 64",
-     "    load(kBegin + 32);\n",
-     "    load(kBegin + 64);\n"),
+    # step 6: 6c's half of K, compute_tile's K columns
+    ("step6.cuh", "6c: A and B not moved to the second half of K (it computes the first half again)",
+     "A + (size_t)s * halfK, B + (size_t)s * halfK * N,",
+     "A, B,"),
+    ("step6.cuh", "compute_tile: the prologue's second slice loaded from K column 64, not 32",
+     "    load(32);\n",
+     "    load(64);\n"),
     # step 6: the rules
-    ("step6.cuh", "6c's rule: 128-column bands even past 3 P blocks (two rounds at gateup_m16)",
+    ("step6.cuh", "6b's rule: 128-column bands even above 3 P blocks (two rounds at gateup_m16)",
      "if (N / 128 >= lo && N / 128 <= hi) return p;",
      "if (N / 128 >= lo) return p;"),
-    ("step6.cuh", "6c's rule: slices added up to 3 P blocks at long K, not 2 P",
+    ("step6.cuh", "6b's rule: slices added up to 3 P blocks at long K, not 2 P",
      "while (nb * (p.slices + 1) <= mid && 1600 * (p.slices + 1) <= K) p.slices++;",
      "while (nb * (p.slices + 1) <= hi && 1600 * (p.slices + 1) <= K) p.slices++;"),
-    ("step6.cuh", "plan: 6d while the tiles fill fewer than all the SMs, not half",
-     "if (with6d && M > 64 && 2 * tiles256 < sms",
-     "if (with6d && M > 64 && tiles256 < sms"),
-    ("step6.cuh", "plan: 6b from one row of tiles (M = 128)",
-     "M >= 4 * t.bm) return {kWaves",
-     "M >= t.bm) return {kWaves"),
-    # step 5: the four tiles (the copy, the warps, the epilogue, the order of the tiles) and the choice
+    ("step6.cuh", "plan: 6c while the tiles fill fewer than all the SMs, not half",
+     "if (with6c && M > 64 && 2 * tiles256 < sms",
+     "if (with6c && M > 64 && tiles256 < sms"),
+    # step 5: the two tiles (the copy, the epilogue, the order of the tiles) and the choice
     ("step5.cuh", "B's copy in step 4's rows (t / 32 + 8 i) at every tile",
      "const int r = threadIdx.x / G::kBChunks + i * G::kBRows;\n            rb[i]",
      "const int r = threadIdx.x / 32 + i * 8;\n            rb[i]"),
     ("step5.cuh", "A's copy in step 4's rows (t / 4 + 64 i) at every tile",
      "const int r = threadIdx.x / 4 + i * G::kARows;",
      "const int r = threadIdx.x / 4 + i * 64;"),
-    ("step5.cuh", "the warps placed as step 4's, 4 to a row of the tile",
-     "const int wm = warpId / G::kWarpsN, wn = warpId % G::kWarpsN;",
-     "const int wm = warpId / 4, wn = warpId % 4;"),
-    ("step5.cuh", "the epilogue's chunks of a row of 32 chunks at every tile",
-     "step3::st16<true>((int4*)&C[(size_t)gr * N + col0] + threadIdx.x % G::kBChunks,",
-     "step3::st16<true>((int4*)&C[(size_t)gr * N + col0] + threadIdx.x % 32,"),
     ("step5.cuh", "one pass of the epilogue at every tile (the second 64 rows of a 128-row tile never written)",
      "for (int h = 0; h < BM / 64; h++)",
      "for (int h = 0; h < 1; h++)"),
     ("step5.cuh", "the output buffer's rows without their 8 halves of padding (bank conflicts)",
-     "kOStride = BN + 8;",
-     "kOStride = BN;"),
+     "kOStride = 256 + 8;",
+     "kOStride = 256;"),
     ("step5.cuh", "no M - 1 clamp of the rows of A (edge tiles)",
      "const int gr = kEdge ? min(row0 + r, M - 1) : row0 + r;",
      "const int gr = row0 + r;"),
     ("step5.cuh", "tile_of counts the rows of tiles in 128-row tiles",
      "tilesM = (M + BM - 1) / BM",
      "tilesM = (M + 127) / 128"),
-    ("step5.cuh", "choose: 128 columns when 256 gives fewer blocks than the SMs, not than half of them",
-     "cols128 && 2 * tiles256 < sms",
-     "cols128 && tiles256 < sms"),
     ("step5.cuh", "choose: 64 rows of M up to M = 128",
      "rows64 && M <= 64",
      "rows64 && M <= 128"),
@@ -179,51 +158,48 @@ BUGS = [
     ("step4.cuh", "the next K64's second slice loaded from k0 + 32 instead of k0 + 96",
      "load(k0 + 96); });",
      "load(k0 + 32); });"),
-    ("step4.cuh", "the next K64's first slice loaded without the test next (A and B read past K)",
+    ("step4.cuh", "the next K64's first slice loaded without the test next (A and B read outside K)",
      "stage(0, true, true, [&] { if (next) load(k0 + 64); });",
      "stage(0, true, true, [&] { load(k0 + 64); });"),
     ("step4.cuh", "no M - 1 clamp of the rows of A (edge tiles)",
      "const int gr = kEdge ? min(row0 + r, M - 1) : row0 + r;",
      "const int gr = row0 + r;"),
-    # step 4: 4b's order, the B register of hmma (v0, v1), and the bits
-    ("step4.cuh", "4b: the rows back and forth on the row's parity, not the column's: rows 0, 2, 2, 0",
-     "hmma(f, j % 2 ? 3 - ii : ii, j);",
-     "hmma(f, ii % 2 ? 3 - ii : ii, j);"),
-    ("step4.cuh", "4a, 4b: a wrong B register in hmma (fb[f][j % 2][j / 2] for fb[f][j / 4][j % 4])",
+    # step 4: the B register of hmma, and the bits
+    ("step4.cuh", "4a: a wrong B register in hmma (fb[f][j % 2][j / 2] for fb[f][j / 4][j % 4])",
      "fb[f][j / 4][j % 4]",
      "fb[f][j % 2][j / 2]"),
     ("step4.cuh", "4a: slices 1 and 2 of a stage swapped in every accumulator (C within the tolerance, other bits)",
      "        frag(1, s, 1);\n        mma(0);\n        frag(0, s, 2);\n",
      "        frag(1, s, 2);\n        mma(0);\n        frag(0, s, 1);\n"),
-    # step 3: 3c's order of the tiles (tile_of; v0, v1, v2, and step 4's kernels)
-    ("step3.cuh", "3c: tm and tn swapped (a group's blocks run along its columns of tiles, not its rows)",
+    # step 3: 3b's order of the tiles (tile_of; v0, v1, and step 4's kernel)
+    ("step3.cuh", "3b: tm and tn swapped (a group's blocks run along its columns of tiles, not its rows)",
      "        tm = first + r % rows;\n        tn = r / rows;\n",
      "        tn = first + r % rows;\n        tm = r / rows;\n"),
-    ("step3.cuh", "3c: the last group's rows not bounded (8 rows of tiles even when fewer are left)",
+    ("step3.cuh", "3b: the last group's rows not bounded (8 rows of tiles even when fewer are left)",
      "const int rows = min(tilesM - first, 8), r = b % per;",
      "const int rows = 8, r = b % per;"),
-    ("step3.cuh", "3c: the last group's rows bounded by all the rows of tiles, not by those left (min(tilesM, 8))",
+    ("step3.cuh", "3b: the last group's rows bounded by all the rows of tiles, not by those left (min(tilesM, 8))",
      "const int rows = min(tilesM - first, 8), r = b % per;",
      "const int rows = min(tilesM, 8), r = b % per;"),
-    ("step3.cuh", "3c: a group's first row without the factor 8 (b / per for b / per * 8)",
+    ("step3.cuh", "3b: a group's first row without the factor 8 (b / per for b / per * 8)",
      "first = b / per * 8;",
      "first = b / per;"),
-    ("step3.cuh", "3c: the rows of tiles rounded down (M / 128: the row of tiles cut by M forgotten)",
+    ("step3.cuh", "3b: the rows of tiles rounded down (M / 128: the row of tiles cut by M forgotten)",
      "const int tilesM = (M + 127) / 128, per",
      "const int tilesM = M / 128, per"),
-    # step 3: 3a's loads, 3b's stores, the edge in M
+    # step 3: 3a's loads, the epilogue's stores, the edge in M
     ("step3.cuh", "3a: A loaded one chunk off ((t + 1) % 4 for t % 4: inside A, a wrong C)",
      "ra[i] = ld16<kNc>((const int4*)&A[(size_t)gr * K + k0] + threadIdx.x % 4);",
      "ra[i] = ld16<kNc>((const int4*)&A[(size_t)gr * K + k0] + (threadIdx.x + 1) % 4);"),
-    ("step3.cuh", "3b: C stored without the half tile's offset (row row0 + r for row0 + 64 h + r)",
-     "st16<kEf>((int4*)&C[(size_t)gr * N + col0]",
-     "st16<kEf>((int4*)&C[(size_t)(row0 + r) * N + col0]"),
+    ("step3.cuh", "C stored without the half tile's offset (row row0 + r for row0 + 64 h + r)",
+     "*((int4*)&C[(size_t)gr * N + col0]",
+     "*((int4*)&C[(size_t)(row0 + r) * N + col0]"),
     ("step3.cuh", "no M - 1 clamp of the rows of A (edge tiles)",
      "const int gr = kEdge ? min(row0 + r, M - 1) : row0 + r;",
      "const int gr = row0 + r;"),
-    ("step3.cuh", "3b: C stored without the bound gr < M (edge tiles write rows past M)",
-     "            if (gr < M)\n                st16<kEf>(",
-     "                st16<kEf>("),
+    ("step3.cuh", "C stored without the bound gr < M (edge tiles write rows >= M)",
+     "            if (gr < M)\n                *((int4*)&C[",
+     "                *((int4*)&C["),
     # step 2: each barrier removed in turn
     ("step2.cuh", "no barrier after the first slice's stores (prologue)",
      "    load(0);\n    store(0);\n    __syncthreads();\n",
@@ -269,10 +245,10 @@ BUGS = [
     ("step1.cuh", "no barrier after the stores to stage 0 (end of a K64)",
      "            if (next) store(0);\n            __syncthreads();\n",
      "            if (next) store(0);\n"),
-    ("step1.cuh", "no barrier between the copy and the compute (v2, v4)",
+    ("step1.cuh", "no barrier between the copy and the compute (v1, v3)",
      "            store(0);\n            __syncthreads();\n            compute(0);\n",
      "            store(0);\n            compute(0);\n"),
-    ("step1.cuh", "no barrier after the compute (v2, v4)",
+    ("step1.cuh", "no barrier after the compute (v1, v3)",
      "            compute(0);\n            __syncthreads();\n",
      "            compute(0);\n"),
     ("step1.cuh", "no barrier between the epilogue's fragment stores and its copy out",
@@ -289,7 +265,7 @@ BUGS = [
      "const int gr = row0 + r;"),
     # every step with two stages: the write stage frozen at stage 1 (seen only once the stages go round, from the
     # second K64 on: 128 x 512 x 128 for steps 1 to 5, 16 x 1024 x 1024 for step 6's tiles)
-    ("step1.cuh", "1b: the next K64's first slice stored to stage 1, the one just read (the write stage frozen)",
+    ("step1.cuh", "1a: the next K64's first slice stored to stage 1, the one just read (the write stage frozen)",
      "if (next) store(0);",
      "if (next) store(1);"),
     ("step2.cuh", "the next K64's first slice stored to stage 1, the one just read (the write stage frozen)",
@@ -351,12 +327,10 @@ def build_and_run(tmp, index, bug, timeout):
 
 
 def first_failure(output):
-    """The first FAILED run (label, shape, order and reasons) and the first EMU ERROR line of an emulator output."""
+    """The first FAILED run of an emulator output: its label, shape and order (for a check, its name and range), without
+    its reasons or the EMU ERROR lines, so that the test's output is the same at every run."""
     run = next((l for l in output.splitlines() if "  FAILED  " in l), "")
-    head, _, tail = run.partition("  FAILED  ")
-    why = tail[tail.find("[") + 1:tail.rfind("]")] if "[" in tail else tail.strip()
-    error = next((l for l in output.splitlines() if l.startswith("EMU ERROR")), "")
-    return " ".join(head.split()) + ": " + why, error
+    return " ".join(run.partition("  FAILED  ")[0].split())
 
 
 def main():
@@ -367,7 +341,7 @@ def main():
     check_substitutions()
     tmp = tempfile.mkdtemp(prefix="planted_bugs_")
     print(f"planted-bug test: {len(BUGS)} bugs, each in a copy of its header, the emulator built against each copy "
-          f"({args.j} jobs, in {tmp})", flush=True)
+          f"({args.j} jobs, in a temporary directory)", flush=True)
     jobs = [None] + BUGS   # job 0: the unmodified copy
     with ThreadPoolExecutor(max_workers=args.j) as pool:
         futures = [pool.submit(build_and_run, tmp, i, bug, 3600 if bug is None else 1800) for i, bug in enumerate(jobs)]
@@ -383,10 +357,7 @@ def main():
     for (header, what, _, _), (code, output) in zip(BUGS, results[1:]):
         if code == 1 and "  FAILED  " in output:
             reported += 1
-            run, error = first_failure(output)
-            print(f"  reported  {header}: {what}\n            first failed run: {run}")
-            if error:
-                print(f"            {error}")
+            print(f"  reported  {header}: {what}\n            first failed run: {first_failure(output)}")
         else:
             ok = False
             verdict = "MISSED  " if code == 0 else "ERROR   "

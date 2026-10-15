@@ -1,4 +1,4 @@
-// The reference point of the Turing rung, as a candidate for the judge (judge/judge.cu): NVIDIA's simple_wmma_gemm,
+// The reference point of the Turing rung, as a candidate for the judge: NVIDIA's simple_wmma_gemm,
 // adapted (see nvidia_sample.cuh). Not a step: the wmma API alone, without shared memory.
 #include <cstdio>
 #include <cstdlib>

@@ -1,4 +1,4 @@
-// Step 0 of the Turing rung, as a candidate for the judge (judge/judge.cu): NVIDIA's compute_gemm, adapted (see
+// Step 0 of the Turing rung, as a candidate for the judge: NVIDIA's compute_gemm, adapted (see
 // nvidia_sample.cuh).
 #include <cstdio>
 #include <cstdlib>

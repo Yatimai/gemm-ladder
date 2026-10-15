@@ -33,60 +33,50 @@
 
 namespace step4 {
 
-// ---------------------------------------------------------------- step 4: instruction issue
-// Two mechanisms of cuBLAS's T4 kernel, nested on step 3 (step3.cuh, v0): fragment pipelining (4a), and an order of the
-// HMMA (4b), a setting measured on its own. Kept from step 3: step 2's kernel (one block per 128 x 256 tile, 8 warps of
-// 64 x 64, two shared stages of K32 filled through registers with one barrier per K32, 2a's mma.sync m16n8k8 and
-// ldmatrix.x4, 128 HMMA and 16 LDSM.x4 per K32 and per warp, 2b's swizzle, the fp16 output through shared memory half a
-// tile at a time), with 3a's loads, 3b's stores and 3c's order of the tiles. The copy of a slice is step 3's too, with
-// its addresses and the loop's tests: thread t loads rows t / 4 + 64 i of A at chunk t % 4 and rows t / 32 + 8 i of B
-// at chunk t % 32, at addresses computed from k0 at each slice, and a tile cut by M clamps the row of A each thread
-// loads to M - 1. Shapes: M a multiple of 16, N of 256, K of 64.
+// ---------------------------------------------------------------- step 4: fragment double buffering
+// One mechanism on step 3 (step3.cuh, v0): fragment pipelining (4a). Kept from step 3: step 2's kernel (step 0's
+// persistent grid of one block per SM over 128 x 256 tiles, 8 warps of 64 x 64, two shared stages of K32 filled through
+// registers with one barrier per K32, 2a's mma.sync m16n8k8 and ldmatrix.x4, 128 HMMA and 16 LDSM.x4 per K32 and per
+// warp, 2b's swizzle, the fp16 output through shared memory half a tile at a time), with 3a's loads and 3b's order of
+// the tiles. The copy of a slice is step 3's too, with its addresses and the loop's tests: thread t loads rows
+// t / 4 + 64 i of A at chunk t % 4 and rows t / 32 + 8 i of B at chunk t % 32, at addresses computed from k0 at each
+// slice, and a tile cut by M clamps the row of A each thread loads to M - 1.
+// Shapes: M a multiple of 16, N of 256, K of 64.
 // Steps 2 and 3 read a stage's fragments K16 at a time, starting at the barrier that publishes the stage, once the
-// previous stage's HMMA are all issued: the loop issues LDSM in bursts (up to 13 LDSM, LDG and STS in a row with no
-// HMMA between them, after each barrier), and 11 of its 32 LDSM per K64 have fewer than 8 HMMA between them and the
-// first HMMA that reads them. Under ncu, the loop's waits sit on these LDSM and on the first HMMA to read one of them
-// (the README, step 4).
-// (4a) Fragment pipelining, a mechanism of cuBLAS's kernel; ours: the fragments of one k8 slice at a time (4
-//      LDSM.x4: A's four 16 x 8 blocks and B's eight 8 x 8 ones, the operands of the slice's 32 HMMA) in two sets of 16
-//      registers, the 32 that step 2 declares for one K16; the next slice's 4 LDSM issue among the current slice's 32
-//      HMMA. The copy to the other stage and the barrier, which both publishes the other stage and frees this one, come
-//      after the stage's last read (slice 3's fragments), before slice 2's HMMA (steps 2 and 3: after their last HMMA).
-//      HMMA whose operands are in registers then surround the barrier, and ptxas moves some across it. The other
-//      stage's first fragments are read after it, among the stage's last HMMA, as are the next slice's global loads.
-//      Under 4a alone (v1), a slice's HMMA keep step 2's order (the rows, then the columns). Each accumulator sums its
-//      k8 slices in step 2's order, with or without 4b, so step 3 and both variants of step 4 give the same bits.
-// (4b) An order of the HMMA that reuses an operand, as cuBLAS's kernel. Ours, on 4a, orders a slice's 32 HMMA so
-//      that B's operand is reused in 3 HMMA of 4 (mma below): ptxas sets 192 .reuse flags on its HMMA per K64, none
-//      with step 2's order on 4a; same instructions. What each is worth, measured: the README, step 4.
-// Tried on 4a and 4b, and left out: a lighter loop, as cuBLAS's (fewer integer instructions under ncu than our 24 per
-// K32 and per warp; the README, step 2): pointers moved as the copy goes, immediate offsets from them, the last K64
-// peeled off the loop, its counter on the uniform datapath; drafts, not published (the README, step 4).
+// previous stage's HMMA are all issued: step 3's loop issues LDSM in bursts (up to 13 LDSM, LDG and STS in a row with
+// no HMMA between them, after each barrier), and 9 of its 32 LDSM per K64 have fewer than 8 HMMA between them and the
+// first HMMA that reads them.
+// (4a) Fragment pipelining: the fragments of one k8 slice at a time (4 LDSM.x4: A's four 16 x 8 blocks and B's eight
+//      8 x 8 ones, the operands of the slice's 32 HMMA) in two sets of 16 registers, the 32 that step 2 declares for
+//      one K16; the next slice's 4 LDSM issue among the current slice's 32 HMMA. The copy to the other stage and the
+//      barrier, which both publishes the other stage and frees this one, come after the stage's last read (slice 3's
+//      fragments), before slice 2's HMMA (steps 2 and 3: after their last HMMA). HMMA whose operands are in registers
+//      then surround the barrier, and ptxas moves some across it. The other stage's first fragments are read after it,
+//      among the stage's last HMMA, as are the next slice's global loads. A slice's HMMA keep step 2's order (the rows,
+//      then the columns), and each accumulator sums its k8 slices in step 2's order, so step 3 and step 4 give the
+//      same bits. What it is worth, measured: the README, step 4.
 // The counts below are read with nvcc 13.2 (a local compilation); the measured binaries are built by nvcc 13.1.1 (the
 // Modal images).
-// Compiled (nvcc 13.2): 254 registers in v0, v1 and step 3, no spill; 49 152 bytes of dynamic shared memory; one block
-// per SM. Main loop, per K32 and per warp (one K64 per turn; full tiles, edge tiles in brackets where they differ):
+// Compiled (nvcc 13.2): 254 registers in v0 and in step 3, no spill; 49 152 bytes of dynamic shared memory; one block
+// per SM. Main loop, per K32 and per warp (one K64 per turn; full and edge tiles alike):
 //                       HMMA   LDSM    LDG.128   STS.128   BAR   BRA   integer     total         per HMMA
-//   step 3 (v2)         128    16 x4   6         6         1     1.5   26.5 (26)   185 (184.5)   1.45 (1.44)
-//   4a (v1)             128    16 x4   6         6         1     0.5   24 (25.5)   181.5 (183)   1.42 (1.43)
-//   4a + 4b (v0)        128    16 x4   6         6         1     0.5   24 (25.5)   181.5 (183)   1.42 (1.43)
+//   step 3 (v1)         128    16 x4   6         6         1     1.5   44.5        203           1.59
+//   4a (v0)             128    16 x4   6         6         1     0.5   27.5        185           1.45
 // 4a's loop keeps step 3's tests, which ptxas predicates instead of branching: 1 branch per K64 instead of 3.
-// From the same bar.sync, ptxas emits BAR.SYNC.DEFER_BLOCKING in v0 and v1, and BAR.SYNC in step 3 (one bit of the
-// encoding, undocumented; its cause is not known).
-// Shared memory: no bank conflict in v0, v1 or step 3; LDSM.x4 and the STS.128 of the copy take 4 wavefronts each, the
+// From the same bar.sync, ptxas emits BAR.SYNC.DEFER_BLOCKING in v0, and BAR.SYNC in step 3 (one bit of the encoding).
+// Shared memory: no bank conflict in v0 or step 3; LDSM.x4 and the STS.128 of the copy take 4 wavefronts each, the
 // minimum, as in step 2 (host emulator).
 // Where the loop's LDSM sit (SASS; per LDSM, the HMMA issued between it and the first HMMA that reads its registers,
 // fewest and mean; the longest run of LDSM, LDG and STS with no HMMA between them):
-//   step 3 (v2)   0 and 27 (11 of 32 LDSM under 8); 13;
-//   4a (v0, v1)   27 to 30 and 38.4 to 40.3 (none under 8); 1.
-// Variants (g_var in step4.cu, for the interleaved probe): v0 = step 4 (4a + 4b); v1 = without 4b (4a, a slice's HMMA
-// in step 2's order); v2 = step 3 itself (step3::gemm<true, true, true>), so that the anchor runs in the same probe.
-// Without 4a, 4b has nothing to order: v1 against v2 measures 4a alone, v0 against v1 4b alone.
+//   step 3 (v1)   0 and 26.5 (9 of 32 LDSM under 8); 19;
+//   4a (v0)       30 and 39.8 to 40.3 (none under 8); 1.
+// Variants (g_var in step4.cu, for the interleaved probe): v0 = step 4 (4a); v1 = step 3 itself
+// (step3::gemm<true, true>), so that the anchor runs in the same probe: v0 against v1 measures 4a.
 
 using G = step2::Geometry<true>;   // step 2's stages (2b's swizzle): 49 152 bytes
 
-// One 128 x 256 tile; kOrder: 4b; kEdge: the tile is cut by M (the row of A each thread loads is clamped to M - 1).
-template <bool kOrder, bool kEdge>
+// One 128 x 256 tile; kEdge: the tile is cut by M (the row of A each thread loads is clamped to M - 1).
+template <bool kEdge>
 __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const half* B, half* C, int M, int N, int K,
                                              int row0, int col0)
 {
@@ -153,18 +143,11 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
     auto hmma = [&](int f, int i, int j) {   // c[i][j] += the slice's A block i times its B block j, from set f
         step2::mma_m16n8k8(c[i][j], fa[f][i / 2][2 * (i % 2)], fa[f][i / 2][2 * (i % 2) + 1], fb[f][j / 4][j % 4]);
     };
-    auto mma = [&](int f) {   // a k8 slice's 32 HMMA from set f
-        if constexpr (kOrder) {   // 4b's order: 8 columns, the rows back and forth
+    auto mma = [&](int f) {   // a k8 slice's 32 HMMA from set f, in step 2's order: the rows, then the columns
 #pragma unroll
-            for (int j = 0; j < 8; j++)
+        for (int i = 0; i < 4; i++)
 #pragma unroll
-                for (int ii = 0; ii < 4; ii++) hmma(f, j % 2 ? 3 - ii : ii, j);
-        } else {   // step 2's order: the rows, then the columns
-#pragma unroll
-            for (int i = 0; i < 4; i++)
-#pragma unroll
-                for (int j = 0; j < 8; j++) hmma(f, i, j);
-        }
+            for (int j = 0; j < 8; j++) hmma(f, i, j);
     };
     // One K32 stage s; set 0 holds its slice 0 on entry, and each slice's HMMA follow the read of the next slice into
     // the other set (ptxas spreads the LDSM among the HMMA). The copy to the other stage (st) and the barrier come
@@ -219,23 +202,25 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
             const int r = threadIdx.x / 32 + i * 8;   // row in the half tile
             const int gr = row0 + h * 64 + r;
             if (gr < M)
-                step3::st16<true>((int4*)&C[(size_t)gr * N + col0] + threadIdx.x % 32,
-                                  *((const int4*)&Os[r * G::kOStride] + threadIdx.x % 32));
+                *((int4*)&C[(size_t)gr * N + col0] + threadIdx.x % 32) =
+                    *((const int4*)&Os[r * G::kOStride] + threadIdx.x % 32);
         }
         __syncthreads();
     }
 }
 
-// One block per 128 x 256 tile, the tiles in step 3's order (3c).
-template <bool kOrder>
+// Step 0's persistent grid (one block per SM, block_pos += gridDim.x) over the 128 x 256 tiles, in step 3's order (3b).
 __global__ void gemm(const half* A, const half* B, half* C, int M, int N, int K)
 {
     extern __shared__ __align__(128) half shmem[];
-    int tm, tn;
-    step3::tile_of<true>(blockIdx.x, M, N, tm, tn);   // step 3's order (3c)
-    const int row0 = tm * 128, col0 = tn * 256;
-    if (row0 + 128 <= M) compute_tile<kOrder, false>(shmem, A, B, C, M, N, K, row0, col0);
-    else compute_tile<kOrder, true>(shmem, A, B, C, M, N, K, row0, col0);
+    const int tiles = (M + 127) / 128 * (N / 256);
+    for (int block_pos = blockIdx.x; block_pos < tiles; block_pos += gridDim.x) {
+        int tm, tn;
+        step3::tile_of<true>(block_pos, M, N, tm, tn);   // step 3's order (3b)
+        const int row0 = tm * 128, col0 = tn * 256;
+        if (row0 + 128 <= M) compute_tile<false>(shmem, A, B, C, M, N, K, row0, col0);
+        else compute_tile<true>(shmem, A, B, C, M, N, K, row0, col0);
+    }
 }
 
 }  // namespace step4

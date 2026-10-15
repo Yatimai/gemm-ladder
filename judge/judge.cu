@@ -1,6 +1,6 @@
-// The judge of gemm-ladder, version 4. It times a candidate against the judge's reference, shape by shape, in a
-// sustained regime: each arm runs alone for a block, as in service, so at its own clock (the T4, A100, H100 and B200 are
-// held by their power cap during a GEMM).
+// The judge of gemm-ladder, version 6.
+// It times a candidate against the judge's reference, shape by shape, in a sustained regime: each arm runs alone for a
+// block, so at its own clock.
 //
 // Convention: C = A B; A (M x K) and B (K x N) fp16 row-major; fp32 accumulation; C (M x N) fp16 row-major. The
 // candidate provides, in a .cu compiled with this file:
@@ -20,33 +20,28 @@
 //     reference's stream), and the persisting L2 is reset before each block;
 //   - the programmatic dependencies (PDL) between two consecutive calls are NEUTRALIZED in both timed graphs, the
 //     reference's and the candidate's: they become ordinary dependencies, and both arms are timed as a chain of
-//     dependent layers. PDL inside a call stays allowed. When the reference chains its calls by PDL (cuBLAS does on
-//     the B200), the judge reports, for the record, what that PDL would have brought it.
+//     dependent layers. PDL inside a call stays allowed. When the reference chains its calls by PDL, the judge
+//     reports, for the record, what that PDL would have brought it.
 //
 // Timing: a CUDA graph of G >= 3 calls (alternating input sets) per arm; a block = an untimed warm-up, then the
 // timing; P pairs of blocks (reference, candidate) in random order; ratio per pair = the reference's time over the
 // candidate's; per shape: the median of the pairs; score: the geometric mean over the shapes. The clock and power of
 // each arm are sampled through NVML.
 //
-// Reference: a short sort (blocks of 0.35 s) of cuBLASLt's configurations (the heuristic: its first 48 with 64 MB of
-// workspace, then its first 8 not yet present with 32, 4, 1 and 0 MB; then, around the first of each family, each
-// setting changed alone, split-K with each reduction scheme, clusters 2 to 51), then a FINAL of the first 5 in the
-// regime of the pairs (2 interleaved rounds), which cuBLAS's default call (cublasGemmEx) also enters, twice: with the
-// handle a user gets in a CUDA graph (cublasSetStream only: cuBLAS's pool workspace) and with the judge's 64 MB
-// handle (cuBLAS picks another kernel depending on the workspace). The fastest is the reference. Labels: hN = result N
-// of the heuristic at 64 MB, wMhN = result N at M MB, aID:settingV = a variation around family ID, cacheN = a cached
+// Reference: a short sort (blocks of 0.35 s) of cuBLASLt's configurations (the heuristic: its first 48 with 64 MB
+// of workspace, then its first 8 not yet present with 32, 4, 1 and 0 MB; then, around the first of each family,
+// each setting changed alone, split-K with each reduction scheme, clusters 2 to 51), then a FINAL of the first 5 in
+// the regime of the pairs (2 interleaved rounds). The fastest is the reference. Labels: hN = result N of the
+// heuristic at 64 MB, wMhN = result N at M MB, aID:settingV = a variation around family ID, cacheN = a cached
 // configuration. The REFERENCE lines (cuBLASLt's finalists, with the card's identity and the whole algorithm in
 // hexadecimal) feed a cache; with --reference FILE, the sort covers only the configurations kept for THIS card, the
-// heuristic's first 3 at 64 MB and its first 8 not yet present at each other workspace cap, then the same final. The
-// "reference time" of the SCORE line is the reference's: cuBLASLt's or cuBLAS's default call's. The final writes, per
-// shape, the ratio of each default call's time to the best cuBLASLt configuration's; --default times the pool default
-// (the ratio_default column then changes meaning). The NVML throttle reasons of each arm are written, and a thermal
-// or hardware throttle raises a warning (such a pass does not count as an official pair). A CYCLES line follows the
-// SCORE line (ratio in cycles, and clocks, at the shapes with M >= 512: under a power cap, a clock gain is an energy
-// gain); the line of a refused timing is marked "# timing refused"; the REFERENCE lines carry the pass's token, which
-// the launcher checks.
+// heuristic's first 3 at 64 MB and its first 8 not yet present at each other workspace cap, then the same final.
+// The NVML throttle reasons of each arm are written, and a thermal or hardware throttle raises a warning (such a pass
+// does not count as an official pair). A CYCLES line follows the SCORE line (ratio in cycles, and clocks, at the
+// shapes with M >= 512); the line of a refused timing is marked "# timing refused"; the REFERENCE lines carry the
+// pass's token, which the launcher checks.
 //
-// Usage: ./judge shapes.txt [--pairs P] [--duration S] [--warmup S] [--quick] [--only a,b] [--default]
+// Usage: ./judge shapes.txt [--pairs P] [--duration S] [--warmup S] [--quick] [--only a,b]
 //        [--seed G] [--reference FILE]
 #include <algorithm>
 #include <atomic>
@@ -106,11 +101,11 @@ struct Nvml {
     }
 };
 
-// Clock and power samples of the arm being timed (0 reference, 1 candidate, 2 default call).
+// Clock and power samples of the arm being timed (0 reference, 1 candidate).
 struct Sample { double mhz = 0, w = 0; long n = 0; unsigned long long reasons = 0; };
 static std::atomic<int> g_arm{-1};
 static std::atomic<bool> g_done{false};
-static Sample g_samples[3];
+static Sample g_samples[2];
 static std::mutex g_mx;
 
 static void sampler(Nvml* nv)
@@ -242,8 +237,8 @@ static bool check_algo(Lt& L, Cfg& c)
 static std::vector<Cfg> configurations(Lt& L, bool full, int n = 48)
 {
     // The heuristic at 64 MB (its first n), then at 32, 4, 1 and 0 MB (its first 8 not yet present, in the full sort
-    // as in cache mode: a cache written by an earlier version lacks these configurations); its choices change with
-    // the workspace cap.
+    // as in cache mode).
+    // Its choices change with the workspace cap.
     std::vector<Cfg> cfgs;
     for (size_t cap : {L.wsMax, (size_t)32 << 20, (size_t)4 << 20, (size_t)1 << 20, (size_t)0}) {
         cublasLtMatmulPreference_t pref; LT(cublasLtMatmulPreferenceCreate(&pref));
@@ -334,7 +329,7 @@ static GpuState read_state(cudaStream_t s_ref)
 
 // ---------------------------------------------------------------- timing
 struct Options {
-    int pairs = 4; double duration = 1.5, warmup = 0.5; bool quick = false, with_default = false;
+    int pairs = 4; double duration = 1.5, warmup = 0.5; bool quick = false;
     unsigned seed = 0; std::vector<std::string> only; std::string reference;
 };
 
@@ -422,7 +417,6 @@ int main(int argc, char** argv)
         else if (a == "--duration") o.duration = atof(next_arg().c_str());
         else if (a == "--warmup") o.warmup = atof(next_arg().c_str());
         else if (a == "--quick") { o.quick = true; o.pairs = 2; o.duration = 0.6; o.warmup = 0.2; }
-        else if (a == "--default") o.with_default = true;
         else if (a == "--seed") o.seed = (unsigned)strtoul(next_arg().c_str(), nullptr, 10);
         else if (a == "--reference") o.reference = next_arg();
         else if (a == "--only") { std::stringstream ss(next_arg()); std::string t; while (std::getline(ss, t, ',')) o.only.push_back(t); }
@@ -458,7 +452,7 @@ int main(int argc, char** argv)
             if (dehex(h, m.algo)) cache.push_back(m);
         }
     }
-    printf("judge v4 (md5 %s): %s, sm_%d%d, %d SMs, power cap %u W, CUDA driver %d; cuBLASLt %zu; seed %u; pairs %d, "
+    printf("judge v6 (md5 %s): %s, sm_%d%d, %d SMs, power cap %u W, CUDA driver %d; cuBLASLt %zu; seed %u; pairs %d, "
            "block %.2f s with a warm-up of %.2f s%s\n", JUDGE_MD5, p.name, p.major, p.minor, p.multiProcessorCount, cap_mw / 1000,
            driver, cublasLtGetVersion(), o.seed, o.pairs, o.duration, o.warmup, o.quick ? " (quick)" : "");
     printf("card: %s\n", card.c_str());
@@ -474,23 +468,20 @@ int main(int argc, char** argv)
     Bench bench; CK(cudaStreamCreateWithFlags(&bench.s, cudaStreamNonBlocking));
     cudaStream_t s_cand; CK(cudaStreamCreateWithFlags(&s_cand, cudaStreamNonBlocking));
     CK(cudaEventCreate(&bench.e0)); CK(cudaEventCreate(&bench.e1));
-    cublasHandle_t hb; LT(cublasCreate(&hb)); LT(cublasSetStream(hb, bench.s));
+    cublasHandle_t hb; LT(cublasCreate(&hb)); LT(cublasSetStream(hb, bench.s));   // the fp32 references (ref32, below)
     void* wsb; CK(cudaMalloc(&wsb, 64u << 20)); LT(cublasSetWorkspace(hb, wsb, 64u << 20));
-    // cuBLAS's default call as a user gets it: cublasCreate then cublasSetStream, no workspace set (cublasSetStream
-    // restores cuBLAS's pool workspace). hb, above, serves the fp32 references and the final's "64 MB" default.
-    cublasHandle_t hp; LT(cublasCreate(&hp)); LT(cublasSetStream(hp, bench.s));
     Lt L; LT(cublasLtCreate(&L.h)); CK(cudaMalloc(&L.ws, L.wsMax));
     const float one = 1.f, zero = 0.f;
     const GpuState state0 = read_state(bench.s);
 
     printf("shape,M,N,K,reference,t_ref_us,t_cand_us,ratio,ratio_min,ratio_max,mhz_ref,mhz_cand,w_ref,w_cand,"
-           "ratio_cycles,err_before,err_after,throttle_ref,throttle_cand%s\n", o.with_default ? ",ratio_default" : "");
+           "ratio_cycles,err_before,err_after,throttle_ref,throttle_cand\n");
     fflush(stdout);
     std::vector<double> ratios; int won = 0, lost = 0; bool correct = true;
     bool card_throttled = false;   // a thermal or hardware throttle seen during a timing
     const unsigned long long kAbnormalThrottle = 0x8ull | 0x20ull | 0x40ull | 0x80ull;   // HW slowdown, thermal (sw, hw), power brake
     struct Compute { double ratio, rcyc, mr, mc, wr, wc; };
-    std::vector<Compute> compute_bound;   // the shapes with M >= 512, bound by compute: for the CYCLES line
+    std::vector<Compute> compute_bound;   // the shapes with M >= 512: for the CYCLES line
     auto fail = [&](const char* what, const std::string& shape, double e) {
         printf("FAILED %s: shape %s%s", what, shape.c_str(), e >= 0 ? "" : "\n");
         if (e >= 0) printf(", error %.3e (tolerance %.0e)\n", e, kTol);
@@ -499,9 +490,9 @@ int main(int argc, char** argv)
     for (const Shape& F : shapes) {
         const int M = F.M, N = F.N, K = F.K;
         const size_t nA = (size_t)M * K, nB = (size_t)K * N, nC = (size_t)M * N;
-        half *A[3], *B[3], *Cc, *Cl, *Cd; float *C32, *C32g;
+        half *A[3], *B[3], *Cc, *Cl; float *C32, *C32g;
         for (int j = 0; j < 3; ++j) { CK(cudaMalloc(&A[j], nA * 2)); CK(cudaMalloc(&B[j], nB * 2)); }
-        CK(cudaMalloc(&Cc, nC * 2)); CK(cudaMalloc(&Cl, nC * 2)); CK(cudaMalloc(&Cd, nC * 2));
+        CK(cudaMalloc(&Cc, nC * 2)); CK(cudaMalloc(&Cl, nC * 2));
         CK(cudaMalloc(&C32, nC * 4)); CK(cudaMalloc(&C32g, nC * 4));
         int ref_set = -1;   // the input set whose reference is in C32
         unsigned* dres; CK(cudaMalloc(&dres, 3 * sizeof(unsigned)));
@@ -559,7 +550,7 @@ int main(int argc, char** argv)
         if (!check_state("before the timing")) { correct = false; break; }
         if (input_checksum() != sum0) { fail("the candidate changed A or B (before the timing)", F.tag, -1); break; }
 
-        // The reference: the best cuBLASLt configuration of this shape.
+        // The reference: the cuBLASLt configuration the final ranks first at this shape.
         LT(cublasLtMatmulDescCreate(&L.op, CUBLAS_COMPUTE_32F, CUDA_R_32F));
         LT(cublasLtMatrixLayoutCreate(&L.la, CUDA_R_16F, N, K, N));
         LT(cublasLtMatrixLayoutCreate(&L.lb, CUDA_R_16F, K, M, K));
@@ -588,7 +579,7 @@ int main(int argc, char** argv)
             if (e <= kTol) good.push_back(c);
         }
         if (good.empty()) { printf("no correct cuBLASLt configuration for %s\n", F.tag.c_str()); return 3; }
-        // G calls per graph, so that a graph lasts at least 2 ms, and at least 3 so that the three input sets run.
+        // G calls per graph, about 2 ms of them (3 to 200), at least 3 so that the three input sets run.
         bool ok;
         cudaGraphExec_t g1 = bench.graph(bench.s, [&](int j) { lt_call(good[0], Cl, j); }, 1, &ok);
         if (!ok) { printf("cuBLASLt cannot be captured\n"); return 3; }
@@ -608,64 +599,26 @@ int main(int argc, char** argv)
         std::sort(rank.begin(), rank.end(), [&](int a, int b) { return good[a].t < good[b].t; });
         const int nf = std::min<int>(kFinalists, (int)rank.size());
         std::vector<std::vector<double>> tf(nf);
-        // cuBLAS's default call (cublasGemmEx, the configuration cuBLAS picks itself) enters the final, with a user's
-        // handle (hp, cuBLAS's pool) and with the 64 MB one (hb).
-        auto default_hp = [&](int j) {
-            cublasGemmEx(hp, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &one, B[j], CUDA_R_16F, N, A[j], CUDA_R_16F, K, &zero,
-                         Cl, CUDA_R_16F, N, CUBLAS_COMPUTE_32F, CUBLAS_GEMM_DEFAULT); };
-        auto default_hb = [&](int j) {
-            cublasGemmEx(hb, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &one, B[j], CUDA_R_16F, N, A[j], CUDA_R_16F, K, &zero,
-                         Cl, CUDA_R_16F, N, CUBLAS_COMPUTE_32F, CUBLAS_GEMM_DEFAULT); };
-        const std::function<void(int)> defaults[2] = {default_hp, default_hb};
-        // No comma: desc_ref is a field of the CSV line.
-        const char* default_names[2] = {"cuBLAS default pool (cublasGemmEx)", "cuBLAS default 64 MB (cublasGemmEx)"};
-        cudaGraphExec_t gd[2] = {nullptr, nullptr}; std::vector<double> td[2]; std::string default_state[2];
-        for (int d = 0; d < 2; ++d) {
-            if (!(error_of(defaults[d], bench.s, Cl, 0) <= kTol)) { default_state[d] = "wrong"; continue; }
-            bool okd; gd[d] = bench.graph(bench.s, defaults[d], G, &okd);
-            if (!okd) { gd[d] = nullptr; default_state[d] = "not capturable"; }
-        }
         for (int r = 0; r < (o.quick ? 1 : 2); ++r) {
             std::vector<int> oo; for (int i = 0; i < nf; ++i) oo.push_back(i);
-            for (int d = 0; d < 2; ++d) if (gd[d]) oo.push_back(nf + d);
             std::shuffle(oo.begin(), oo.end(), rng);
             for (int i : oo) {
-                if (i >= nf) td[i - nf].push_back(bench.block(gd[i - nf], bench.one_graph_ms(gd[i - nf]), o.duration, o.warmup, -1));
-                else tf[i].push_back(bench.block(gl[rank[i]], bench.one_graph_ms(gl[rank[i]]), o.duration, o.warmup, -1));
+                tf[i].push_back(bench.block(gl[rank[i]], bench.one_graph_ms(gl[rank[i]]), o.duration, o.warmup, -1));
             }
         }
         std::vector<int> standing(nf); for (int i = 0; i < nf; ++i) standing[i] = i;
         std::sort(standing.begin(), standing.end(), [&](int a, int b) { return median(tf[a]) < median(tf[b]); });
         const int best = rank[standing[0]];
-        const double t_lt = median(tf[standing[0]]);
-        int dref = -1;   // the default call that beats the best cuBLASLt configuration, if any (the faster of the two)
-        for (int d = 0; d < 2; ++d) if (gd[d] && median(td[d]) < t_lt && (dref < 0 || median(td[d]) < median(td[dref]))) dref = d;
-        const bool ref_is_default = dref >= 0;
-        {
-            char e[2][48];
-            for (int d = 0; d < 2; ++d) {
-                if (gd[d]) snprintf(e[d], sizeof e[d], "%.4f", median(td[d]) / t_lt);
-                else snprintf(e[d], sizeof e[d], "%s", default_state[d].c_str());
-            }
-            printf("info: final of %s: cuBLAS default pool %s, 64 MB %s (time / best cuBLASLt configuration)\n",
-                   F.tag.c_str(), e[0], e[1]);
-        }
         for (int r = 0; r < nf; ++r) {   // the finalists, for the cache (the winner at rank 0)
             const Cfg& c = good[rank[standing[r]]];
             printf("REFERENCE %s %d %d %d %s %d %.4f %s token=%016llx\n", F.tag.c_str(), M, N, K, card.c_str(), r,
                    median(tf[standing[r]]) / median(tf[standing[0]]), hex(c.algo).c_str(), token);
         }
         fflush(stdout);
-        for (size_t i = 0; i < gl.size(); ++i) if ((int)i != best || ref_is_default) cudaGraphExecDestroy(gl[i]);
-        for (int d = 0; d < 2; ++d) if (gd[d] && d != dref) cudaGraphExecDestroy(gd[d]);
-        cudaGraphExec_t gref = ref_is_default ? gd[dref] : gl[best]; const Cfg cref = good[best];
-        const std::string desc_ref = ref_is_default ? std::string(default_names[dref]) : describe(cref);
+        for (size_t i = 0; i < gl.size(); ++i) if ((int)i != best) cudaGraphExecDestroy(gl[i]);
+        cudaGraphExec_t gref = gl[best]; const Cfg cref = good[best];
+        const std::string desc_ref = describe(cref);
         std::function<void(int)> ref_call = [&](int j) { lt_call(good[best], Cl, j); };
-        if (ref_is_default) {
-            ref_call = defaults[dref];
-            printf("info: the reference of %s is the %s: it beats the best cuBLASLt configuration (time %.4f times its own)\n",
-                   F.tag.c_str(), default_names[dref], median(td[dref]) / t_lt);
-        }
         int pdl_ref = 0;
         { cudaGraphExec_t x = bench.graph(bench.s, ref_call, 2, &ok, &pdl_ref); if (ok) cudaGraphExecDestroy(x); }
 
@@ -684,13 +637,6 @@ int main(int argc, char** argv)
                 cudaGraphExecDestroy(gpdl);
             }
         }
-        cudaGraphExec_t gdef = nullptr;
-        if (o.with_default) {
-            gdef = bench.graph(bench.s, [&](int j) {
-                cublasGemmEx(hp, CUBLAS_OP_N, CUBLAS_OP_N, N, M, K, &one, B[j], CUDA_R_16F, N, A[j], CUDA_R_16F, K, &zero,
-                             Cd, CUDA_R_16F, N, CUBLAS_COMPUTE_32F, CUBLAS_GEMM_DEFAULT); }, G, &ok);
-            if (!ok) { printf("cublasGemmEx cannot be captured\n"); return 3; }
-        }
 
         // The fp32 reference of the input set the candidate's graph writes last, to check each of its blocks.
         const int jg = (G - 1) % 3;
@@ -698,10 +644,10 @@ int main(int argc, char** argv)
 
         // The pairs of blocks.
         { std::lock_guard<std::mutex> l(g_mx); for (auto& e : g_samples) e = Sample(); }
-        cudaGraphExec_t gs[3] = {gref, gcand, gdef};
-        const int nb = o.with_default ? 3 : 2;
-        double tg[3]; for (int b = 0; b < nb; ++b) tg[b] = bench.one_graph_ms(gs[b]);
-        std::vector<double> tb[3];
+        cudaGraphExec_t gs[2] = {gref, gcand};
+        const int nb = 2;
+        double tg[2]; for (int b = 0; b < nb; ++b) tg[b] = bench.one_graph_ms(gs[b]);
+        std::vector<double> tb[2];
         double err_blocks = 0;
         for (int r = 0; r < o.pairs; ++r) {
             std::vector<int> oo(nb); for (int b = 0; b < nb; ++b) oo[b] = b;
@@ -715,7 +661,7 @@ int main(int argc, char** argv)
         for (int r = 0; r < o.pairs; ++r) rp[r] = tb[0][r] / tb[1][r];
         const double ratio = median(rp);
         const double tref = median(tb[0]) / G * 1e3, tcand = median(tb[1]) / G * 1e3;
-        Sample samples[3]; { std::lock_guard<std::mutex> l(g_mx); for (int b = 0; b < 3; ++b) samples[b] = g_samples[b]; }
+        Sample samples[2]; { std::lock_guard<std::mutex> l(g_mx); for (int b = 0; b < 2; ++b) samples[b] = g_samples[b]; }
         auto mhz = [&](int b) { return samples[b].n ? samples[b].mhz / samples[b].n : -1.0; };
         auto watts = [&](int b) { return samples[b].n ? samples[b].w / samples[b].n : -1.0; };
         const double rcyc = (mhz(0) > 0 && mhz(1) > 0) ? ratio * mhz(0) / mhz(1) : -1.0;
@@ -741,7 +687,6 @@ int main(int argc, char** argv)
                  *std::min_element(rp.begin(), rp.end()), *std::max_element(rp.begin(), rp.end()),
                  mhz(0), mhz(1), watts(0), watts(1), rcyc, err_before, err_after, samples[0].reasons, samples[1].reasons);
         std::string line = buf;
-        if (o.with_default) { char d[32]; snprintf(d, sizeof d, ",%.4f", median(tb[0]) / median(tb[2])); line += d; }
         const bool valid = err_after <= kTol && inputs_intact && state_intact;
         printf("%s%s\n", valid ? "" : "# timing refused (see FAILED): ", line.c_str());
         if ((samples[0].reasons | samples[1].reasons) & kAbnormalThrottle) {
@@ -761,7 +706,7 @@ int main(int argc, char** argv)
         for (int b = 0; b < nb; ++b) cudaGraphExecDestroy(gs[b]);
         cublasLtMatmulDescDestroy(L.op); cublasLtMatrixLayoutDestroy(L.la); cublasLtMatrixLayoutDestroy(L.lb); cublasLtMatrixLayoutDestroy(L.lc);
         for (int j = 0; j < 3; ++j) { cudaFree(A[j]); cudaFree(B[j]); }
-        cudaFree(Cc); cudaFree(Cl); cudaFree(Cd); cudaFree(C32); cudaFree(C32g); cudaFree(dres); cudaFree(dsum);
+        cudaFree(Cc); cudaFree(Cl); cudaFree(C32); cudaFree(C32g); cudaFree(dres); cudaFree(dsum);
     }
     g_done = true; th.join();
     if (!correct) { printf("SCORE INVALID (correctness or rule)\n"); return 2; }
@@ -774,10 +719,10 @@ int main(int argc, char** argv)
         double lr = 0, lc = 0, mr = 0, mc = 0, wr = 0, wc = 0;
         for (const Compute& c : compute_bound) { lr += std::log(c.ratio); lc += std::log(c.rcyc); mr += c.mr; mc += c.mc; wr += c.wr; wc += c.wc; }
         const double n = (double)compute_bound.size();
-        printf("CYCLES %.4f (geometric mean of the ratios in cycles over the %zu shapes with M >= 512, bound by compute; "
+        printf("CYCLES %.4f (geometric mean of the ratios in cycles over the %zu shapes with M >= 512; "
                "in time over these shapes: %.4f); mean clock reference %.0f MHz, candidate %.0f MHz; mean power %.1f W "
-               "and %.1f W, power cap %u W: under a power cap, time = energy / power, and a clock gain is an energy "
-               "gain\n", std::exp(lc / n), compute_bound.size(), std::exp(lr / n), mr / n, mc / n, wr / n, wc / n, cap_mw / 1000);
+               "and %.1f W, power cap %u W"
+               "\n", std::exp(lc / n), compute_bound.size(), std::exp(lr / n), mr / n, mc / n, wr / n, wc / n, cap_mw / 1000);
     }
     if (card_throttled) printf("CARD THROTTLED (thermal or hardware): this pass does not count as an official pair\n");
     return 0;

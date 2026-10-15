@@ -27,7 +27,7 @@ struct fragment {
     static_assert(m == 16 && n == 16 && k == 16, "only 16 x 16 x 16 fragments are emulated");
     static_assert(!std::is_same<Layout, col_major>::value, "only row-major fragments are emulated");
     static constexpr int num_elements = 256;
-    T x[256];   // the whole tile, row-major (a real fragment holds 8 elements per lane)
+    T x[256];   // the whole tile, row-major (a real one holds 8 or 16 per lane)
 };
 
 template <class Use, class T, class L>

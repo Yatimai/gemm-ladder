@@ -33,35 +33,30 @@
 
 namespace step3 {
 
-// ---------------------------------------------------------------- step 3: the memory hierarchy
-// Three mechanisms of cuBLAS's T4 kernel on the way between DRAM, L2 and the SMs, nested on step 2 (step2.cuh, v0),
-// whose kernel is kept as it is: one block per 128 x 256 tile, 8 warps of 64 x 64, two shared stages of K32 filled
-// through registers with one barrier per K32, mma.sync m16n8k8 and ldmatrix.x4, the swizzle, the edge in M, the fp16
-// output through shared memory half a tile at a time. Shapes: M a multiple of 16, N of 256, K of 64.
-// Step 2 reads A and B with plain 16-byte loads (LDG.E.128.SYS) and writes C with plain stores (STG.E.128.SYS), its
-// tiles in step 0's order, N fastest. At ladder (2048 x 2560 x 2048: 16 x 10 tiles, a wave of 40 blocks on the T4's 40
-// SMs), a wave covers 4 rows of tiles across all 10 columns: it reads 2 MiB of A and all 10 MiB of B, which the 4 MiB
-// of L2 cannot keep for the next rows. The DRAM bytes and L2 sector hits that follow are in the README (ncu at ladder,
-// step 3).
-// (3a) Read-only loads that ask L2 for a whole line, as cuBLAS's kernel (ncu: read-only loads with the L2's
-//      128-byte prefetch): ld.global.nc.L2::128B, A and B being read-only during the kernel.
-// (3b) Stores of C marked evict-first, as cuBLAS's kernel (ncu: evict-first stores): st.global.cs; C is written
-//      once and not read again, so its lines leave L2 before those of A and B.
-// (3c) The tiles in groups of 8 rows of tiles (cuBLAS's swizzle flag; the size 8 is ours, from our earlier T4
-//      kernels): group g's blocks cover rows of tiles 8 g to 8 g + 7, column by column. At ladder a wave covers 8 rows
-//      of tiles and 5 columns: 4 MiB of A and 5 MiB of B, where step 0's order reads 2 MiB of A and 10 MiB of B.
-// None of the three changes the arithmetic: the five variants give the same bits.
+// ---------------------------------------------------------------- step 3: read-only loads, a tile swizzle
+// Two mechanisms on the way between DRAM, L2 and the SMs, nested on step 2 (step2.cuh, v0), whose kernel is kept as
+// it is: step 0's persistent grid (one block per SM) over 128 x 256 tiles, 8 warps of 64 x 64, two shared stages of K32
+// filled through registers with one barrier per K32, mma.sync m16n8k8 and ldmatrix.x4, the swizzle, the edge in M, the
+// fp16 output through shared memory half a tile at a time. Shapes: M a multiple of 16, N of 256, K of 64.
+// Step 2 reads A and B with plain 16-byte loads (LDG.E.128.SYS), its tiles in step 0's order, N fastest. At ladder
+// (2048 x 2560 x 2048: 16 x 10 tiles, a wave of 40 tiles on the T4's 40 SMs, one per block), a wave covers 4 rows of
+// tiles across all 10 columns: it reads 2 MiB of A and all 10 MiB of B, which the 4 MiB of L2 cannot keep for the next
+// rows. The DRAM bytes and L2 sector hits that follow are in the README (ncu at ladder, step 3).
+// (3a) Read-only loads that ask L2 for a whole line: ld.global.nc.L2::128B, A and B being read-only during the kernel.
+// (3b) The tiles in groups of 8 rows of tiles (cuBLASLt's CTA swizzling flag, CUBLASLT_ALGO_CONFIG_CTA_SWIZZLING; the
+//      size 8 is ours): group g covers rows of tiles 8 g to 8 g + 7, column by column. At ladder a wave covers
+//      8 rows of tiles and 5 columns: 4 MiB of A and 5 MiB of B, where step 0's order reads 2 MiB of A and 10 MiB of B.
+// Neither changes the arithmetic: the four variants give the same bits.
 // The counts below are read with nvcc 13.2 (a local compilation); the measured binaries are built by nvcc 13.1.1 (the
 // Modal images).
-// Compiled (nvcc 13.2): all five 254 registers, no spill; 49 152 bytes of dynamic shared memory; one block per SM.
-// 3a turns the loop's 12 LDG.E.128.SYS per K64 into LDG.E.LTC128B.128.CONSTANT.SYS and adds 5 integer instructions per
-// K64 and per warp (370 instructions per K64, 369 at the edge tiles of v0 and v3, against step 2's 365); 3b turns the
-// epilogue's STG.E.128.SYS (16 per thread and tile) into STG.E.EF.128.SYS; 3c only changes how a block finds its tile,
-// before the loop (46 instructions per tile). ptxas's register allocation also moves the epilogue by up to 60
-// instructions between variants, against about 11 800 per warp and tile at ladder.
-// Variants (g_var in step3.cu, for the interleaved probe; each removal keeps the other two):
-//   v0 = step 3 (3a + 3b + 3c); v1 = without 3a; v2 = without 3b; v3 = without 3c;
-//   v4 = step 2 itself (step2::gemm<true>), so that the anchor runs in the same probe.
+// Compiled (nvcc 13.2): 254 registers in v0, 255 in v1, v2 and step 2, no spill; 49 152 bytes of dynamic shared memory;
+// one block per SM. 3a turns the loop's 12 LDG.E.128.SYS per K64 into LDG.E.LTC128B.128.CONSTANT.SYS; the loop has 406
+// instructions per K64 and per warp in v0, 414 in v1, 404 in v2 and 414 in step 2. 3b changes how a block finds each
+// tile, before the loop (48 more instructions per tile than v2, at full and edge tiles). The epilogue differs by up to
+// 40 instructions between variants, against about 13 000 in the loop per warp and tile at ladder.
+// Variants (g_var in step3.cu, for the interleaved probe; each removal keeps the other one):
+//   v0 = step 3 (3a + 3b); v1 = without 3a; v2 = without 3b;
+//   v3 = step 2 itself (step2::gemm<true>), so that the anchor runs in the same probe.
 
 using G = step2::Geometry<true>;   // step 2's stages (2b's swizzle): 49 152 bytes
 
@@ -83,22 +78,8 @@ __device__ __forceinline__ int4 ld16(const int4* p)
 #endif
 }
 
-// 3b: a 16-byte store of C; with kEf, marked evict-first.
-template <bool kEf>
-__device__ __forceinline__ void st16(int4* p, int4 v)
-{
-#ifdef GEMM_LADDER_EMULATE
-    *p = v;
-#else
-    if constexpr (kEf)
-        asm volatile("st.global.cs.v4.s32 [%0], {%1, %2, %3, %4};" :: "l"(p), "r"(v.x), "r"(v.y), "r"(v.z), "r"(v.w)
-                     : "memory");
-    else
-        *p = v;
-#endif
-}
-
-// 3c: the tile (row of tiles tm, column of tiles tn) of block b; without kGroup, step 0's order (N fastest).
+// 3b: the tile (row of tiles tm, column of tiles tn) at place b of the order (a block's block_pos); without kGroup,
+// step 0's order (N fastest).
 template <bool kGroup>
 __device__ __forceinline__ void tile_of(int b, int M, int N, int& tm, int& tn)
 {
@@ -114,8 +95,8 @@ __device__ __forceinline__ void tile_of(int b, int M, int N, int& tm, int& tn)
     }
 }
 
-// One 128 x 256 tile: step 2's compute_tile (step2.cuh, v0), with 3a's loads and 3b's stores.
-template <bool kNc, bool kEf, bool kEdge>
+// One 128 x 256 tile: step 2's compute_tile (step2.cuh, v0), with 3a's loads.
+template <bool kNc, bool kEdge>
 __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const half* B, half* C, int M, int N, int K,
                                              int row0, int col0)
 {
@@ -221,23 +202,27 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
             const int r = threadIdx.x / 32 + i * 8;   // row in the half tile
             const int gr = row0 + h * 64 + r;
             if (gr < M)
-                st16<kEf>((int4*)&C[(size_t)gr * N + col0] + threadIdx.x % 32,
-                          *((const int4*)&Os[r * G::kOStride] + threadIdx.x % 32));
+                *((int4*)&C[(size_t)gr * N + col0] + threadIdx.x % 32) =
+                    *((const int4*)&Os[r * G::kOStride] + threadIdx.x % 32);
         }
         __syncthreads();
     }
 }
 
-// One block per 128 x 256 tile, the tiles in 3c's order or step 0's.
-template <bool kNc, bool kEf, bool kGroup>
+// Step 0's persistent grid (one block per SM, block_pos += gridDim.x) over the 128 x 256 tiles, in 3b's order or step
+// 0's.
+template <bool kNc, bool kGroup>
 __global__ void gemm(const half* A, const half* B, half* C, int M, int N, int K)
 {
     extern __shared__ __align__(128) half shmem[];
-    int tm, tn;
-    tile_of<kGroup>(blockIdx.x, M, N, tm, tn);
-    const int row0 = tm * 128, col0 = tn * 256;
-    if (row0 + 128 <= M) compute_tile<kNc, kEf, false>(shmem, A, B, C, M, N, K, row0, col0);
-    else compute_tile<kNc, kEf, true>(shmem, A, B, C, M, N, K, row0, col0);
+    const int tiles = (M + 127) / 128 * (N / 256);
+    for (int block_pos = blockIdx.x; block_pos < tiles; block_pos += gridDim.x) {
+        int tm, tn;
+        tile_of<kGroup>(block_pos, M, N, tm, tn);
+        const int row0 = tm * 128, col0 = tn * 256;
+        if (row0 + 128 <= M) compute_tile<kNc, false>(shmem, A, B, C, M, N, K, row0, col0);
+        else compute_tile<kNc, true>(shmem, A, B, C, M, N, K, row0, col0);
+    }
 }
 
 }  // namespace step3

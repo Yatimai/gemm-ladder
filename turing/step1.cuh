@@ -36,52 +36,45 @@
 namespace step1 {
 using namespace nvcuda;
 
-// ---------------------------------------------------------------- step 1: the granularity of cuBLAS
-// Four mechanisms of cuBLAS's T4 kernel (named turing_fp16_s1688gemm_fp16_256x128_ldg8_f2f_stages_32x1_nn under ncu),
-// applied to step 0 (compute_gemm, nvidia_sample.cuh): a 128 x 256 tile in the judge's row-major view, two shared
-// stages of K32 filled through registers, one block per tile, every thread copying its share of both operands. Shapes:
-// M a multiple of 16, N of 256 (of 128 for v3 to v5), K of 64. Kept from step 0: wmma 16 x 16 x 16 fragments (b[j] read
-// once per K16 and reused by every row of fragments), rows padded by 16 halves, 16-byte global loads and shared stores,
+// --------------------------------------------------- step 1: two shared stages, a 128 x 256 tile, every thread copying
+// Three mechanisms, applied to step 0 (compute_gemm, nvidia_sample.cuh): a 128 x 256 tile in the judge's row-major
+// view, two shared stages of K32 filled through registers, every thread copying both operands.
+// Shapes: M a multiple of 16, N of 256 (of 128 for v2 to v4), K of 64. Kept from step 0: the persistent grid (one block
+// per SM over a list of tiles fixed at launch, block_pos += gridDim.x), wmma 16 x 16 x 16 fragments (b[j] read once
+// per K16 and reused by every row of fragments), rows padded by 16 halves, 16-byte global loads and shared stores,
 // ordinary global loads, the order of the tiles (N fastest), the edge in M (a tile cut by M clamps the row of A each
-// thread loads to M - 1, so only edge tiles pay for the clamp), the fp16 output through shared memory half a tile (64
-// rows) at a time, at a pitch of the tile's width + 8 halves, then 16-byte stores.
-// (1a) One block per tile, as cuBLAS: the grid has as many blocks as tiles, and when a block ends the hardware
-//      starts the next one on its SM, so an SM that finishes first takes the next tile; step 0 runs one block per SM
-//      over a list of tiles fixed at launch (block_pos += gridDim.x).
-// (1b) Double buffering: two shared stages of K32 instead of one K64 slice. Step 0 issues a slice's loads and waits
+// thread loads to M - 1, so only edge tiles pay for the clamp), the fp16 output through shared memory half a tile
+// (64 rows) at a time, at a pitch of the tile's width + 8 halves, then 16-byte stores.
+// (1a) Double buffering: two shared stages of K32 instead of one K64 slice. Step 0 issues a slice's loads and waits
 //      for them between two barriers, with no HMMA to issue meanwhile. Here each thread's loads of the next K32 slice
 //      go to registers before the compute of the current stage and are in flight during its HMMA (128 per warp at the
 //      128 x 256 tile); they are stored to the other stage after the compute, and one barrier per K32 both publishes
 //      them and frees the stage just read. Step 0 also has one barrier per K32 (two per K64): only their place changes.
-// (1c) A 128 x 256 tile, 8 warps of 64 x 64 (2 along M x 4 along N, 4 x 4 fragments: 128 HMMA per K32 and per
-//      warp, as cuBLAS's kernel) instead of 128 x 128 with warps of 32 x 64. Per K32, a block reads 24 KB of A and B
-//      for 2^20 multiply-adds instead of 16 KB for 2^19 (a quarter fewer bytes read from global memory per
-//      multiply-add), and a warp reads its fragments in 32 LDSM.x2 for 128 HMMA instead of 24 for 64 (a third fewer per
-//      HMMA). The price: 128 accumulator registers per thread instead of 64; step 0 already runs one block per SM (186
-//      registers).
-// (1d) The spread of the copy, cuBLAS's: each of the 256 threads copies its share of the slice of A and of the
-//      slice of B (per K32, 2 + 4 chunks of 16 bytes at the 128 x 256 tile, as cuBLAS's kernel; 2 + 2 at 128 x 128),
-//      where step 0 gives A to warps 0-3 and B to warps 4-7 (at the 128 x 256 tile, B's slice is twice A's). The
-//      template has only this copy, so 1d is measured added to step 0 (v4 against v5), not removed from step 1. Its
-//      cost, seen in the SASS: the fragment addresses are recomputed, about 95 integer instructions per K64 and per
-//      warp in v4 against 23 to 27 in step 0 (full tiles).
+// (1b) A 128 x 256 tile, 8 warps of 64 x 64 (2 along M x 4 along N, 4 x 4 fragments: 128 HMMA per K32 and per warp)
+//      instead of 128 x 128 with warps of 32 x 64. Per K32, a block reads 24 KB of A and B for 2^20 multiply-adds
+//      instead of 16 KB for 2^19 (a quarter fewer bytes read from global memory per multiply-add), and a warp reads its
+//      fragments in 32 LDSM.x2 for 128 HMMA instead of 24 for 64 (a third fewer per HMMA). The price: 128 accumulator
+//      registers per thread instead of 64; step 0 already runs one block per SM (186 registers).
+// (1c) The spread of the copy: each of the 256 threads copies its share of the slice of A and of the slice of B (per
+//      K32, 2 + 4 chunks of 16 bytes at the 128 x 256 tile; 2 + 2 at 128 x 128), where step 0 gives A to warps 0-3 and
+//      B to warps 4-7 (at the 128 x 256 tile, B's slice is twice A's). The template has only this copy, so 1c is
+//      measured added to step 0 (v3 against v4), not removed from step 1. Its cost, seen in the SASS: the fragment
+//      addresses are recomputed, about 95 integer instructions per K64 and per warp in v3 against 23 to 27 in step 0
+//      (full tiles).
 // Padding kept, one side effect: a K32 row of A is 96 bytes (64 + 32 of padding), so the 8 threads of a quarter warp
 // store into two rows whose banks overlap: two-way conflicts on A's stores, which step 0's 160-byte rows do not have.
 // B's stores and every LDSM keep step 0's bank pattern (two-way on the LDSM, from the padding).
 // Variants (g_var in step1.cu, for the interleaved probe: the step, and each removal = the step without one mechanism):
-//   v0 = step 1 (1a + 1b + 1c + 1d; 254 registers, nvcc 13.2);
-//   v1 = without 1a: step 0's persistent grid (one block per SM, block_pos += gridDim.x); at 255 registers with the
-//        tile loop, nvcc also recomputes addresses, about 30 more integer instructions per K64 and per warp than v0,
-//        a cost its measurement includes;
-//   v2 = without 1b: step 0's loop (one K64 slice, copied between two barriers) at the 128 x 256 tile;
-//   v3 = without 1c: step 0's 128 x 128 tile (8 warps of 32 x 64), with 1a and 1b;
-//   v4 = 1d alone: step 0 except for the spread of the copy;
-//   v5 = step 0 itself (nvidia_sample::compute_gemm), so that v4 and v5 run in the same probe.
-// Shared memory (dynamic; above 48 KB the launch needs cudaFuncSetAttribute): v0 and v1 59 392 bytes, v2 55 296,
-// v3 43 008, v4 and v5 38 912; the output's half tile (33 792 or 17 408 bytes) reuses the loop's buffers.
+//   v0 = step 1 (1a + 1b + 1c; 255 registers, nvcc 13.2);
+//   v1 = without 1a: step 0's loop (one K64 slice, copied between two barriers) at the 128 x 256 tile;
+//   v2 = without 1b: step 0's 128 x 128 tile (8 warps of 32 x 64), with 1a;
+//   v3 = 1c alone: step 0 except for the spread of the copy;
+//   v4 = step 0 itself (nvidia_sample::compute_gemm), so that v3 and v4 run in the same probe.
+// Shared memory (dynamic; above 48 KB the launch needs cudaFuncSetAttribute): v0 59 392 bytes, v1 55 296, v2 43 008,
+// v3 and v4 38 912; the output's half tile (33 792 or 17 408 bytes) reuses the loop's buffers.
 constexpr int kSkew = 16;   // step 0's padding (the sample's SKEW_HALF), in halves
 
-// The geometry of a variant: kBN, the tile's width (256 with 1c, 128 without); kDouble, two K32 stages (1b) or one K64
+// The geometry of a variant: kBN, the tile's width (256 with 1b, 128 without); kDouble, two K32 stages (1a) or one K64
 // slice. Sizes in halves unless said otherwise.
 template <int kBN, bool kDouble>
 struct Geometry {
@@ -166,10 +159,9 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
         }
     };
     if constexpr (kDouble) {
-        // (1b), the double buffer: the first K32 slice to stage 0; then per K32, the next slice's loads, the compute of
+        // (1a), the double buffer: the first K32 slice to stage 0; then per K32, the next slice's loads, the compute of
         // the current stage, the stores to the other stage, one barrier. An iteration covers step 0's K64, stage 0 then
-        // stage 1, so that each stage keeps a fixed place (a stage index known at run time would add address arithmetic
-        // that v2 does not pay).
+        // stage 1, so that each stage keeps a fixed place.
         load(0);
         store(0);
         __syncthreads();
@@ -185,7 +177,7 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
             __syncthreads();
         }
     } else {
-        // v2 and v4: step 0's loop, copy a K64 slice, barrier, compute, barrier.
+        // v1 and v3: step 0's loop, copy a K64 slice, barrier, compute, barrier.
         for (int k0 = 0; k0 < K; k0 += 64) {
             load(k0);
             store(0);
@@ -226,22 +218,16 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
     }
 }
 
-// kOneTile: (1a), one block per tile (grid = number of tiles); otherwise step 0's persistent grid (one block per SM).
-template <bool kOneTile, bool kDouble, int kBN>
+// Step 0's persistent grid: one block per SM, block_pos += gridDim.x.
+template <bool kDouble, int kBN>
 __global__ void gemm(const half* A, const half* B, half* C, int M, int N, int K)
 {
     extern __shared__ __align__(128) half shmem[];
-    const int tilesN = N / kBN;
-    auto tile = [&](int block_pos) {
+    const int tilesN = N / kBN, tiles = (M + 127) / 128 * tilesN;
+    for (int block_pos = blockIdx.x; block_pos < tiles; block_pos += gridDim.x) {
         const int row0 = (block_pos / tilesN) * 128, col0 = (block_pos % tilesN) * kBN;
         if (row0 + 128 <= M) compute_tile<kBN, kDouble, false>(shmem, A, B, C, M, N, K, row0, col0);
         else compute_tile<kBN, kDouble, true>(shmem, A, B, C, M, N, K, row0, col0);
-    };
-    if constexpr (kOneTile) {
-        tile(blockIdx.x);
-    } else {
-        const int tiles = (M + 127) / 128 * tilesN;
-        for (int block_pos = blockIdx.x; block_pos < tiles; block_pos += gridDim.x) tile(block_pos);
     }
 }
 

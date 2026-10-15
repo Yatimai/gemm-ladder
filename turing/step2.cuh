@@ -38,22 +38,20 @@
 
 namespace step2 {
 
-// ---------------------------------------------------------------- step 2: the path to the tensor cores
-// Two mechanisms of cuBLAS's T4 kernel, nested on step 1 (step1.cuh, v0), whose rest is kept: one block per 128 x 256
-// tile, 8 warps of 64 x 64 (2 along M x 4 along N) computed in step 1's order, two shared stages of K32 filled through
-// registers with one barrier per K32, every thread copying its share of A and B (2 + 4 chunks of 16 bytes per K32),
-// ordinary global loads, the edge in M (a tile cut by M clamps the row of A each thread loads to M - 1), the fp16
-// output through shared memory half a tile at a time at a pitch of 264 halves, then 16-byte stores. Shapes: M a
-// multiple of 16, N of 256, K of 64.
+// ---------------------------------------------------------------- step 2: mma.sync and ldmatrix, a swizzle
+// Two mechanisms, nested on step 1 (step1.cuh, v0), whose rest is kept: step 0's persistent grid (one block per SM)
+// over 128 x 256 tiles, 8 warps of 64 x 64 (2 along M x 4 along N) computed in step 1's order, two shared stages of K32
+// filled through registers with one barrier per K32, every thread copying its share of A and B (2 + 4 chunks of 16
+// bytes per K32), ordinary global loads, the edge in M (a tile cut by M clamps the row of A each thread loads to
+// M - 1), the fp16 output through shared memory half a tile at a time at a pitch of 264 halves, then 16-byte stores.
+// Shapes: M a multiple of 16, N of 256, K of 64.
 // (2a) The tensor cores without wmma: mma.sync.aligned.m16n8k8.row.col.f32.f16.f16.f32 (one HMMA.1688.F32) and
 //      ldmatrix.sync.aligned.m8n8.x4 (one LDSM.16.M88.4: four 8 x 8 matrices, one register of each per lane), with
 //      .trans for B (LDSM.16.MT88.4), which is row-major (K x N) where mma takes it by columns. On sm_75, wmma loads a
 //      16 x 16 fragment in two LDSM.x2 (SASS of steps 0 and 1); one ldmatrix.x4 loads the same 16 x 16, so per K16 and
-//      per warp the 64 HMMA read their operands in 8 LDSM.x4 instead of 16 LDSM.x2, as many LDSM as cuBLAS's kernel
-//      under ncu (the README, step 2). The fragment addresses become loop-invariant registers plus immediates, where
-//      step 1 recomputed them at each K64. The epilogue is rewritten, there being no wmma fragment to store: each lane
-//      converts its pairs of accumulators to fp16 and stores them where the mma layout puts them (64 STS.32 per warp
-//      and half tile, as wmma's store did), then the same 16-byte copy out.
+//      per warp the 64 HMMA read their operands in 8 LDSM.x4 instead of 16 LDSM.x2. The epilogue is rewritten, there
+//      being no wmma fragment to store: each lane converts its pairs of accumulators to fp16 and stores them where the
+//      mma layout puts them (64 STS.32 per warp and half tile, as wmma's store did), then the same 16-byte copy out.
 // (2b) A swizzle instead of the padding: chunk c (16 bytes) of row r is stored at chunk c ^ ((r >> 1) & 3) in A's
 //      rows of 64 bytes (K32), c ^ (r & 7) in B's rows of 512 bytes (256 columns); no padding, 48 KB of stages instead
 //      of 58 KB. wmma cannot read it (load_matrix_sync takes one fixed pitch), so 2b only exists on top of 2a.
@@ -71,19 +69,18 @@ namespace step2 {
 //   banks; a quarter warp's LDS.128 reads 128 contiguous bytes).
 // The counts below are read with nvcc 13.2 (a local compilation); the measured binaries are built by nvcc 13.1.1 (the
 // Modal images).
-// Compiled (nvcc 13.2): v0, v1 and step 1 at 254 registers, no spill; one block per SM. Main loop, per K32 and per warp
-// (1.5 branches in the totals; in v0 and v1, the integer instructions compute the next slice's global addresses and run
-// the loop). The swizzle changes no count in the loop: its lane offsets are computed before it (6 fragment offsets
-// instead of 2, 3 store offsets instead of 2), 34 more instructions per warp and tile, against 64 x 182.5 in the loop
-// at ladder (2048 x 2560 x 2048):
-//                         HMMA   LDSM        LDG.128   STS.128   BAR   integer   total
-//   step 1 (v2)           128    32 x2       6         6         1     43.5      218
-//   2a (v1), 2a + 2b (v0) 128    16 x4       6         6         1     24        182.5
+// Compiled (nvcc 13.2): v0, v1 and step 1 at 255 registers, no spill; one block per SM. Main loop, per K32 and per warp
+// (1 branch in the totals; full tiles, edge tiles in brackets where they differ). 2b adds 13.5 integer instructions per
+// K32 and per warp to the loop, and 13 per warp and tile before it:
+//                         HMMA   LDSM        LDG.128   STS.128   BAR   integer     total
+//   step 1 (v2)           128    32 x2       6         6         1     59 (56.5)   233 (230.5)
+//   2a (v1)               128    16 x4       6         6         1     35.5        193.5
+//   2a + 2b (v0)          128    16 x4       6         6         1     49          207
 // Variants (g_var in step2.cu, for the interleaved probe; nested, wmma cannot read a swizzle):
 //   v0 = step 2 (2a + 2b; 49 152 bytes of dynamic shared memory, exactly 48 KB);
 //   v1 = without 2b: 2a over step 1's padded stages (pitches of 48 and 272 halves; 59 392 bytes);
-//   v2 = step 1 itself (step1::gemm<true, true, 256>; 59 392 bytes), so that the anchor runs in the same probe: v1
-//        against v2 measures 2a, v0 against v1 measures 2b.
+//   v2 = step 1 itself (step1::gemm<true, 256>; 59 392 bytes), so that the anchor runs in the same probe: v1 against
+//        v2 measures 2a, v0 against v1 measures 2b.
 constexpr int kSkew = 16;   // step 1's padding, in halves (v1)
 
 #ifdef GEMM_LADDER_EMULATE
@@ -285,15 +282,18 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
     }
 }
 
-// One block per 128 x 256 tile (step 1's 1a), the tiles in step 0's order (N fastest).
+// Step 0's persistent grid (one block per SM, block_pos += gridDim.x) over the 128 x 256 tiles, in step 0's order (N
+// fastest).
 template <bool kSwizzle>
 __global__ void gemm(const half* A, const half* B, half* C, int M, int N, int K)
 {
     extern __shared__ __align__(128) half shmem[];
-    const int tilesN = N / 256;
-    const int row0 = (blockIdx.x / tilesN) * 128, col0 = (blockIdx.x % tilesN) * 256;
-    if (row0 + 128 <= M) compute_tile<kSwizzle, false>(shmem, A, B, C, M, N, K, row0, col0);
-    else compute_tile<kSwizzle, true>(shmem, A, B, C, M, N, K, row0, col0);
+    const int tilesN = N / 256, tiles = (M + 127) / 128 * tilesN;
+    for (int block_pos = blockIdx.x; block_pos < tiles; block_pos += gridDim.x) {
+        const int row0 = (block_pos / tilesN) * 128, col0 = (block_pos % tilesN) * 256;
+        if (row0 + 128 <= M) compute_tile<kSwizzle, false>(shmem, A, B, C, M, N, K, row0, col0);
+        else compute_tile<kSwizzle, true>(shmem, A, B, C, M, N, K, row0, col0);
+    }
 }
 
 }  // namespace step2

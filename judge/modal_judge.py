@@ -14,25 +14,25 @@ Usage (from the repository's root):
 Rules applied here:
 - a candidate is a .cu that defines candidate_gemm (see judge.cu's header); the .cuh/.h/.hpp of its folder are sent
   with it; file names: letters, digits, "_", "-", "."; two candidates of the same name are refused; if the environment
-  variable CUTLASS_INCLUDE gives the folder of the CUTLASS headers (4.4.1), they are mounted under
-  /opt/cutlass/include (for candidates built on CUTLASS);
+  variable CUTLASS_INCLUDE gives the folder of the CUTLASS headers, they are mounted under /opt/cutlass/include (for
+  candidates built on CUTLASS);
 - the candidate's object is built apart; all its defined symbols but candidate_gemm are made LOCAL before the link (a
   candidate cannot replace a function of cuBLAS or of the judge); its unresolved symbols are filtered: cuBLAS, cuDNN,
-  dynamic loading, capture and graphs, the GPU's state (the FORBIDDEN list); --control lifts the filter, for the
-  control candidates of a judge/tests/ folder only (not provided here);
-- --options accepts only: --quick, --only LIST, --pairs N, --duration S, --warmup S, --default;
+  dynamic loading, capture and graphs, the GPU's state (the FORBIDDEN list); --control lifts the filter, for
+  candidates of a judge/tests/ folder only;
+- --options accepts only: --quick, --only LIST, --pairs N, --duration S, --warmup S;
 - --shapes FILE: another list of shapes (a check on other shapes, extra shapes), in the format of shapes/<card>.txt;
   its name and md5 are written in the header of each output; without it, the card's 17 shapes;
-- reference: without --reference or --quick, the judge sorts all of cuBLASLt's configurations and the launcher keeps
-  the finalists of each shape, with the card's identity, in reference/<card>.txt (the new ones first, then up to 3 old
-  ones still absent); with --reference, the judge sorts only those of ITS card, the heuristic's first 3 at 64 MB and
-  its first 8 not yet present at 32, 4, 1 and 0 MB, then the same final;
-- --variant V: the GPU container reads its card line (the card's name through NVML, the same as the judge's CUDA name
-  on the cards seen; power cap; cuBLASLt; driver) BEFORE judging, and stops at once if it differs from V (about 10 s
-  instead of a whole pass); --tries N (with --variant only) makes at most N tries, the first included, each in a fresh
-  GPU container (which may land on the same machine), all with the binaries of the single build; only the pass of the
-  right variant, by that reading, is stored, and its output.txt notes the variant and the try ("not checked" if there
-  is no binary); a gap between that reading and the judge's card line is written there (WARNING);
+- reference: without --reference or --quick, the judge runs its full sort and the launcher keeps the finalists of each
+  shape, with the card's identity, in reference/<card>.txt (the new ones first, then up to 3 old ones still absent);
+  with --reference, the judge sorts only those of ITS card, the heuristic's first 3 at 64 MB and its first 8 not yet
+  present at 32, 4, 1 and 0 MB, then the same final;
+- --variant V: the GPU container reads its card line (the card's name through NVML; power cap; cuBLASLt; driver) BEFORE
+  judging, and stops at once if it differs from V; --tries N (with --variant only) makes at most N tries, the first
+  included, each in a fresh GPU container (which may land on the same machine), all with the binaries of the single
+  build; only the pass of the right variant, by that reading, is stored, and its output.txt notes the variant and the
+  try ("not checked" if there is no binary); a gap between that reading and the judge's card line is written there
+  (WARNING);
 - output.txt: line 1, the candidate's path and the md5 of each file sent; line 2, the md5 of judge.cu, of this launcher,
   of the shapes file and of the reference file sent (with --reference), the options, the variant and the try; then the
   launcher's log and the judge's output. Each output goes to a folder of its own (<date>-<time>-2_<candidate> when two
@@ -71,7 +71,7 @@ FORBIDDEN = (r"cublas|cudnn|\bdl\w*(open|sym)|dl_iterate_phdr|cudaStreamIsCaptur
              r"UpdateCaptureDependencies|BeginCaptureToGraph|SetAttribute|AddCallback)|\bcuGraph|\bcuCtxSetLimit|"
              r"\bcuCtxResetPersistingL2Cache|\bcuCtxSetCacheConfig|\bcuLaunchHostFunc")
 SYMBOL = "_Z14candidate_gemmPK6__halfS1_PS_iiiP11CUstream_st"   # void candidate_gemm(const half*, const half*, half*, int, int, int, cudaStream_t)
-OPTIONS = {"--quick": 0, "--only": 1, "--pairs": 1, "--duration": 1, "--warmup": 1, "--default": 0}
+OPTIONS = {"--quick": 0, "--only": 1, "--pairs": 1, "--duration": 1, "--warmup": 1}
 
 image = modal.Image.from_registry("nvidia/cuda:13.1.1-devel-ubuntu24.04", add_python="3.12")
 if CUTLASS:
@@ -144,7 +144,7 @@ def _sh():
     env = dict(os.environ, PATH="/usr/local/cuda/bin:" + os.environ.get("PATH", ""))
 
     def sh(args, t):
-        """Runs without a shell; past the time limit, returns what was written so far."""
+        """Runs without a shell; after the time limit, returns what was written so far."""
         try:
             r = subprocess.run(args, cwd="/tmp/j", env=env, capture_output=True, text=True, timeout=t)
             return r.returncode, r.stdout, r.stderr
@@ -369,7 +369,7 @@ def main(candidates: str, card: str = "T4", options: str = "", control: bool = F
         if "#variant" in saved["res"]:
             raise SystemExit("--recover: this file is a try stopped for another variant")
         if not saved.get("judged"):
-            raise SystemExit("--recover: this file does not record the judged files (an earlier launcher): not stored")
+            raise SystemExit("--recover: this file does not record the judged files: not stored")
         rec = saved["judged"]
         if saved.get("options") != opts or bool(rec["reference"]) != reference or rec.get("control", False) != control:
             raise SystemExit(f"--recover: options {opts}, --reference {reference}, --control {control}; the file's "
@@ -381,7 +381,7 @@ def main(candidates: str, card: str = "T4", options: str = "", control: bool = F
         changed += ([f"{shapes_file} (md5 {judged['shapes_md5']}, judged {rec['shapes_md5']})"]
                     if rec["shapes"] != shapes_file or rec["shapes_md5"] != judged["shapes_md5"] else [])
         for n in names:   # the judge's own header names the judge it ran
-            m = re.search(r"^judge v4 \(md5 (\w+)\)", saved["res"][n]["judge"], re.M)
+            m = re.search(r"^judge v6 \(md5 (\w+)\)", saved["res"][n]["judge"], re.M)
             changed += [f"{n}: the judge's output says md5 {m.group(1)}"] if m and m.group(1) != rec["judge_md5"] else []
         if changed:
             raise SystemExit("--recover: the files on the disk differ from the judged ones: " + "; ".join(changed))
@@ -427,5 +427,5 @@ def main(candidates: str, card: str = "T4", options: str = "", control: bool = F
         if full and judge_lines:   # the judge's output only (without a binary, there is none)
             store_reference(cache, judge_lines)
         print(f"=== {p.name} -> {dest}")
-        print("\n".join(l for l in lines if l.startswith(("SCORE", "CYCLES", "CARD THROTTLED", "WARNING", "FAILED", "build of", "isolation of", "judge:", "cuBLAS", "CUDA", "TIMEOUT", "info: the reference of")))
+        print("\n".join(l for l in lines if l.startswith(("SCORE", "CYCLES", "CARD THROTTLED", "WARNING", "FAILED", "build of", "isolation of", "judge:", "cuBLAS", "CUDA", "TIMEOUT")))
               or "\n".join(lines[-15:]))

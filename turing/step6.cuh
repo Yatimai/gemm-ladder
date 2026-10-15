@@ -33,34 +33,17 @@
 
 namespace step6 {
 
-// ---------------------------------------------------------------- step 6: beyond cuBLASLt
-// Steps 1 to 5 rebuild cuBLASLt's recipe on the T4. Step 6 adds four mechanisms of our own, first tried on our own
-// earlier T4 kernels (written before this rung, not in this repository). Here each is grafted on step 5 as it is (6b's
-// loop also differs from step 5's in where ptxas places some integer instructions, below), and measured on this rung by
-// the interleaved probe (probe/probe_t4.cu: each mechanism removed against step 6), ncu and the judge (judge/judge.cu);
-// the measures, and what our earlier kernels showed, are in the README, step 6.
+// ---------------------------------------------------------------- step 6: L2-only loads, 16-row bands, split-K in two
+// Step 6 grafts three mechanisms on step 5 as it is, measured by the interleaved probe (each mechanism removed against
+// step 6), ncu and the judge; the measures are in the README, step 6.
 // (6a) Loads through the L2 only: compute_tile loads A and B with ld.global.cg.L2::128B, not 3a's
-//      ld.global.nc.L2::128B; the SASS changes LDG.E.LTC128B.128.CONSTANT.SYS into LDG.E.LTC128B.128.STRONG.GPU (and
-//      where ptxas places a few integer instructions, below). At qkv_m128 and gateup_m128, 6a is the only mechanism
-//      that acts.
-// (6b) Synchronized waves, where 3c's groups of tiles span at least 4 full rows of tiles (M >= 512 at step 5's
-//      128 x 256 tile: the four M = 512 and the four M = 2048 shapes, and ladder): min(tiles, P) persistent blocks (P
-//      the SMs; one block per SM, all the 128 x 256 tile allows), block b computing tiles b, b + P, ... in step 5's
-//      order, wave w the tiles [P w, P w + P), a barrier of the whole grid between two waves. 6b is kept at every shape
-//      where the rule applies: no exception per shape. Its mechanism is not established.
-//      The barrier (grid_barrier below) is a counter and a generation in global memory, the counter back at zero after
-//      each barrier, hence after each call; it is our earlier kernels' barrier, line for line, its waiting threads
-//      spinning on the generation without a pause (a __nanosleep would lighten their L2 traffic; not measured).
-//      Every block must be resident at once: step6.cu checks at its first call that one block of the kernel fits in an
-//      SM (cudaOccupancyMaxActiveBlocksPerMultiprocessor), and otherwise runs step 5's grid. That suffices on a GPU of
-//      its own: the launch is not cooperative, and SMs taken by another context (MPS, a concurrent kernel) could leave
-//      a block waiting to start while the others wait at the barrier.
-// (6c) M <= 16 (decoding): a kernel of its own. The GEMM reads B (K x N) once, A and C are small: the time is B's
-//      bytes over the rate at which the kernel reads them, and the DRAM bounds it. Step 5 takes cuBLASLt's tile there,
-//      64 rows of M, 48 of them padding (cuBLAS's "sliced" family is not reproduced). 6c's tile has the 16 rows of
-//      mma.sync m16n8k8, none padding: a block per band of BN columns of B (128 or 256) and per slice of K among S,
-//      enough blocks resident at once to keep the DRAM busy, in one round; the slices summed in fp16 parts by the last
-//      block of each band. B is 14336 x 4096 halves at down_m16, 117 440 512 bytes.
+//      ld.global.nc.L2::128B; the SASS changes LDG.E.LTC128B.128.CONSTANT.SYS into LDG.E.LTC128B.128.STRONG.GPU (and a
+//      few integer instructions, below). At qkv_m128, gateup_m128 and the nine shapes with M >= 512 (ladder among
+//      them), 6a is the only mechanism that acts.
+// (6b) M <= 16 (decoding): a kernel of its own. The GEMM reads B (K x N) once; A and C are small. Step 5 takes there a
+//      tile of 64 rows of M, 48 of them padding. 6b's tile has the 16 rows of mma.sync m16n8k8, none padding: a block
+//      per band of BN columns of B (128 or 256) and per slice of K among S, in one round at 3 blocks per SM; the slices
+//      summed in fp16 parts by the last block of each band. B is 14336 x 4096 halves at down_m16, 117 440 512 bytes.
 //      The rule (bands(), below), from N, K and P (40 on the T4): at least 1.2 P blocks and at most 3 P (one round at 3
 //      blocks per SM); then, at long K, a slice added while the blocks stay within 2 P and the parts within a hundredth
 //      of B's flow (16 S / K <= 0.01, S the slices with the added one; the slices taken to reach 1.2 P may exceed it).
@@ -68,66 +51,56 @@ namespace step6 {
 //      256), sliced as needed; at least 4 K steps per slice when S > 1. With more than 3 P bands of 256 columns: 256
 //      columns, one slice, several rounds (outside the judge's shapes: N > 30 720 on the T4). B loaded evict-first
 //      (ld.global.cs) when S > 1, through the L2 only (6a) otherwise; A through the L2 only. The thresholds are set on
-//      the four M = 16 shapes, from measures of our earlier kernels that changed the band's width at the same time:
-//      they are not measured on their own. At the judge's shapes the rule gives qkv_m16 128 x 1 (48 blocks),
-//      o_m16 256 x 3 (48), gateup_m16 256 x 1 (112), down_m16 256 x 5 (80), and B through the L2 only at qkv_m16 too:
-//      one path, no exception per shape.
+//      the four M = 16 shapes. At the judge's shapes the rule gives qkv_m16 128 x 1 (48 blocks), o_m16 256 x 3 (48),
+//      gateup_m16 256 x 1 (112), down_m16 256 x 5 (80), and B through the L2 only at qkv_m16 too: one path, no
+//      exception per shape.
 //      The kernel: 256 threads, warp w computing the band's columns w BN / 8 to (w + 1) BN / 8 - 1, all 16 rows; a K
 //      step of BK = 4096 / BN columns of K (one stage = 8 KB of B, three blocks per SM: 3 x 18 KB); the copy of a K
 //      step through registers into one of two shared stages, two register sets, so that the copy runs two K steps
 //      ahead, one barrier per K step; A in BK / 16 ldmatrix.x4, B in two ldmatrix.x4.trans, 8 HMMA per K step and warp;
 //      step 2's swizzle rule at these row lengths (no bank conflict); the output in fp16 through shared memory (16 rows
-//      at a pitch of BN + 8 halves). One slice: stored to C, evict-first (3b). Several: stored to the block's part in
-//      the workspace; a fence; one atomic increment of the band's counter per block; the block that arrives last sums
+//      at a pitch of BN + 8 halves). One slice: stored to C. Several: stored to the block's part in the workspace; a
+//      fence; one atomic increment of the band's counter per block; the block that arrives last sums
 //      the S parts in the order of the slices in fp32 (its own from registers: the fp16 values it wrote), writes C and
 //      puts the counter back to zero. The sum does not depend on the order of arrival: the same bits from run to run.
-//      Rows of A past M are zeros in the stages (each copying thread's registers keep the zeros they start with), rows
-//      of C past M are not written.
+//      Rows of A >= M are zeros in the stages (each copying thread's registers keep the zeros they start with), rows
+//      of C >= M are not written.
 //      Its code is kept short and straight (no division: the host splits K; pointers moved as the copy goes; the first
-//      three K steps' loads issued before the prologue waits): why, the README, step 6.
-// (6d) K cut in two at o_m128 and down_m128: a 128 x 256 tile has 16 tiles there and leaves 24 of the 40 SMs idle;
-//      two blocks per tile, each over half of K, give 32 blocks. The rule: 2 slices where step 5 takes 128 x 128 (5b: a
-//      grid of 128 x 256 tiles under half the SMs), K a multiple of 128; 6d then replaces 5b there, at the same 32
-//      blocks. Each block computes its tile over its half of K (compute_tile's K range) and stores it in fp16 (fp16
-//      parts, this rung's choice) into its slice's part, an M x N matrix, plainly (not evict-first: another block reads
-//      it back soon); a fence, one atomic increment of the tile's counter per block; the block that arrives second sums
-//      the two parts in the order of the slices, in fp32, writes C evict-first and puts the counter back to zero. The
-//      same bits whatever the order of arrival. Its parts are 2 MiB at o_m128.
-// Kept from step 5: compute_tile's tile at the four sizes (4a, 4b, 2b's swizzle, the output 64 rows at a time, 3b's
-// stores, 3c's order of the tiles, the edge in M), step5::choose's tile wherever 6c and 6d do not apply. Shapes: M a
-// multiple of 16, N of 256, K of 64 (checked on the host); 6c runs at M = 16 when its contract holds (N a multiple of
-// its width, K of its K step, at least 3 K steps per slice, at most 3 P blocks when there are slices: the workspace's
-// ceiling), 6d where step 5 takes 128 x 128 and K is a multiple of 128.
+//      three K steps' loads issued before the prologue waits).
+// (6c) K cut in two at o_m128 and down_m128: a 128 x 256 tile has 16 tiles there and leaves 24 of the 40 SMs idle;
+//      cut in two halves of K, the tiles give 32 halves, one per block for 32 of the 40 blocks. The rule: 2 slices
+//      where step 5 takes 128 rows (M > 64) and its 128 x 256 tiles are fewer than half the SMs, K a multiple of 128.
+//      In step 5's persistent grid, place 2 t + s of the order (a block's block_pos) is tile t over K's half s: its
+//      block computes it (compute_tile over K / 2 columns, A and B moved to the half s) and stores it in fp16 (fp16
+//      parts, this rung's choice) into its slice's part, an M x N matrix; a fence, one atomic increment of the tile's
+//      counter per half; the block that arrives second sums the two parts in the order of the slices, in fp32, writes C
+//      and puts the counter back to zero. The same bits whatever the order of arrival. Its parts are 2 MiB at o_m128.
+//      The half is chosen by moving A and B, so that compute_tile's loop runs from 0 to K / 2 at every place.
+// Kept from step 5: step 0's persistent grid (one block per SM, block_pos += gridDim.x), compute_tile's tile at the
+// two sizes (4a, 2b's swizzle, the output 64 rows at a time, 3b's order of the tiles, the edge in M), step5::choose's
+// tile wherever 6b and 6c do not apply. Shapes: M a multiple of 16, N of 256, K of 64 (checked on the host); 6b runs at
+// M = 16 when its contract holds (N a multiple of its width, K of its K step, at least 3 K steps per slice, at most
+// 3 P blocks when there are slices: the workspace's ceiling), 6c where M > 64, the 128 x 256 tiles are fewer than half
+// the SMs and K is a multiple of 128.
 // The workspace (step6.cu): allocated once, at the first call, at the ceilings of the rules, never freed. Not for
-// concurrent calls. Our reading for 6c, not measured: with B evict-first, a call's parts would stay in the L2 and the
-// next call write over them without their going to DRAM, the workspace reused by design, as cuBLAS's own. 6d's parts
-// leave it (ncu at o_m128, the README).
-// Under GEMM_LADDER_EMULATE (turing/emu), which runs one block at a time: the loads and stores are plain 16-byte
-// copies, the atomic a plain increment, the fence nothing, and the grid barrier a block barrier on each side of a call
-// that the emulator counts (no block may wait for another; the waves' tiles are independent, so the result is the
-// same): the emulator checks that every block reaches it as many times, the GPU alone its synchronization (verif.cu).
+// concurrent calls.
+// Under GEMM_LADDER_EMULATE (turing/emu), which runs one block at a time: the loads are plain 16-byte copies, the
+// atomic a plain increment, the fence nothing.
 // The counts below are read with nvcc 13.2 (a local compilation); the measured binaries are built by nvcc 13.1.1 (the
 // Modal images).
-// Compiled (nvcc 13.2, sm_75): step 5's tile with 6a, at 128 x 256 and 64 x 256, has step 5's instructions and counts
-// per K64 (363 / 366 and 407 / 405, full / edge tiles), the loads aside, a few integer instructions placed elsewhere
-// among the HMMA (254 and 246 registers; 254 and 240 without 6a); at 128 x 128, 2 to 4 fewer per K64, from
-// compute_tile's K range (the same without 6a; 254 registers); at 64 x 128, 9 to 11 more per K64 and a 4-byte spill,
-// stored before the loop and reloaded after it (255 registers). gemm_waves: 255 registers, its loop 352 / 356 per K64
-// (11 and 10 integer instructions fewer than step 5's 363 / 366: ptxas places the next slice's address arithmetic
-// differently); gemm_split: 253 registers, 376 / 380 per K64; no other spill. 6c (__launch_bounds__(256, 3): at most 80
-// registers): 70 registers at BN 256, 66 at BN 128; one slice / several: 272 / 448 instructions at BN 256, 240 / 344 at
-// BN 128; the first load after 37 instructions, the first barrier after 86 (83 at BN 128), 77 (73) in the loop of two K
-// steps; 17 424 and 18 448 bytes of shared memory.
-// Tried on our earlier kernels and left out: the first slice of the next tile loaded before the epilogue, in 6b's loop;
-// 6b at M = 128; 6d with 4 slices; K split over all 40 SMs at M = 128; at M = 16, a continuous flow across bands and a
-// deeper copy, more slices than the rule's, and nc for B at qkv_m16 alone (the rule keeps one path rather than an
-// exception per shape); ld.global.nc.L1::no_allocate for 6a. What each gave: the README, step 6.
-// Variants (g_var in step6.cu, for the interleaved probe): v0 = step 6 (6a + 6b + 6c + 6d); v1 = without 6a (nc in
-// compute_tile; 6c keeps its loads); v2 = without 6b (step 5's grid at M >= 512); v3 = without 6c (step 5's 64-row
-// tiles at M = 16); v4 = without 6d (step 5's 128 x 128 at o_m128 and down_m128); v5 = step 5 itself, the anchor. v2,
-// v3 and v4 keep 6a in compute_tile: the tiles of step 5 they fall back to load through the L2 only (v1 and v5 do not).
-// v0 against v1 measures 6a at M >= 128 and its part in 6b; v0 against v2, v3, v4 the other three; v0 against v5 the
-// step.
+// Compiled (nvcc 13.2, sm_75): step 5's tile with 6a has 370 / 370 instructions per K64 at 128 x 256 (step 5's counts)
+// and 398 / 398 at 64 x 256 (step 5: 395 / 394), full / edge tiles; the loads aside, a few integer instructions differ
+// (254 and 252 registers; without 6a, step 5's tile instruction for instruction, 254 and 250). gemm_split (with 6a or
+// without): 252 registers, 430 / 430 instructions per K64; no spill. 6b
+// (__launch_bounds__(256, 3): at most 80 registers): 70 registers at BN 256, 66 at BN 128; one slice / several: 272 /
+// 448 instructions at BN 256, 240 / 344 at BN 128; the first load after 37 instructions, the first barrier after 86 (83
+// at BN 128), 77 (73) in the loop of two K steps; 17 424 and 18 448 bytes of shared memory.
+// Variants (g_var in step6.cu, for the interleaved probe): v0 = step 6 (6a + 6b + 6c); v1 = without 6a (nc in
+// compute_tile; 6b keeps its loads); v2 = without 6b (step 5's 64 x 256 tiles at M = 16); v3 = without 6c (step 5's
+// 128 x 256 tiles at o_m128 and down_m128); v4 = step 5 itself, the anchor; v5 = 6b with B never marked evict-first
+// (through the L2 only, as with one slice). v2 and v3 keep 6a in compute_tile: the tiles of step 5 they fall back to
+// load through the L2 only (v1 and v4 do not). v0 against v1 measures 6a at M >= 128; v0 against v2 and v3 the other
+// two; v0 against v4 the step; v0 against v5 the evict-first marking, where 6b has slices (o_m16 and down_m16).
 
 // ---------------------------------------------------------------- the device helpers
 // 6a: a 16-byte load of A or B for compute_tile, through the L2 only (ld.global.cg), the L2 asked for the whole
@@ -149,8 +122,8 @@ __device__ __forceinline__ int4 ld16(const int4* p)
 #endif
 }
 
-// 6c: a 16-byte load of A or B for a band, through the L2 only (6a), or marked evict-first (kEvictFirst: B when the
-// band has parts); volatile.
+// 6b: a 16-byte load of A or B for a band, through the L2 only (6a), or marked evict-first (kEvictFirst: B when the
+// band has parts, except in v5); volatile.
 template <bool kEvictFirst>
 __device__ __forceinline__ int4 ld16_band(const int4* p)
 {
@@ -168,7 +141,7 @@ __device__ __forceinline__ int4 ld16_band(const int4* p)
 #endif
 }
 
-// 6c and 6d: a part written by another block of this launch, through the L2 (not a stale L1 line), and not moved by
+// 6b and 6c: a part written by another block of this launch, through the L2 (not a stale L1 line), and not moved by
 // the compiler above the atomic that orders it.
 __device__ __forceinline__ int4 ld16_part(const int4* p)
 {
@@ -182,61 +155,32 @@ __device__ __forceinline__ int4 ld16_part(const int4* p)
 #endif
 }
 
-// The block's arrival on a counter (6c, 6d), the fence before it and after the last arrival, the barrier of the whole
-// grid (6b). Under GEMM_LADDER_EMULATE, one block at a time: a plain increment; nothing; and, for the grid barrier, the
-// block's barriers on each side of a call that the emulator counts (no block may wait for another; the waves' tiles are
-// independent, so the result is the same; the emulator checks that every block reaches the barrier as many times).
+// The block's arrival on a counter (6b, 6c), and the fence before it and after the last arrival. Under
+// GEMM_LADDER_EMULATE, one block at a time: a plain increment, and nothing.
 #ifdef GEMM_LADDER_EMULATE
 inline unsigned arrive(unsigned* count) { return (*count)++; }
 inline void fence() {}
-void emu_grid_barrier();   // turing/emu: counts the running block's arrivals at the grid barrier
-inline void grid_barrier(unsigned*, unsigned)
-{
-    __syncthreads();
-    if (threadIdx.x == 0) emu_grid_barrier();
-    __syncthreads();
-}
 #define STEP6_BAND_BOUNDS
 #else
 __device__ __forceinline__ unsigned arrive(unsigned* count) { return atomicAdd(count, 1u); }
 __device__ __forceinline__ void fence() { __threadfence(); }
-// sync[0]: the counter, sync[1]: the generation. Thread 0 of each block reads the generation, then arrives; the last to
-// arrive puts the counter back to zero and then moves the generation on; the others wait until it moves.
-__device__ __forceinline__ void grid_barrier(unsigned* sync, unsigned blocks)
-{
-    __syncthreads();
-    if (threadIdx.x == 0) {
-        volatile unsigned* gen = sync + 1;
-        const unsigned g = *gen;
-        __threadfence();
-        if (atomicAdd(sync, 1u) == blocks - 1) {
-            sync[0] = 0;
-            __threadfence();
-            atomicAdd(sync + 1, 1u);
-        } else {
-            while (*gen == g) {}
-        }
-        __threadfence();
-    }
-    __syncthreads();
-}
 #define STEP6_BAND_BOUNDS __launch_bounds__(256, 3)
 #endif
 
-// ---------------------------------------------------------------- 6a, 6b, 6d: step 5's tile
-// One BM x BN tile, step 5's compute_tile (step5.cuh) with three changes: 6a's loads (kCg), the K columns
-// [kBegin, kEnd) only (6d; both multiples of 64; [0, K) elsewhere), and C stored evict-first (3b) or plainly (kOutEf
-// false: 6d's part, read back soon by another block, so that it stays in the L2). With kCg false, [0, K) and kOutEf,
-// step 5's tile in the source (in the SASS, at 128 x 128 and 64 x 128, the K range moves a few instructions).
-template <int BM, int BN, bool kEdge, bool kCg, bool kOutEf>
+// ---------------------------------------------------------------- 6a, 6c: step 5's tile
+// One BM x 256 tile, step 5's compute_tile (step5.cuh) with two changes: 6a's loads (kCg) and the K columns [0, kEnd)
+// only (kEnd a multiple of 64: K / 2 in 6c, A and B moved to the half; K elsewhere; K stays the length of A's rows).
+// With kCg false and kEnd = K, step 5's tile in the source (the same SASS, instruction for instruction, at the two
+// sizes).
+template <int BM, bool kEdge, bool kCg>
 __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const half* B, half* C, int M, int N, int K,
-                                             int row0, int col0, int kBegin, int kEnd)
+                                             int row0, int col0, int kEnd)
 {
-    using G = step5::Geometry<BM, BN>;
+    using G = step5::Geometry<BM>;
     half* As = shmem;                    // 2 stages x BM rows of the K32 slice of A
     half* Bs = shmem + 2 * G::kAStage;   // 2 stages x 32 rows of the K32 slice of B
     const int warpId = threadIdx.x / 32, lane = threadIdx.x % 32;
-    const int wm = warpId / G::kWarpsN, wn = warpId % G::kWarpsN;   // the warp's rows wm * 64, columns wn * 64
+    const int wm = warpId / 4, wn = warpId % 4;   // the warp's rows wm * 64, columns wn * 64
     // c[i][j]: the 16 x 8 accumulator of rows wm * 64 + 16 i, columns wn * 64 + 8 j.
     float c[4][8][4];
 #pragma unroll
@@ -271,7 +215,7 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
                                                    threadIdx.x % G::kBChunks)] = rb[i];
     };
 
-    // 4a and 4b, as step 5.
+    // 4a, as step 5.
     uint32_t fa[2][2][4], fb[2][2][4];
     int aOff[4], bOff[2];
 #pragma unroll
@@ -289,11 +233,11 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
     auto hmma = [&](int f, int i, int j) {   // c[i][j] += the slice's A block i times its B block j, from set f
         step2::mma_m16n8k8(c[i][j], fa[f][i / 2][2 * (i % 2)], fa[f][i / 2][2 * (i % 2) + 1], fb[f][j / 4][j % 4]);
     };
-    auto mma = [&](int f) {   // a k8 slice's 32 HMMA from set f, in 4b's order
+    auto mma = [&](int f) {   // a k8 slice's 32 HMMA from set f, in step 2's order: the rows, then the columns
 #pragma unroll
-        for (int j = 0; j < 8; j++)
+        for (int i = 0; i < 4; i++)
 #pragma unroll
-            for (int ii = 0; ii < 4; ii++) hmma(f, j % 2 ? 3 - ii : ii, j);
+            for (int j = 0; j < 8; j++) hmma(f, i, j);
     };
     auto stage = [&](int s, bool st, bool nf, auto&& load_next) {   // one K32 stage, as step 4
         frag(1, s, 1);
@@ -308,12 +252,12 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
         if (nf) frag(0, s ^ 1, 0);
         mma(1);
     };
-    load(kBegin);
+    load(0);
     store(0);
     __syncthreads();
-    load(kBegin + 32);
+    load(32);
     frag(0, 0, 0);
-    for (int k0 = kBegin; k0 < kEnd; k0 += 64) {   // step 2's loop and tests, over [kBegin, kEnd)
+    for (int k0 = 0; k0 < kEnd; k0 += 64) {   // step 2's loop and tests, over [0, kEnd)
         const bool next = k0 + 64 < kEnd;
         stage(0, true, true, [&] { if (next) load(k0 + 64); });
         stage(1, next, next, [&] { if (next) load(k0 + 96); });
@@ -340,93 +284,87 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
             const int r = threadIdx.x / G::kBChunks + i * G::kBRows;   // row in the 64
             const int gr = row0 + h * 64 + r;
             if (gr < M)
-                step3::st16<kOutEf>((int4*)&C[(size_t)gr * N + col0] + threadIdx.x % G::kBChunks,
-                                    *((const int4*)&Os[r * G::kOStride] + threadIdx.x % G::kBChunks));
+                *((int4*)&C[(size_t)gr * N + col0] + threadIdx.x % G::kBChunks) =
+                    *((const int4*)&Os[r * G::kOStride] + threadIdx.x % G::kBChunks);
         }
         __syncthreads();
     }
 }
 
-// Tile t (step 5's order, 3c) over K's columns [kBegin, kEnd) into C (kOutEf) or a part.
-template <int BM, int BN, bool kCg, bool kOutEf>
+// Tile t (step 5's order, 3b) over the K columns [0, kEnd) of A and B into C or a part.
+template <int BM, bool kCg>
 __device__ __forceinline__ void tile(half* shmem, const half* A, const half* B, half* C, int M, int N, int K, int t,
-                                     int kBegin, int kEnd)
+                                     int kEnd)
 {
     int tm, tn;
-    step5::tile_of<BM, BN>(t, M, N, tm, tn);
-    const int row0 = tm * BM, col0 = tn * BN;
-    if (row0 + BM <= M) compute_tile<BM, BN, false, kCg, kOutEf>(shmem, A, B, C, M, N, K, row0, col0, kBegin, kEnd);
-    else compute_tile<BM, BN, true, kCg, kOutEf>(shmem, A, B, C, M, N, K, row0, col0, kBegin, kEnd);
+    step5::tile_of<BM>(t, M, N, tm, tn);
+    const int row0 = tm * BM, col0 = tn * 256;
+    if (row0 + BM <= M) compute_tile<BM, false, kCg>(shmem, A, B, C, M, N, K, row0, col0, kEnd);
+    else compute_tile<BM, true, kCg>(shmem, A, B, C, M, N, K, row0, col0, kEnd);
 }
 
-// Step 5's grid with 6a's loads: one block per tile.
-template <int BM, int BN, bool kCg>
+// Step 5's persistent grid (one block per SM, block_pos += gridDim.x), with 6a's loads.
+template <int BM, bool kCg>
 __global__ void gemm(const half* A, const half* B, half* C, int M, int N, int K)
 {
     extern __shared__ __align__(128) half shmem[];
-    tile<BM, BN, kCg, true>(shmem, A, B, C, M, N, K, blockIdx.x, 0, K);
+    const int tiles = (M + BM - 1) / BM * (N / 256);
+    for (int block_pos = blockIdx.x; block_pos < tiles; block_pos += gridDim.x)
+        tile<BM, kCg>(shmem, A, B, C, M, N, K, block_pos, K);
 }
 
-// 6b: gridDim.x persistent blocks; wave w is tiles [w gridDim.x, (w + 1) gridDim.x), a barrier between two waves.
-template <int BM, int BN, bool kCg>
-__global__ void gemm_waves(const half* A, const half* B, half* C, int M, int N, int K, unsigned* sync)
-{
-    extern __shared__ __align__(128) half shmem[];
-    const int tiles = (M + BM - 1) / BM * (N / BN), waves = (tiles + gridDim.x - 1) / gridDim.x;
-    for (int w = 0; w < waves; w++) {
-        const int t = w * gridDim.x + blockIdx.x;
-        if (t < tiles) tile<BM, BN, kCg, true>(shmem, A, B, C, M, N, K, t, 0, K);
-        if (w + 1 < waves) grid_barrier(sync, gridDim.x);   // compute_tile ends at a barrier: the stages are free
-    }
-}
-
-// 6d: two blocks per tile, block 2 t + s computing tile t over K's half s into its part (an M x N matrix of halves);
-// the block that arrives second sums the two parts in the order of the slices, in fp32, and writes C.
-template <int BM, int BN, bool kCg>
+// 6c: two halves of K per tile in step 5's persistent grid, place 2 t + s of the order computing tile t over K's half
+// s (A and B moved to it: see (6c) above) into its part (an M x N matrix of halves); the block that arrives second at a
+// tile sums the two parts in the order of the slices, in fp32, and writes C.
+template <int BM, bool kCg>
 __global__ void gemm_split(const half* A, const half* B, half* C, int M, int N, int K, half* parts, unsigned* counts)
 {
-    using G = step5::Geometry<BM, BN>;
+    using G = step5::Geometry<BM>;
     extern __shared__ __align__(128) half shmem[];
-    const int t = blockIdx.x / 2, s = blockIdx.x % 2, halfK = K / 2;
-    tile<BM, BN, kCg, false>(shmem, A, B, parts + (size_t)s * M * N, M, N, K, t, s * halfK, (s + 1) * halfK);
-    fence();          // every thread's stores of the part, before the block arrives
-    __syncthreads();
-    unsigned* last = (unsigned*)((char*)shmem + G::kSmemBytes);   // a word past the tile's buffers (kSmemBytes + 16)
-    if (threadIdx.x == 0) *last = arrive(&counts[t]) == 1u;
-    __syncthreads();
-    if (!*last) return;
-    fence();
-    int tm, tn;
-    step5::tile_of<BM, BN>(t, M, N, tm, tn);
-    const int row0 = tm * BM, col0 = tn * BN;
-    // The sum: 16-byte chunk q of the tile is row q / kBChunks, chunk q % kBChunks; slice 0's part first.
-    for (int q = threadIdx.x; q < BM * G::kBChunks; q += G::kThreads) {
-        const int r = row0 + q / G::kBChunks, cc = q % G::kBChunks;
-        if (r >= M) continue;
-        float v[8];
+    const int tiles = (M + BM - 1) / BM * (N / 256), halfK = K / 2;
+    unsigned* last = (unsigned*)((char*)shmem + G::kSmemBytes);   // a word after the tile's buffers (kSmemBytes + 16)
+    for (int block_pos = blockIdx.x; block_pos < 2 * tiles; block_pos += gridDim.x) {
+        const int t = block_pos / 2, s = block_pos % 2;
+        tile<BM, kCg>(shmem, A + (size_t)s * halfK, B + (size_t)s * halfK * N, parts + (size_t)s * M * N, M, N, K, t,
+                      halfK);
+        fence();          // every thread's stores of the part, before the block arrives
+        __syncthreads();
+        if (threadIdx.x == 0) *last = arrive(&counts[t]) == 1u;
+        __syncthreads();
+        if (!*last) continue;
+        fence();
+        int tm, tn;
+        step5::tile_of<BM>(t, M, N, tm, tn);
+        const int row0 = tm * BM, col0 = tn * 256;
+        // The sum: 16-byte chunk q of the tile is row q / kBChunks, chunk q % kBChunks; slice 0's part first.
+        for (int q = threadIdx.x; q < BM * G::kBChunks; q += G::kThreads) {
+            const int r = row0 + q / G::kBChunks, cc = q % G::kBChunks;
+            if (r >= M) continue;
+            float v[8];
 #pragma unroll
-        for (int e = 0; e < 8; e++) v[e] = 0.0f;
+            for (int e = 0; e < 8; e++) v[e] = 0.0f;
 #pragma unroll
-        for (int ss = 0; ss < 2; ss++) {
-            const int4 x = ld16_part((const int4*)&parts[(size_t)ss * M * N + (size_t)r * N + col0] + cc);
-            const __half2* h = reinterpret_cast<const __half2*>(&x);
+            for (int ss = 0; ss < 2; ss++) {
+                const int4 x = ld16_part((const int4*)&parts[(size_t)ss * M * N + (size_t)r * N + col0] + cc);
+                const __half2* h = reinterpret_cast<const __half2*>(&x);
 #pragma unroll
-            for (int e = 0; e < 4; e++) {
-                const __half2 he = h[e];
-                v[2 * e] += __half2float(he.x);
-                v[2 * e + 1] += __half2float(he.y);
+                for (int e = 0; e < 4; e++) {
+                    const __half2 he = h[e];
+                    v[2 * e] += __half2float(he.x);
+                    v[2 * e + 1] += __half2float(he.y);
+                }
             }
-        }
-        int4 out;
-        __half2* o = reinterpret_cast<__half2*>(&out);
+            int4 out;
+            __half2* o = reinterpret_cast<__half2*>(&out);
 #pragma unroll
-        for (int e = 0; e < 4; e++) o[e] = __floats2half2_rn(v[2 * e], v[2 * e + 1]);
-        step3::st16<true>((int4*)&C[(size_t)r * N + col0] + cc, out);
+            for (int e = 0; e < 4; e++) o[e] = __floats2half2_rn(v[2 * e], v[2 * e + 1]);
+            *((int4*)&C[(size_t)r * N + col0] + cc) = out;
+        }
+        if (threadIdx.x == 0) counts[t] = 0;   // for the next call
     }
-    if (threadIdx.x == 0) counts[t] = 0;   // for the next call
 }
 
-// ---------------------------------------------------------------- 6c: M <= 16, bands of B
+// ---------------------------------------------------------------- 6b: M <= 16, bands of B
 // A band of BN columns (128 or 256) over a slice of K: BK = 4096 / BN columns of K per step, so that a stage holds 8 KB
 // of B and three blocks fit in an SM; 256 threads, warp w computes the band's columns w BN / 8 to (w + 1) BN / 8 - 1,
 // all 16 rows.
@@ -455,8 +393,8 @@ struct BandGeometry {
 
 // One block: slice blockIdx.x of K (perSlice steps of BK, one more for the first `longer` slices: the host divides),
 // band blockIdx.y of BN columns; the slices of a band are neighbours in the order of the blocks. kParts: several
-// slices, so parts in the workspace, and B evict-first.
-template <int BN, bool kParts>
+// slices, so parts in the workspace; kEvictFirst: B marked evict-first (with parts, except in v5).
+template <int BN, bool kParts, bool kEvictFirst>
 __device__ __forceinline__ void band(half* shmem, const half* A, const half* B, half* C, int M, int N, int K,
                                      int perSlice, int longer, half* parts, unsigned* counts)
 {
@@ -479,10 +417,10 @@ __device__ __forceinline__ void band(half* shmem, const half* A, const half* B, 
     const half* bNext = B + ((size_t)k0 * G::kBK + br) * N + col0 + bc * 8;
     int4 zero;
     zero.x = zero.y = zero.z = zero.w = 0;
-    int4 ra[2] = {}, rb[2][2] = {};   // zeros: A's rows past M keep them (B: for the front end's flow analysis)
+    int4 ra[2] = {}, rb[2][2] = {};   // zeros: A's rows >= M keep them
     auto fetch = [&](int4& a, int4* bb) {   // the next K step of the slice
-        bb[0] = ld16_band<kParts>((const int4*)bNext);
-        bb[1] = ld16_band<kParts>((const int4*)(bNext + bRows));
+        bb[0] = ld16_band<kEvictFirst>((const int4*)bNext);
+        bb[1] = ld16_band<kEvictFirst>((const int4*)(bNext + bRows));
         bNext += bStep;
         if (aLoads) a = ld16_band<false>((const int4*)aNext);
         aNext += G::kBK;
@@ -571,7 +509,7 @@ __device__ __forceinline__ void band(half* shmem, const half* A, const half* B, 
 #pragma unroll
         for (int u = 0; u < G::kOPer; u++) {
             const int ch = threadIdx.x + G::kThreads * u, r = ch / G::kBChunks;
-            if (r < M) step3::st16<true>((int4*)&C[(size_t)r * N + col0] + ch % G::kBChunks, mine[u]);
+            if (r < M) *((int4*)&C[(size_t)r * N + col0] + ch % G::kBChunks) = mine[u];
         }
     } else {   // several slices: the block's part, then the band's counter; the last block sums the parts in order
         const int slices = gridDim.x, first = b * slices;   // the band's first block, in the order of the blocks
@@ -610,22 +548,22 @@ __device__ __forceinline__ void band(half* shmem, const half* A, const half* B, 
             __half2* o = reinterpret_cast<__half2*>(&out);
 #pragma unroll
             for (int q = 0; q < 4; q++) o[q] = __floats2half2_rn(v[2 * q], v[2 * q + 1]);
-            if (r < M) step3::st16<true>((int4*)&C[(size_t)r * N + col0] + cc, out);
+            if (r < M) *((int4*)&C[(size_t)r * N + col0] + cc) = out;
         }
         if (threadIdx.x == 0) counts[b] = 0;   // for the next call
     }
 }
 
-template <int BN, bool kParts>
+template <int BN, bool kParts, bool kEvictFirst>
 __global__ void STEP6_BAND_BOUNDS gemm_bands(const half* A, const half* B, half* C, int M, int N, int K, int perSlice,
                                              int longer, half* parts, unsigned* counts)
 {
     extern __shared__ __align__(128) half shmem[];
-    band<BN, kParts>(shmem, A, B, C, M, N, K, perSlice, longer, parts, counts);
+    band<BN, kParts, kEvictFirst>(shmem, A, B, C, M, N, K, perSlice, longer, parts, counts);
 }
 
 // ---------------------------------------------------------------- the rules (host)
-// 6c's rule, from N, K and the number of SMs P: the band's width and the number of slices of K (the header).
+// 6b's rule, from N, K and the number of SMs P: the band's width and the number of slices of K (the header).
 struct Bands { int bn, slices; };
 inline Bands bands(int N, int K, int sms)
 {
@@ -643,21 +581,19 @@ inline Bands bands(int N, int K, int sms)
 }
 
 // The kernel that runs a shape, and its tile or band. Each mechanism can be switched off (the variants of step6.cu).
-enum Kind { kGrid, kWaves, kSplit, kBands };
+enum Kind { kGrid, kSplit, kBands };
 struct Plan { Kind kind; int bm, bn, slices; };
-inline Plan plan(int M, int N, int K, int sms, bool with6b, bool with6c, bool with6d)
+inline Plan plan(int M, int N, int K, int sms, bool with6b, bool with6c)
 {
-    if (with6c && M <= 16) {   // 6c, when the shape meets the band kernel's contract
+    if (with6b && M <= 16) {   // 6b, when the shape meets the band kernel's contract
         const Bands p = bands(N, K, sms);
         const int steps = K / (4096 / p.bn), blocks = N / p.bn * p.slices;
         if (N % p.bn == 0 && K % (4096 / p.bn) == 0 && steps / p.slices >= 3 && (p.slices == 1 || blocks <= 3 * sms))
             return {kBands, 16, p.bn, p.slices};
     }
     const int tiles256 = (M + 127) / 128 * (N / 256);
-    if (with6d && M > 64 && 2 * tiles256 < sms && K % 128 == 0) return {kSplit, 128, 256, 2};   // 6d
-    const step5::Choice t = step5::choose(M, N, sms, true, true);
-    if (with6b && t.bm == 128 && t.bn == 256 && M >= 4 * t.bm) return {kWaves, 128, 256, 1};   // 6b
-    return {kGrid, t.bm, t.bn, 1};
+    if (with6c && M > 64 && 2 * tiles256 < sms && K % 128 == 0) return {kSplit, 128, 256, 2};   // 6c
+    return {kGrid, step5::choose(M, true), 256, 1};
 }
 
 }  // namespace step6
