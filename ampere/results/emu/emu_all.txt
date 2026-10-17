@@ -1,0 +1,771 @@
+gemm-ladder emulator, Ampere rung: step0 step1 step2 step3 step4 step5 step6 step7; shapes of verif.cu; each run in forward, reverse and random order
+(step 1's v4 is step 0's compute_gemm, step 2's v2 is step 1's v0, step 3's v3 is step 2's v0, step 4's v3 is step 3's v0 and step 5's v3 is step 4's v0: each kernel runs once, under its own name; wavefronts per shared instruction after err; step 3's cp.async late in the forward order, early in the reverse, mixed in the random)
+step4 tile_of<true>, 4b's order   every M <= 8192, N <= 12288  ok      24576 shapes, each tile to one block
+step4 tile_of<false>, step 0's    every M <= 8192, N <= 12288  ok      24576 shapes, each tile to one block
+step6 tile_of<128, 128>           every M <= 8192, N <= 12288  ok      49152 shapes, each tile to one block
+step6 choose, 108 SMs             the judge's 17 shapes        ok      the expected plan at each, with and without 6a and 7a
+step6 m16, 108 SMs                7 of the judge's shapes      ok      bands or the stream as expected
+step6 parallel_fits, 108 SMs      the judge's 17 shapes        ok      7b where its blocks fit on the SMs, at o_m16, down_m16, o_m128 and down_m128 with the plan
+step6 phase, 108 SMs              the judge's 17 shapes        ok      the stream in phase at gateup_m128 and gateup_m512 only
+step7 rule of 7c, 108 SMs         the judge's 17 shapes        ok      7c at down_m512 (5 parts)
+ref simple_wmma_gemm                16 x  256 x  64  forward  ok      err 2.80e-04
+ref simple_wmma_gemm                16 x  256 x  64  reverse  ok      err 2.80e-04
+ref simple_wmma_gemm                16 x  256 x  64  random   ok      err 2.80e-04
+step0 compute_gemm, 108 blocks      16 x  256 x  64  forward  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks      16 x  256 x  64  reverse  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks      16 x  256 x  64  random   ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks        16 x  256 x  64  forward  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks        16 x  256 x  64  reverse  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks        16 x  256 x  64  random   ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                   16 x  256 x  64  forward  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                   16 x  256 x  64  reverse  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                   16 x  256 x  64  random   ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks   16 x  256 x  64  forward  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks   16 x  256 x  64  reverse  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks   16 x  256 x  64  random   ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks     16 x  256 x  64  forward  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks     16 x  256 x  64  reverse  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks     16 x  256 x  64  random   ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)               16 x  256 x  64  forward  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)               16 x  256 x  64  reverse  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)               16 x  256 x  64  random   ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks     16 x  256 x  64  forward  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks     16 x  256 x  64  reverse  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks     16 x  256 x  64  random   ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks       16 x  256 x  64  forward  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks       16 x  256 x  64  reverse  ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks       16 x  256 x  64  random   ok      err 2.80e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)          16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)          16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)          16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)               16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)               16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)               16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)         16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)         16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)         16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                 16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                 16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                 16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)        16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)        16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)        16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)          16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)          16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)          16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)               16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)               16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)               16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)               16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)               16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)               16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)          16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)          16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)          16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)               16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)               16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)               16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)               16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)               16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)               16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)       16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)       16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)       16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 bands 128, 6 stages (6b)      16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 bands 128, 6 stages (6b)      16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 bands 128, 6 stages (6b)      16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 108 blocks (6b)   16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 108 blocks (6b)   16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 108 blocks (6b)   16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 7 blocks (6b)     16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 7 blocks (6b)     16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 7 blocks (6b)     16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)        16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)        16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)        16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)          16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)          16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)          16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)   16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)   16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)   16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)   16 x  256 x  64  forward  ok      err 4.91e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)   16 x  256 x  64  reverse  ok      err 4.91e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)   16 x  256 x  64  random   ok      err 4.91e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)   16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)   16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)   16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)   16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)   16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)   16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)   16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)   16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)   16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 bands 128, 6 stages (6b, 7d)   16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 bands 128, 6 stages (6b, 7d)   16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 bands 128, 6 stages (6b, 7d)   16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 108 blocks (6b, 7d)   16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 108 blocks (6b, 7d)   16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 108 blocks (6b, 7d)   16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 7 blocks (6b, 7d)   16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 7 blocks (6b, 7d)   16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 7 blocks (6b, 7d)   16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)   16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)   16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)   16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)    16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)    16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)    16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)      16 x  256 x  64  forward  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)      16 x  256 x  64  reverse  ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)      16 x  256 x  64  random   ok      err 2.80e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+ref simple_wmma_gemm               144 x  256 x  64  forward  ok      err 3.03e-04
+ref simple_wmma_gemm               144 x  256 x  64  reverse  ok      err 3.03e-04
+ref simple_wmma_gemm               144 x  256 x  64  random   ok      err 3.03e-04
+step0 compute_gemm, 108 blocks     144 x  256 x  64  forward  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks     144 x  256 x  64  reverse  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks     144 x  256 x  64  random   ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       144 x  256 x  64  forward  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       144 x  256 x  64  reverse  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       144 x  256 x  64  random   ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  144 x  256 x  64  forward  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  144 x  256 x  64  reverse  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  144 x  256 x  64  random   ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  144 x  256 x  64  forward  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  144 x  256 x  64  reverse  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  144 x  256 x  64  random   ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    144 x  256 x  64  forward  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    144 x  256 x  64  reverse  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    144 x  256 x  64  random   ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              144 x  256 x  64  forward  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              144 x  256 x  64  reverse  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              144 x  256 x  64  random   ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    144 x  256 x  64  forward  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    144 x  256 x  64  reverse  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    144 x  256 x  64  random   ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      144 x  256 x  64  forward  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      144 x  256 x  64  reverse  ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      144 x  256 x  64  random   ok      err 3.03e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  144 x  256 x  64  forward  ok      err 4.78e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  144 x  256 x  64  reverse  ok      err 4.78e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  144 x  256 x  64  random   ok      err 4.78e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     144 x  256 x  64  forward  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     144 x  256 x  64  reverse  ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     144 x  256 x  64  random   ok      err 3.03e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+ref simple_wmma_gemm               128 x  512 x 128  forward  ok      err 2.34e-04
+ref simple_wmma_gemm               128 x  512 x 128  reverse  ok      err 2.34e-04
+ref simple_wmma_gemm               128 x  512 x 128  random   ok      err 2.34e-04
+step0 compute_gemm, 108 blocks     128 x  512 x 128  forward  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks     128 x  512 x 128  reverse  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks     128 x  512 x 128  random   ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       128 x  512 x 128  forward  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       128 x  512 x 128  reverse  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       128 x  512 x 128  random   ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  128 x  512 x 128  forward  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  128 x  512 x 128  reverse  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  128 x  512 x 128  random   ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  128 x  512 x 128  forward  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  128 x  512 x 128  reverse  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  128 x  512 x 128  random   ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    128 x  512 x 128  forward  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    128 x  512 x 128  reverse  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    128 x  512 x 128  random   ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              128 x  512 x 128  forward  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              128 x  512 x 128  reverse  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              128 x  512 x 128  random   ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    128 x  512 x 128  forward  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    128 x  512 x 128  reverse  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    128 x  512 x 128  random   ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      128 x  512 x 128  forward  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      128 x  512 x 128  reverse  ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      128 x  512 x 128  random   ok      err 2.34e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      128 x  512 x 128  forward  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      128 x  512 x 128  reverse  ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      128 x  512 x 128  random   ok      err 2.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       128 x  512 x 128  forward  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       128 x  512 x 128  reverse  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       128 x  512 x 128  random   ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         128 x  512 x 128  forward  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         128 x  512 x 128  reverse  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         128 x  512 x 128  random   ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  128 x  512 x 128  forward  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  128 x  512 x 128  reverse  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  128 x  512 x 128  random   ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  128 x  512 x 128  forward  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  128 x  512 x 128  reverse  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  128 x  512 x 128  random   ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  128 x  512 x 128  forward  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  128 x  512 x 128  reverse  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  128 x  512 x 128  random   ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  128 x  512 x 128  forward  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  128 x  512 x 128  reverse  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  128 x  512 x 128  random   ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  128 x  512 x 128  forward  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  128 x  512 x 128  reverse  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  128 x  512 x 128  random   ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  128 x  512 x 128  forward  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  128 x  512 x 128  reverse  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  128 x  512 x 128  random   ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   128 x  512 x 128  forward  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   128 x  512 x 128  reverse  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   128 x  512 x 128  random   ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     128 x  512 x 128  forward  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     128 x  512 x 128  reverse  ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     128 x  512 x 128  random   ok      err 5.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         144 x  512 x 256  forward  ok      err 3.34e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         144 x  512 x 256  reverse  ok      err 3.34e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         144 x  512 x 256  random   ok      err 3.34e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        144 x  512 x 256  forward  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        144 x  512 x 256  reverse  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        144 x  512 x 256  random   ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                144 x  512 x 256  forward  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                144 x  512 x 256  reverse  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                144 x  512 x 256  random   ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       144 x  512 x 256  forward  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       144 x  512 x 256  reverse  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       144 x  512 x 256  random   ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         144 x  512 x 256  forward  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         144 x  512 x 256  reverse  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         144 x  512 x 256  random   ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              144 x  512 x 256  forward  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              144 x  512 x 256  reverse  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              144 x  512 x 256  random   ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              144 x  512 x 256  forward  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              144 x  512 x 256  reverse  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              144 x  512 x 256  random   ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         144 x  512 x 256  forward  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         144 x  512 x 256  reverse  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         144 x  512 x 256  random   ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              144 x  512 x 256  forward  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              144 x  512 x 256  reverse  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              144 x  512 x 256  random   ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              144 x  512 x 256  forward  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              144 x  512 x 256  reverse  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              144 x  512 x 256  random   ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      144 x  512 x 256  forward  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      144 x  512 x 256  reverse  ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      144 x  512 x 256  random   ok      err 3.34e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       144 x  512 x 256  forward  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       144 x  512 x 256  reverse  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       144 x  512 x 256  random   ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         144 x  512 x 256  forward  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         144 x  512 x 256  reverse  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         144 x  512 x 256  random   ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  144 x  512 x 256  forward  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  144 x  512 x 256  reverse  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  144 x  512 x 256  random   ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  144 x  512 x 256  forward  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  144 x  512 x 256  reverse  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  144 x  512 x 256  random   ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  144 x  512 x 256  forward  ok      err 7.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  144 x  512 x 256  reverse  ok      err 7.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  144 x  512 x 256  random   ok      err 7.28e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  144 x  512 x 256  forward  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  144 x  512 x 256  reverse  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  144 x  512 x 256  random   ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  144 x  512 x 256  forward  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  144 x  512 x 256  reverse  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  144 x  512 x 256  random   ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  144 x  512 x 256  forward  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  144 x  512 x 256  reverse  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  144 x  512 x 256  random   ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   144 x  512 x 256  forward  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   144 x  512 x 256  reverse  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   144 x  512 x 256  random   ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     144 x  512 x 256  forward  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     144 x  512 x 256  reverse  ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     144 x  512 x 256  random   ok      err 5.53e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+ref simple_wmma_gemm               208 x  512 x 192  forward  ok      err 3.35e-04
+ref simple_wmma_gemm               208 x  512 x 192  reverse  ok      err 3.35e-04
+ref simple_wmma_gemm               208 x  512 x 192  random   ok      err 3.35e-04
+step0 compute_gemm, 108 blocks     208 x  512 x 192  forward  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks     208 x  512 x 192  reverse  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks     208 x  512 x 192  random   ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       208 x  512 x 192  forward  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       208 x  512 x 192  reverse  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       208 x  512 x 192  random   ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  208 x  512 x 192  forward  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  208 x  512 x 192  reverse  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  208 x  512 x 192  random   ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  208 x  512 x 192  forward  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  208 x  512 x 192  reverse  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  208 x  512 x 192  random   ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    208 x  512 x 192  forward  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    208 x  512 x 192  reverse  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    208 x  512 x 192  random   ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              208 x  512 x 192  forward  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              208 x  512 x 192  reverse  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              208 x  512 x 192  random   ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    208 x  512 x 192  forward  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    208 x  512 x 192  reverse  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    208 x  512 x 192  random   ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      208 x  512 x 192  forward  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      208 x  512 x 192  reverse  ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      208 x  512 x 192  random   ok      err 3.35e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      208 x  512 x 192  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      208 x  512 x 192  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      208 x  512 x 192  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       208 x  512 x 192  forward  ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       208 x  512 x 192  reverse  ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       208 x  512 x 192  random   ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         208 x  512 x 192  forward  ok      err 5.57e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         208 x  512 x 192  reverse  ok      err 5.57e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         208 x  512 x 192  random   ok      err 5.57e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  208 x  512 x 192  forward  ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  208 x  512 x 192  reverse  ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  208 x  512 x 192  random   ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  208 x  512 x 192  forward  ok      err 5.40e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  208 x  512 x 192  reverse  ok      err 5.40e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  208 x  512 x 192  random   ok      err 5.40e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  208 x  512 x 192  forward  ok      err 5.20e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  208 x  512 x 192  reverse  ok      err 5.20e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  208 x  512 x 192  random   ok      err 5.20e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  208 x  512 x 192  forward  ok      err 5.57e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  208 x  512 x 192  reverse  ok      err 5.57e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  208 x  512 x 192  random   ok      err 5.57e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  208 x  512 x 192  forward  ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  208 x  512 x 192  reverse  ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)  208 x  512 x 192  random   ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  208 x  512 x 192  forward  ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  208 x  512 x 192  reverse  ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)  208 x  512 x 192  random   ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   208 x  512 x 192  forward  ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   208 x  512 x 192  reverse  ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   208 x  512 x 192  random   ok      err 5.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     208 x  512 x 192  forward  ok      err 5.57e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     208 x  512 x 192  reverse  ok      err 5.57e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     208 x  512 x 192  random   ok      err 5.57e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)          16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)          16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)          16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)         16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)         16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)         16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                 16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                 16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                 16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)        16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)        16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)        16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)          16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)          16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)          16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)               16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)               16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)               16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)               16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)               16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)               16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)          16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)          16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)          16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)               16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)               16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)               16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)               16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)               16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)               16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)       16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)       16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)       16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 bands 128, 6 stages (6b)      16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 bands 128, 6 stages (6b)      16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 bands 128, 6 stages (6b)      16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 108 blocks (6b)   16 x 1024 x 1024  forward  ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 108 blocks (6b)   16 x 1024 x 1024  reverse  ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 108 blocks (6b)   16 x 1024 x 1024  random   ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 7 blocks (6b)     16 x 1024 x 1024  forward  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 7 blocks (6b)     16 x 1024 x 1024  reverse  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 7 blocks (6b)     16 x 1024 x 1024  random   ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)        16 x 1024 x 1024  forward  ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)        16 x 1024 x 1024  reverse  ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)        16 x 1024 x 1024  random   ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)          16 x 1024 x 1024  forward  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)          16 x 1024 x 1024  reverse  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)          16 x 1024 x 1024  random   ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)   16 x 1024 x 1024  forward  ok      err 5.13e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)   16 x 1024 x 1024  reverse  ok      err 5.13e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)   16 x 1024 x 1024  random   ok      err 5.13e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)   16 x 1024 x 1024  forward  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)   16 x 1024 x 1024  reverse  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)   16 x 1024 x 1024  random   ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)   16 x 1024 x 1024  forward  ok      err 6.59e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)   16 x 1024 x 1024  reverse  ok      err 6.59e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)   16 x 1024 x 1024  random   ok      err 6.59e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)   16 x 1024 x 1024  forward  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)   16 x 1024 x 1024  reverse  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)   16 x 1024 x 1024  random   ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)   16 x 1024 x 1024  forward  ok      err 5.13e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)   16 x 1024 x 1024  reverse  ok      err 5.13e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, no 7d)   16 x 1024 x 1024  random   ok      err 5.13e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 bands 128, 6 stages (6b, 7d)   16 x 1024 x 1024  forward  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 bands 128, 6 stages (6b, 7d)   16 x 1024 x 1024  reverse  ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 bands 128, 6 stages (6b, 7d)   16 x 1024 x 1024  random   ok      err 3.35e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 108 blocks (6b, 7d)   16 x 1024 x 1024  forward  ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 108 blocks (6b, 7d)   16 x 1024 x 1024  reverse  ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 108 blocks (6b, 7d)   16 x 1024 x 1024  random   ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 7 blocks (6b, 7d)   16 x 1024 x 1024  forward  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 7 blocks (6b, 7d)   16 x 1024 x 1024  reverse  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 7 blocks (6b, 7d)   16 x 1024 x 1024  random   ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)   16 x 1024 x 1024  forward  ok      err 5.13e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)   16 x 1024 x 1024  reverse  ok      err 5.13e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7b, 7d)   16 x 1024 x 1024  random   ok      err 5.13e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)    16 x 1024 x 1024  forward  ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)    16 x 1024 x 1024  reverse  ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)    16 x 1024 x 1024  random   ok      err 3.36e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)      16 x 1024 x 1024  forward  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)      16 x 1024 x 1024  reverse  ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)      16 x 1024 x 1024  random   ok      err 5.73e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+ref simple_wmma_gemm               272 x 5376 x 128  forward  ok      err 3.96e-04
+ref simple_wmma_gemm               272 x 5376 x 128  reverse  ok      err 3.96e-04
+ref simple_wmma_gemm               272 x 5376 x 128  random   ok      err 3.96e-04
+step0 compute_gemm, 108 blocks     272 x 5376 x 128  forward  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks     272 x 5376 x 128  reverse  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks     272 x 5376 x 128  random   ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       272 x 5376 x 128  forward  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       272 x 5376 x 128  reverse  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks       272 x 5376 x 128  random   ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  272 x 5376 x 128  forward  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  272 x 5376 x 128  reverse  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                  272 x 5376 x 128  random   ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  272 x 5376 x 128  forward  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  272 x 5376 x 128  reverse  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks  272 x 5376 x 128  random   ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    272 x 5376 x 128  forward  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    272 x 5376 x 128  reverse  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks    272 x 5376 x 128  random   ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              272 x 5376 x 128  forward  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              272 x 5376 x 128  reverse  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)              272 x 5376 x 128  random   ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    272 x 5376 x 128  forward  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    272 x 5376 x 128  reverse  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks    272 x 5376 x 128  random   ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      272 x 5376 x 128  forward  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      272 x 5376 x 128  reverse  ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks      272 x 5376 x 128  random   ok      err 3.96e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)         272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)              272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)        272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)                272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)       272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)         272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)              272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)              272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)         272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)              272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)              272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      272 x 5376 x 128  forward  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      272 x 5376 x 128  reverse  ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)      272 x 5376 x 128  random   ok      err 3.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       272 x 5376 x 128  forward  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       272 x 5376 x 128  reverse  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)       272 x 5376 x 128  random   ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         272 x 5376 x 128  forward  ok      err 4.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         272 x 5376 x 128  reverse  ok      err 4.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)         272 x 5376 x 128  random   ok      err 4.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  272 x 5376 x 128  forward  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  272 x 5376 x 128  reverse  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)  272 x 5376 x 128  random   ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  272 x 5376 x 128  forward  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  272 x 5376 x 128  reverse  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)  272 x 5376 x 128  random   ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  272 x 5376 x 128  forward  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  272 x 5376 x 128  reverse  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)  272 x 5376 x 128  random   ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  272 x 5376 x 128  forward  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  272 x 5376 x 128  reverse  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)  272 x 5376 x 128  random   ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   272 x 5376 x 128  forward  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   272 x 5376 x 128  reverse  ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)   272 x 5376 x 128  random   ok      err 7.48e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     272 x 5376 x 128  forward  ok      err 4.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     272 x 5376 x 128  reverse  ok      err 4.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)     272 x 5376 x 128  random   ok      err 4.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+ref simple_wmma_gemm              1168 x  512 x  64  forward  ok      err 2.83e-04
+ref simple_wmma_gemm              1168 x  512 x  64  reverse  ok      err 2.83e-04
+ref simple_wmma_gemm              1168 x  512 x  64  random   ok      err 2.83e-04
+step0 compute_gemm, 108 blocks    1168 x  512 x  64  forward  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks    1168 x  512 x  64  reverse  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 108 blocks    1168 x  512 x  64  random   ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks      1168 x  512 x  64  forward  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks      1168 x  512 x  64  reverse  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step0 compute_gemm, 3 blocks      1168 x  512 x  64  random   ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                 1168 x  512 x  64  forward  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                 1168 x  512 x  64  reverse  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v0 (step 1)                 1168 x  512 x  64  random   ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks 1168 x  512 x  64  forward  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks 1168 x  512 x  64  reverse  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 108 blocks 1168 x  512 x  64  random   ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks   1168 x  512 x  64  forward  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks   1168 x  512 x  64  reverse  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v1 (without 1a), 3 blocks   1168 x  512 x  64  random   ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)             1168 x  512 x  64  forward  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)             1168 x  512 x  64  reverse  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v2 (without 1c)             1168 x  512 x  64  random   ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks   1168 x  512 x  64  forward  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks   1168 x  512 x  64  reverse  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 108 blocks   1168 x  512 x  64  random   ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks     1168 x  512 x  64  forward  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks     1168 x  512 x  64  reverse  ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step1 v3 (1d alone), 3 blocks     1168 x  512 x  64  random   ok      err 2.83e-04  STS.128 A 4.00 B 4.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)        1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)        1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)        1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)             1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)             1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v1 (without 2b)             1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 8.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)       1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)       1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v0 (step 3: 3 stages)       1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)               1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)               1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v1 (2 stages)               1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)      1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)      1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step3 v2 (3a alone, 1 stage)      1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)        1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)        1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v0 (step 4: 4a + 4b)        1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)             1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)             1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v1 (without 4a)             1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)             1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)             1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step4 v2 (without 4b)             1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)        1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)        1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)        1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)             1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)             1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v1 (without 5a)             1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)             1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)             1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v2 (without 5b)             1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)     1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)     1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)     1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)      1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)      1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)      1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)        1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)        1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)        1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a) 1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a) 1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a) 1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a) 1168 x  512 x  64  forward  ok      err 5.43e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a) 1168 x  512 x  64  reverse  ok      err 5.43e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a) 1168 x  512 x  64  random   ok      err 5.43e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c) 1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c) 1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c) 1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c) 1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c) 1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c) 1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)  1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)  1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)  1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)    1168 x  512 x  64  forward  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)    1168 x  512 x  64  reverse  ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)    1168 x  512 x  64  random   ok      err 2.83e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)          16 x 6144 x 128  forward  ok      err 2.32e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)          16 x 6144 x 128  reverse  ok      err 2.32e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step2 v0 (step 2: 2a + 2b)          16 x 6144 x 128  random   ok      err 2.32e-04  LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)          16 x 6144 x 128  forward  ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)          16 x 6144 x 128  reverse  ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step5 v0 (step 5: 5a + 5b)          16 x 6144 x 128  random   ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)       16 x 6144 x 128  forward  ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)       16 x 6144 x 128  reverse  ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 128 x 128, K32 x 5 (6a)       16 x 6144 x 128  random   ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 bands 128, 6 stages (6b)      16 x 6144 x 128  forward  ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 bands 128, 6 stages (6b)      16 x 6144 x 128  reverse  ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 bands 128, 6 stages (6b)      16 x 6144 x 128  random   ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 108 blocks (6b)   16 x 6144 x 128  forward  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 108 blocks (6b)   16 x 6144 x 128  reverse  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 108 blocks (6b)   16 x 6144 x 128  random   ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 7 blocks (6b)     16 x 6144 x 128  forward  ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 7 blocks (6b)     16 x 6144 x 128  reverse  ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 stream 256, 7 blocks (6b)     16 x 6144 x 128  random   ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)        16 x 6144 x 128  forward  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)        16 x 6144 x 128  reverse  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 108 blocks (6c)        16 x 6144 x 128  random   ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)          16 x 6144 x 128  forward  ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)          16 x 6144 x 128  reverse  ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step6 phase, 7 blocks (6c)          16 x 6144 x 128  random   ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)   16 x 6144 x 128  forward  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)   16 x 6144 x 128  reverse  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 3 parts (7a)   16 x 6144 x 128  random   ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)   16 x 6144 x 128  forward  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)   16 x 6144 x 128  reverse  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 128, K in 2 in place (7a)   16 x 6144 x 128  random   ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)   16 x 6144 x 128  forward  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)   16 x 6144 x 128  reverse  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 5 in place (7c)   16 x 6144 x 128  random   ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)   16 x 6144 x 128  forward  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)   16 x 6144 x 128  reverse  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 128 x 256, K in 2 in place (7c)   16 x 6144 x 128  random   ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 bands 128, 6 stages (6b, 7d)   16 x 6144 x 128  forward  ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 bands 128, 6 stages (6b, 7d)   16 x 6144 x 128  reverse  ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 bands 128, 6 stages (6b, 7d)   16 x 6144 x 128  random   ok      err 2.32e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 108 blocks (6b, 7d)   16 x 6144 x 128  forward  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 108 blocks (6b, 7d)   16 x 6144 x 128  reverse  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 108 blocks (6b, 7d)   16 x 6144 x 128  random   ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 7 blocks (6b, 7d)   16 x 6144 x 128  forward  ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 7 blocks (6b, 7d)   16 x 6144 x 128  reverse  ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 stream 256, 7 blocks (6b, 7d)   16 x 6144 x 128  random   ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)    16 x 6144 x 128  forward  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)    16 x 6144 x 128  reverse  ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 108 blocks (6c, 7d)    16 x 6144 x 128  random   ok      err 4.96e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)      16 x 6144 x 128  forward  ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)      16 x 6144 x 128  reverse  ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+step7 phase, 7 blocks (6c, 7d)      16 x 6144 x 128  random   ok      err 4.30e-04  LDSM.x4 4.00  LDGSTS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00
+767 runs: 767 ok, 0 failed; worst error / max |ref| of the runs that passed 7.48e-04 (tolerance 2e-03)
+ALL OK

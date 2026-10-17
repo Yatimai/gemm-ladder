@@ -1,0 +1,49 @@
+candidate ampere/step7.cu; step7.cu md5 320b2f641f439baa90ba606896409048; step2.cuh md5 fc5b77af2ee5a3a53f2ed919cfe1f6f3; step7.cuh md5 4311e425984c697211e9f1e9e8d8b9d4; step3.cuh md5 b14c7739b53d2c5ea0be73bbcc33838b; step1.cuh md5 9f90e07f64b1021530a891485790d1a8; step4.cuh md5 2878abaebbfba8de956d4d4b3e342147; step6.cuh md5 5c57f07dbd5a2ff441276b02e50e8777; step5.cuh md5 d7764933c7363581bf044d087de33310; nvidia_sample.cuh md5 8d2d0f67b2e4d343c9433c956cdf52ea
+probe.cu md5 aa7ee2d6; modal_probe.py md5 7608c03c; variant NVIDIA_A100-SXM4-80GB|400W|lt130201|cuda13030 (try 1/8)
+card NVIDIA_A100-SXM4-80GB|400W|lt130201|cuda13030
+NVIDIA A100-SXM4-80GB, 610.57.04, 1410 MHz, 400.00 W, 31
+Sat Oct 17 17:27:24 UTC 2026
+build rc 0
+
+== ncu try: rc 0
+1 pass
+ncu: done
+==PROF== Disconnected from process 111
+[111] probe@127.0.0.1
+  fill(__half *, unsigned long, unsigned int) (1024, 1, 1)x(256, 1, 1), Context 1, Stream 7, Device 0, CC 8.0
+    Warning: Data collection happened without fixed GPU frequencies. Profiling results may be inconsistent.
+    Section: Command line profiler metrics
+    ---------------------- ----------- ------------
+    Metric Name            Metric Unit Metric Value
+    ---------------------- ----------- ------------
+    gpu__time_duration.sum          us         4.64
+    ---------------------- ----------- ------------
+
+== ncu v0 128x8192x8192 : rc 0
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 145 (/tmp/s/probe)
+==PROF== Profiling "gemm_parallel" - 0 (1/6): 0%....50%....100% - 52 passes
+==PROF== Profiling "gemm_parallel" - 1 (2/6): 0%....50%....100% - 52 passes
+ncu: done
+==PROF== Disconnected from process 145
+==PROF== Report: /tmp/s/ncu_v0_128x8192x8192.ncu-rep
+== ncu v2 128x8192x8192 : rc 0
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 295 (/tmp/s/probe)
+==PROF== Profiling "gemm_split" - 0 (1/6): 0%....50%....100% - 52 passes
+==PROF== Profiling "reduce_parts" - 1 (2/6): 0%....50%....100% - 52 passes
+==PROF== Profiling "gemm_split" - 2 (3/6): 0%....50%....100% - 52 passes
+==PROF== Profiling "reduce_parts" - 3 (4/6): 0%....50%....100% - 52 passes
+ncu: done
+==PROF== Disconnected from process 295
+==PROF== Report: /tmp/s/ncu_v2_128x8192x8192.ncu-rep
+== ncu x:06000000180000000f00000003000000040000000100000000000000000000000100000099fc0100020000000200000002000200440000000000000000000000 128x8192x8192 : rc 0
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 561 (/tmp/s/probe)
+==PROF== Profiling "ampere_fp16_s16816gemm_fp16_2..." - 0 (1/6): 0%....50%....100% - 52 passes
+==PROF== Profiling "splitKreduce_kernel" - 1 (2/6): 0%....50%....100% - 52 passes
+==PROF== Profiling "ampere_fp16_s16816gemm_fp16_2..." - 2 (3/6): 0%....50%....100% - 52 passes
+==PROF== Profiling "splitKreduce_kernel" - 3 (4/6): 0%....50%....100% - 52 passes
+ncu: done
+==PROF== Disconnected from process 561
+==PROF== Report: /tmp/s/ncu_x_06000000180000000f00000003000000040000000100000000000000000000000100000099fc0100020000000200000002000200440000000000000000000000_128x8192x8192.ncu-rep

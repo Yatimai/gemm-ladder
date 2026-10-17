@@ -1,0 +1,239 @@
+/* Derived from NVIDIA's CUDA sample cudaTensorCoreGemm (cuda-samples v12.4, Samples/3_CUDA_Features/cudaTensorCoreGemm)
+ * through step 0 (nvidia_sample.cuh), whose notice follows.
+ *
+ * Copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *  * Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *  * Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *  * Neither the name of NVIDIA CORPORATION nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ * OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+// The judge's format: C = A B with A (M x K) and B (K x N) fp16 row-major, fp32 accumulation, C (M x N) fp16 row-major.
+#pragma once
+#include <cuda_fp16.h>
+#include <cuda_runtime.h>
+#include <mma.h>
+
+namespace step1 {
+using namespace nvcuda;
+
+// ---------------------------------------------------------------- step 1: granularity
+// The template is the Turing rung's step 1 (turing/step1.cuh), code line for line; only comments differ. On the A100,
+// step 1 applies three of the template's four mechanisms to step 0 (compute_gemm, nvidia_sample.cuh): one block per
+// tile (1a), a 128 x 256 tile (1c), and CUTLASS's spread of the copy over all threads (CUTLASS v4.4.1,
+// include/cutlass/gemm/threadblock/default_mma_core_sm80.h: each operand's copy spread over all the block's threads).
+// Not taken: (1b), the template's double buffer filled through registers; step 3 copies asynchronously instead.
+// The loop is therefore step 0's: copy a K64 slice through registers, barrier, compute, barrier (kDouble = false
+// throughout).
+// Kept from step 0: wmma 16 x 16 x 16 fragments (on sm_80: HMMA.16816 and LDSM.x4), rows padded by 16 halves, 16-byte
+// global loads and shared stores, ordinary global loads, the order of the tiles (N fastest), the edge in M, the fp16
+// output through shared memory half a tile at a time. Shapes: M a multiple of 16, N of 256 (of 128 without 1c),
+// K of 64.
+// (1a) One block per tile: the grid has as many blocks as tiles; step 0 runs one block per SM over a list of
+//      tiles fixed at launch (block_pos += gridDim.x). At the ladder (3456 x 4096 x 2048) both are full waves on 108
+//      SMs (432 tiles of 128 x 256, 864 of 128 x 128).
+// (1c) A 128 x 256 tile, 8 warps of 64 x 64 (4 x 4 fragments: 128 HMMA.16816 per K64 and per warp) instead of 128 x 128
+//      with warps of 32 x 64. Per K64 a warp issues 12 LDG.128 and 32 LDSM.x4 for 128 HMMA instead of 8 and 24 for 64:
+//      a quarter fewer global loads and a third fewer LDSM per HMMA (sm_80, nvcc 13.2). The price: 244 registers
+//      instead of 168 (one block per SM either way).
+// (1d) The spread of the copy, CUTLASS's: each of the 256 threads copies its share of the slice of A and of B, where
+//      step 0 gives A to warps 0-3 and B to warps 4-7. Probed on step 0 (v3 against v4): the template's single copy
+//      rule keeps it in step 1.
+//      In the SASS (nvcc 13.2): step 0's loop issues its copy in three dependent waves,
+//      L S LLL SSS LLLL SSSS (L = LDG.128, S = STS.128: each group of loads is consumed by its stores before the next
+//      group is issued), v3's issues 7 loads in a row, LLLLLLL S L SSSSSSS.
+// Variants (g_var in step1.cu, for the interleaved probe: the step, and each removal = the step without one mechanism):
+//   v0 = step 1 (1a + 1c + 1d; 244 registers, 272 instructions per K64 and per warp in the loop, sm_80, nvcc 13.2);
+//   v1 = without 1a: step 0's persistent grid (one block per SM) at the 128 x 256 tile (237 registers, 294
+//        instructions);
+//   v2 = without 1c: the 128 x 128 tile (8 warps of 32 x 64) with 1a and 1d (161 registers, 168 instructions);
+//   v3 = 1d alone: step 0 except for the spread of the copy (128 registers, 204 instructions);
+//   v4 = step 0 itself (nvidia_sample::compute_gemm), so that v3 and v4 run in the same probe.
+// Shared memory (dynamic; above 48 KB the launch needs cudaFuncSetAttribute): v0 and v1 55 296 bytes, v2 to v4 38 912;
+// the output's half tile reuses the loop's buffers. The Turing comments on (1b), below, describe the template's other
+// path.
+constexpr int kSkew = 16;   // step 0's padding (the sample's SKEW_HALF), in halves
+
+// The geometry of a variant: kBN, the tile's width (256 with 1c, 128 without); kDouble, two K32 stages (1b) or one K64
+// slice. Sizes in halves unless said otherwise.
+template <int kBN, bool kDouble>
+struct Geometry {
+    static constexpr int kSliceK = kDouble ? 32 : 64;    // K per stage
+    static constexpr int kStages = kDouble ? 2 : 1;
+    static constexpr int kAStride = kSliceK + kSkew;     // 48 or 80
+    static constexpr int kBStride = kBN + kSkew;         // 272 or 144
+    static constexpr int kOStride = kBN + 8;             // 264 or 136 (no bank conflict at either)
+    static constexpr int kAStage = 128 * kAStride, kBStage = kSliceK * kBStride;
+    static constexpr int kALanes = kSliceK / 8, kBLanes = kBN / 8;   // 16-byte chunks per row of a slice
+    static constexpr int kACopies = 128 * kALanes / 256, kBCopies = kSliceK * kBLanes / 256;   // per thread and slice
+    static constexpr int kWarpsN = kBN / 64;             // warps along N (4 or 2), each 64 columns wide
+    static constexpr int kWarpRows = 128 * kWarpsN / 8;  // rows per warp (64 or 32)
+    static constexpr int kFragsM = kWarpRows / 16;       // rows of fragments per warp (4 or 2)
+    static constexpr int kLoopBytes = kStages * (kAStage + kBStage) * 2, kOutBytes = 64 * kOStride * 2;
+    static constexpr int kSmemBytes = kLoopBytes > kOutBytes ? kLoopBytes : kOutBytes;
+    static_assert(kACopies * 256 == 128 * kALanes && kBCopies * 256 == kSliceK * kBLanes, "copies not spread evenly");
+    static_assert(kSmemBytes <= 64 * 1024, "above the 64 KB of shared memory of a block on sm_75");
+};
+
+// One 128 x kBN tile; kEdge: the tile is cut by M (the row of A each thread loads is clamped to M - 1).
+template <int kBN, bool kDouble, bool kEdge>
+__device__ __forceinline__ void compute_tile(half* shmem, const half* A, const half* B, half* C, int M, int N, int K,
+                                             int row0, int col0)
+{
+    using G = Geometry<kBN, kDouble>;
+    half* As = shmem;                              // kStages x 128 rows of the slice of A
+    half* Bs = shmem + G::kStages * G::kAStage;    // kStages x kSliceK rows of the slice of B
+    const int warpId = threadIdx.x / 32;
+    const int wm = warpId / G::kWarpsN, wn = warpId % G::kWarpsN;   // the warp's rows wm * kWarpRows, columns wn * 64
+    wmma::fragment<wmma::accumulator, 16, 16, 16, float> c[G::kFragsM][4];
+#pragma unroll
+    for (int i = 0; i < G::kFragsM; i++)
+#pragma unroll
+        for (int j = 0; j < 4; j++) wmma::fill_fragment(c[i][j], 0.0f);
+
+    // A slice in registers: thread t holds rows t / kALanes + i * (256 / kALanes) of the slice of A at 16-byte lane
+    // t % kALanes, and rows t / kBLanes + i * (256 / kBLanes) of the slice of B at lane t % kBLanes.
+    int4 ra[G::kACopies], rb[G::kBCopies];
+    auto load = [&](int k0) {   // global memory to registers, the slice that starts at k0
+#pragma unroll
+        for (int i = 0; i < G::kACopies; i++) {
+            const int r = threadIdx.x / G::kALanes + i * (256 / G::kALanes);
+            const int gr = kEdge ? min(row0 + r, M - 1) : row0 + r;
+            ra[i] = *((const int4*)&A[(size_t)gr * K + k0] + threadIdx.x % G::kALanes);
+        }
+#pragma unroll
+        for (int i = 0; i < G::kBCopies; i++) {
+            const int r = threadIdx.x / G::kBLanes + i * (256 / G::kBLanes);
+            rb[i] = *((const int4*)&B[(size_t)(k0 + r) * N + col0] + threadIdx.x % G::kBLanes);
+        }
+    };
+    auto store = [&](int s) {   // registers to stage s
+#pragma unroll
+        for (int i = 0; i < G::kACopies; i++) {
+            const int r = threadIdx.x / G::kALanes + i * (256 / G::kALanes);
+            *((int4*)&As[s * G::kAStage + r * G::kAStride] + threadIdx.x % G::kALanes) = ra[i];
+        }
+#pragma unroll
+        for (int i = 0; i < G::kBCopies; i++) {
+            const int r = threadIdx.x / G::kBLanes + i * (256 / G::kBLanes);
+            *((int4*)&Bs[s * G::kBStage + r * G::kBStride] + threadIdx.x % G::kBLanes) = rb[i];
+        }
+    };
+    auto compute = [&](int s) {   // the warp's fragments over stage s, K16 at a time, as step 0
+#pragma unroll
+        for (int ks = 0; ks < G::kSliceK / 16; ks++) {
+            wmma::fragment<wmma::matrix_a, 16, 16, 16, half, wmma::row_major> a[G::kFragsM];
+            wmma::fragment<wmma::matrix_b, 16, 16, 16, half, wmma::row_major> b[4];
+#pragma unroll
+            for (int i = 0; i < G::kFragsM; i++) {
+                wmma::load_matrix_sync(a[i], &As[s * G::kAStage + (wm * G::kWarpRows + i * 16) * G::kAStride + ks * 16],
+                                       G::kAStride);
+#pragma unroll
+                for (int j = 0; j < 4; j++) {
+                    if (i == 0)
+                        wmma::load_matrix_sync(b[j], &Bs[s * G::kBStage + (ks * 16) * G::kBStride + wn * 64 + j * 16],
+                                               G::kBStride);
+                    wmma::mma_sync(c[i][j], a[i], b[j], c[i][j]);
+                }
+            }
+        }
+    };
+    if constexpr (kDouble) {
+        // (1b), the double buffer: the first K32 slice to stage 0; then per K32, the next slice's loads, the compute of
+        // the current stage, the stores to the other stage, one barrier. An iteration covers step 0's K64, stage 0 then
+        // stage 1, so that each stage keeps a fixed place.
+        load(0);
+        store(0);
+        __syncthreads();
+        for (int k0 = 0; k0 < K; k0 += 64) {
+            load(k0 + 32);   // K is a multiple of 64: the second K32 of this K64 always exists
+            compute(0);
+            store(1);
+            __syncthreads();
+            const bool next = k0 + 64 < K;
+            if (next) load(k0 + 64);
+            compute(1);
+            if (next) store(0);
+            __syncthreads();
+        }
+    } else {
+        // v0 to v3: step 0's loop, copy a K64 slice, barrier, compute, barrier.
+        for (int k0 = 0; k0 < K; k0 += 64) {
+            load(k0);
+            store(0);
+            __syncthreads();
+            compute(0);
+            __syncthreads();
+        }
+    }
+    // The output, half a tile at a time: the 4 warps of rows [64 h, 64 h + 64) store their fragments, then all 256
+    // threads copy the 64 x kBN halves out in 16-byte stores. An fp32 and an fp16 accumulator fragment hold their
+    // elements in the same order on sm_75 and sm_80 (in the SASS on sm_75, see simple_wmma_gemm in nvidia_sample.cuh;
+    // by verif.cu's results on sm_80), so the copy converts in place.
+    half* Os = shmem;   // 64 x kOStride halves, inside the loop's buffers
+#pragma unroll
+    for (int h = 0; h < 2; h++) {
+        if (warpId / 4 == h) {   // in both layouts, warps 4h to 4h + 3 hold rows [64 h, 64 h + 64)
+#pragma unroll
+            for (int i = 0; i < G::kFragsM; i++)
+#pragma unroll
+                for (int j = 0; j < 4; j++) {
+                    wmma::fragment<wmma::accumulator, 16, 16, 16, half> o;
+#pragma unroll
+                    for (int t = 0; t < o.num_elements; t++) o.x[t] = __float2half(c[i][j].x[t]);
+                    wmma::store_matrix_sync(&Os[((wm * G::kWarpRows) % 64 + i * 16) * G::kOStride + wn * 64 + j * 16],
+                                            o, G::kOStride, wmma::mem_row_major);
+                }
+        }
+        __syncthreads();
+#pragma unroll
+        for (int i = 0; i < 64 * G::kBLanes / 256; i++) {
+            const int r = threadIdx.x / G::kBLanes + i * (256 / G::kBLanes);   // row in the half tile
+            const int gr = row0 + h * 64 + r;
+            if (gr < M)
+                *((int4*)&C[(size_t)gr * N + col0] + threadIdx.x % G::kBLanes) =
+                    *((const int4*)&Os[r * G::kOStride] + threadIdx.x % G::kBLanes);
+        }
+        __syncthreads();
+    }
+}
+
+// kOneTile: (1a), one block per tile (grid = number of tiles); otherwise step 0's persistent grid (one block per SM).
+template <bool kOneTile, bool kDouble, int kBN>
+__global__ void gemm(const half* A, const half* B, half* C, int M, int N, int K)
+{
+    extern __shared__ __align__(128) half shmem[];
+    const int tilesN = N / kBN;
+    auto tile = [&](int block_pos) {
+        const int row0 = (block_pos / tilesN) * 128, col0 = (block_pos % tilesN) * kBN;
+        if (row0 + 128 <= M) compute_tile<kBN, kDouble, false>(shmem, A, B, C, M, N, K, row0, col0);
+        else compute_tile<kBN, kDouble, true>(shmem, A, B, C, M, N, K, row0, col0);
+    };
+    if constexpr (kOneTile) {
+        tile(blockIdx.x);
+    } else {
+        const int tiles = (M + 127) / 128 * tilesN;
+        for (int block_pos = blockIdx.x; block_pos < tiles; block_pos += gridDim.x) tile(block_pos);
+    }
+}
+
+}  // namespace step1

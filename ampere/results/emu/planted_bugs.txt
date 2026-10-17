@@ -1,0 +1,264 @@
+planted-bug test: 130 bugs, each in a copy of its header, the emulator built against each copy (2 jobs, in a temporary directory)
+  passes    unmodified copy: 767 runs: 767 ok, 0 failed; worst error / max |ref| of the runs that passed 7.48e-04 (tolerance 2e-03)
+  reported  step7.cuh: 7c: the rule's waves 3/4 full, not 9/10 (o_m512 in 2 parts in place)
+            first failed run: step7 rule of 7c, 108 SMs the judge's 17 shapes
+  reported  step7.cuh: 7c: the rule without its 64 slices of K64 per part (o_m512 in 5 parts in place)
+            first failed run: step7 rule of 7c, 108 SMs the judge's 17 shapes
+  reported  step6.cuh: 6b: a segment's K steps from 0, not from its first (the stream's segments overlap)
+            first failed run: step6 stream 256, 108 blocks (6b) 16 x 1024 x 1024 forward
+  reported  step6.cuh: 6b: the band's columns left out of B's address (every band reads the first)
+            first failed run: step6 bands 128, 6 stages (6b) 16 x 256 x 64 forward
+  reported  step6.cuh: 6b: the warps' ldmatrix of B on half their columns
+            first failed run: step6 bands 128, 6 stages (6b) 16 x 256 x 64 forward
+  reported  step6.cuh: 6b: no barrier after reading the output (the next segment's copies overwrite it)
+            first failed run: step6 stream 256, 7 blocks (6b) 16 x 6144 x 128 forward
+  reported  step6.cuh: 6b stream: the first block to arrive sums (the other parts not yet written)
+            first failed run: step6 stream 256, 108 blocks (6b) 16 x 1024 x 1024 forward
+  reported  step6.cuh: 6b stream: the arrival before the barrier (the other threads' parts not yet written)
+            first failed run: step6 stream 256, 108 blocks (6b) 16 x 1024 x 1024 forward
+  reported  step6.cuh: 6b stream: the band's counter not put back to zero
+            first failed run: step6 stream 256, 108 blocks (6b) 16 x 1024 x 1024 forward
+  reported  step6.cuh: 6b stream: every segment of a band at the same place in the workspace
+            first failed run: step6 stream 256, 108 blocks (6b) 16 x 1024 x 1024 forward
+  reported  step6.cuh: 6b stream: the sum stops one segment short
+            first failed run: step6 stream 256, 108 blocks (6b) 16 x 1024 x 1024 forward
+  reported  step6.cuh: 6b rule: bands even when they exceed a wave
+            first failed run: step6 m16, 108 SMs 7 of the judge's shapes
+  reported  step6.cuh: 6b: the bands' write stage turns over kStages - 1 stages
+            first failed run: step6 bands 128, 6 stages (6b) 16 x 1024 x 1024 forward
+  reported  step6.cuh: 6b: the bands' wait one group too loose (a stage read before its copies land)
+            first failed run: step6 bands 128, 6 stages (6b) 16 x 256 x 64 forward
+  reported  step6.cuh: 6b: the bands' next copy issued into the stage about to be read
+            first failed run: step6 bands 128, 6 stages (6b) 16 x 1024 x 1024 forward
+  reported  step6.cuh: 6b: the stream's last-block flag just outside the launch's shared memory
+            first failed run: step6 stream 256, 108 blocks (6b) 16 x 1024 x 1024 forward
+  reported  step6.cuh: 7d: 7b discards the lines its slice only touches (a neighbour's chunks dropped before it reads them)
+            first failed run: step7 128 x 256, K in 3 parts (7b, 7d) 144 x 256 x 64 forward
+  reported  step6.cuh: 7d: 6c discards the tile's parts before every thread has read them
+            first failed run: step7 phase, 108 blocks (6c, 7d) 128 x 512 x 128 forward
+  reported  step6.cuh: 7d: the stream of 6b discards the band's parts before every thread has read them
+            first failed run: step7 stream 256, 108 blocks (6b, 7d) 16 x 1024 x 1024 forward
+  reported  step6.cuh: 6c: a block's two cut tiles share one slot (its last segment's part overwrites its first's)
+            first failed run: step6 phase, 7 blocks (6c) 144 x 512 x 256 random
+  reported  step6.cuh: 6c: the row of tiles left out of the slot (the group's blocks overwrite each other's parts)
+            first failed run: step6 phase, 108 blocks (6c) 144 x 512 x 256 forward
+  reported  step6.cuh: 6c: the last block found on the count of segments, not one less (no block adds the parts)
+            first failed run: step6 phase, 108 blocks (6c) 128 x 512 x 128 forward
+  reported  step6.cuh: 6c: the arrival before the part is computed (the last block adds parts not yet written)
+            first failed run: step6 phase, 108 blocks (6c) 128 x 512 x 128 forward
+  reported  step6.cuh: 6c: the tile's counter not put back to zero
+            first failed run: step6 phase, 108 blocks (6c) 128 x 512 x 128 forward
+  reported  step6.cuh: 6c: the ranges of U / P units rounded down (the last units of K computed by no group)
+            first failed run: step6 phase, 7 blocks (6c) 144 x 512 x 256 forward
+  reported  step6.cuh: 6c: a cut tile's part from the first slice of K, not from its segment's
+            first failed run: step6 phase, 108 blocks (6c) 128 x 512 x 128 forward
+  reported  step6.cuh: 6c: the rows >= M added and written
+            first failed run: step6 phase, 108 blocks (6c) 144 x 512 x 256 forward
+  reported  step6.cuh: 6c: every block of a group on the first row of tiles
+            first failed run: step6 phase, 108 blocks (6c) 144 x 256 x 64 forward
+  reported  step6.cuh: 6c: the sum of the parts without the first group's
+            first failed run: step6 phase, 108 blocks (6c) 128 x 512 x 128 forward
+  reported  step6.cuh: 6c: the rule's last wave below the SMs, not below half of them (qkv_m512 in the stream)
+            first failed run: step6 phase, 108 SMs the judge's 17 shapes
+  reported  step6.cuh: 7b: the wait on S - 1 arrivals (a block reduces before the last part has arrived)
+            first failed run: step7 128 x 256, K in 3 parts (7b, no 7d) 144 x 256 x 64 random
+  reported  step6.cuh: 7b: the wait removed (the parts read before they arrive)
+            first failed run: step7 128 x 256, K in 3 parts (7b, no 7d) 144 x 256 x 64 random
+  reported  step6.cuh: 7b: the wait on S + 1 arrivals (no block of the tile goes on: a hang)
+            first failed run: step7 128 x 256, K in 3 parts (7b, no 7d) 16 x 256 x 64 forward
+  reported  step6.cuh: 7b: the arrival at the block's start (the S parts reduced before they are all written)
+            first failed run: step7 128 x 256, K in 3 parts (7b, no 7d) 16 x 256 x 64 reverse
+  reported  step6.cuh: 7b: the slices of 1 / S rounded down (the tile's last chunks reduced by no block)
+            first failed run: step7 128 x 256, K in 3 parts (7b, no 7d) 144 x 256 x 64 forward
+  reported  step6.cuh: 7b: the slice of the block index divided by S, not of the part (the wrong rows reduced)
+            first failed run: step7 128 x 256, K in 3 parts (7b, no 7d) 16 x 256 x 64 forward
+  reported  step6.cuh: 7b: the arrival counter not put back to zero
+            first failed run: step7 128 x 256, K in 3 parts (7b, no 7d) 16 x 256 x 64 forward
+  reported  step6.cuh: 7b: the departure counter not put back to zero
+            first failed run: step7 128 x 256, K in 3 parts (7b, no 7d) 16 x 256 x 64 forward
+  reported  step6.cuh: 7b: the first block to depart puts the counters back to zero (the others still wait on them)
+            first failed run: step7 128 x 256, K in 3 parts (7b, no 7d) 16 x 256 x 64 forward
+  reported  step6.cuh: 7b: no barrier after the wait (the block's threads reduce before the S parts have arrived)
+            first failed run: step7 128 x 256, K in 3 parts (7b, 7d) 16 x 256 x 64 random
+  reported  step6.cuh: 7b: residency at twice the SMs (S x tiles blocks that cannot all be resident: a hang)
+            first failed run: step6 parallel_fits, 108 SMs the judge's 17 shapes
+  reported  step6.cuh: 6: the write stage turns over kStages - 1 stages
+            first failed run: step6 128 x 128, K32 x 5 (6a) 16 x 1024 x 1024 forward
+  reported  step6.cuh: 6: the wait in the loop one group too loose (a stage read before its copies land)
+            first failed run: step6 128 x 128, K32 x 5 (6a) 16 x 256 x 64 forward
+  reported  step6.cuh: 6: the next copy issued into the stage being read
+            first failed run: step6 128 x 128, K32 x 5 (6a) 144 x 512 x 256 forward
+  reported  step6.cuh: 7a parts: every part of a tile at the same place in the workspace
+            first failed run: step7 128 x 256, K in 3 parts (7a) 16 x 256 x 64 forward
+  reported  step6.cuh: 7a parts: the reduction sums one part too few
+            first failed run: step7 128 x 256, K in 3 parts (7a) 144 x 512 x 256 forward
+  reported  step6.cuh: 7a: the parts' first slices without the extra ones before them (parts overlap, a slice is left out)
+            first failed run: step7 128 x 256, K in 3 parts (7a) 128 x 512 x 128 forward
+  reported  step6.cuh: 7a: the first parts without their extra slice
+            first failed run: step7 128 x 256, K in 3 parts (7a) 16 x 256 x 64 forward
+  reported  step6.cuh: 7a parts: the reduction writes rows >= M
+            first failed run: step7 128 x 256, K in 3 parts (7a) 16 x 256 x 64 forward
+  reported  step6.cuh: 7a in place: no wait on the tile's flag
+            first failed run: step7 128 x 128, K in 2 in place (7a) 16 x 256 x 64 forward
+  reported  step6.cuh: 7a in place: the previous parts not added
+            first failed run: step7 128 x 128, K in 2 in place (7a) 16 x 256 x 64 forward
+  reported  step6.cuh: 7a in place: the last part does not put the flag back to zero
+            first failed run: step7 128 x 128, K in 2 in place (7a) 16 x 256 x 64 forward
+  reported  step6.cuh: 7a in place: the flag set as soon as its wait returns (the next part adds before this one's stores)
+            first failed run: step7 128 x 128, K in 2 in place (7a) 16 x 256 x 64 forward
+  reported  step6.cuh: 7a plan: K in 2 parts instead of 3
+            first failed run: step6 choose, 108 SMs the judge's 17 shapes
+  reported  step6.cuh: 7a plan: the 128-row tile kept at 128 x 128 when K is split into parts
+            first failed run: step6 choose, 108 SMs the judge's 17 shapes
+  reported  step6.cuh: 6a: A's rows of 64 bytes swizzled on rows, not pairs of rows (right values, LDSM conflicts)
+            first failed run: step6 128 x 128, K32 x 5 (6a) 16 x 256 x 64 forward
+  reported  step6.cuh: tile_of: the rows of tiles counted without the one cut by M
+            first failed run: step6 tile_of<128, 128> at 16 x 128
+  reported  step5.cuh: 5: B's stages 16 KB further (the last ends after the launch's shared memory)
+            first failed run: step5 v0 (step 5: 5a + 5b) 144 x 512 x 256 forward
+  reported  step5.cuh: 5a: no barrier in the middle of K16 3 (slice k + 1 read before every thread's copies are visible)
+            first failed run: step5 v0 (step 5: 5a + 5b) 128 x 512 x 128 forward
+  reported  step5.cuh: 5a: the first K16 of slice k + 1 loaded before the wait and the barrier
+            first failed run: step5 v0 (step 5: 5a + 5b) 128 x 512 x 128 forward
+  reported  step5.cuh: 5a: the next K16's fragments loaded into the set being used
+            first failed run: step5 v0 (step 5: 5a + 5b) 16 x 256 x 64 forward
+  reported  step5.cuh: 5a: slice k + 2 issued into the stage being read
+            first failed run: step5 v0 (step 5: 5a + 5b) 144 x 512 x 256 forward
+  reported  step5.cuh: 5a: the prologue's first K16 loaded before the wait and the barrier
+            first failed run: step5 v0 (step 5: 5a + 5b) 16 x 256 x 64 forward
+  reported  step5.cuh: 5a: the second half of K16 3's HMMA left out
+            first failed run: step5 v0 (step 5: 5a + 5b) 144 x 256 x 64 forward
+  reported  step5.cuh: 5a: the write stage never advances
+            first failed run: step5 v0 (step 5: 5a + 5b) 144 x 512 x 256 forward
+  reported  step5.cuh: 5b: the serpentine pairs its B halves (some never used, others twice)
+            first failed run: step5 v0 (step 5: 5a + 5b) 144 x 256 x 64 forward
+  reported  step5.cuh: without 5a: no barrier after the wait (step 4's loop)
+            first failed run: step5 v1 (without 5a) 16 x 256 x 64 forward
+  reported  step5.cuh: no barrier before the output reuses the stages
+            first failed run: step5 v1 (without 5a) 16 x 256 x 64 forward
+  reported  step4.cuh: 4b: the last group taken as full (tiles outside the grid when the rows of tiles run out)
+            first failed run: step4 tile_of<true>, 4b's order every M <= 8192, N <= 12288
+  reported  step4.cuh: 4b: the column of a tile from the remainder (two blocks on one tile)
+            first failed run: step4 tile_of<true>, 4b's order every M <= 8192, N <= 12288
+  reported  step4.cuh: 4b: a group's first row without its R rows per group
+            first failed run: step4 tile_of<true>, 4b's order every M <= 8192, N <= 12288
+  reported  step4.cuh: 4b: the rows of tiles counted without the one cut by M
+            first failed run: step4 tile_of<true>, 4b's order at 16 x 256
+  reported  step4.cuh: the tile's columns from its row of tiles
+            first failed run: step4 v0 (step 4: 4a + 4b) 144 x 256 x 64 forward
+  reported  step4.cuh: 4a: C stored without the bound gr < M (edge tiles write rows >= M)
+            first failed run: step4 v0 (step 4: 4a + 4b) 16 x 256 x 64 forward
+  reported  step4.cuh: the write stage never advances (seen from 4 slices of K64 on)
+            first failed run: step4 v0 (step 4: 4a + 4b) 144 x 512 x 256 forward
+  reported  step4.cuh: no barrier before the output reuses the stages
+            first failed run: step4 v0 (step 4: 4a + 4b) 16 x 256 x 64 forward
+  reported  step3.cuh: 3b: the wait one group too loose (slice k may not have landed)
+            first failed run: step3 v0 (step 3: 3 stages) 16 x 256 x 64 forward
+  reported  step3.cuh: 3b: no barrier after the wait (the other threads' copies of slice k not yet visible)
+            first failed run: step3 v0 (step 3: 3 stages) 16 x 256 x 64 forward
+  reported  step3.cuh: 3b: slice k + kStages - 1 issued into the stage being read
+            first failed run: step3 v1 (2 stages) 128 x 512 x 128 forward
+  reported  step3.cuh: 3b: slice k + kStages - 1 issued before the barrier (into the stage another warp may still read)
+            first failed run: step3 v0 (step 3: 3 stages) 144 x 512 x 256 reverse
+  reported  step3.cuh: 3b: the compute reads the stage being written
+            first failed run: step3 v0 (step 3: 3 stages) 16 x 256 x 64 forward
+  reported  step3.cuh: 3b: the read stage never advances
+            first failed run: step3 v0 (step 3: 3 stages) 128 x 512 x 128 forward
+  reported  step3.cuh: 3b: the write stage never advances (seen from 4 slices of K64 on)
+            first failed run: step3 v0 (step 3: 3 stages) 144 x 512 x 256 forward
+  reported  step3.cuh: 3b: the prologue issues one slice too few
+            first failed run: step3 v0 (step 3: 3 stages) 16 x 256 x 64 forward
+  reported  step3.cuh: 3b: no commit in the loop (the copies of the next slices never form a group)
+            first failed run: step3 v0 (step 3: 3 stages) 128 x 512 x 128 forward
+  reported  step3.cuh: 3b: a slice issued outside K (reads after B's last row)
+            first failed run: step3 v1 (2 stages) 16 x 256 x 64 forward
+  reported  step3.cuh: 3b: no barrier before the output reuses the stages
+            first failed run: step3 v0 (step 3: 3 stages) 16 x 256 x 64 forward
+  reported  step3.cuh: 3a: no wait before the barrier (the copies land who knows when)
+            first failed run: step3 v2 (3a alone, 1 stage) 16 x 256 x 64 forward
+  reported  step3.cuh: 3a: no barrier after the compute (the next slice's copies overwrite a stage still read)
+            first failed run: step3 v2 (3a alone, 1 stage) 16 x 256 x 64 forward
+  reported  step3.cuh: A's source without k0 (the first K64 of A copied at every step)
+            first failed run: step3 v0 (step 3: 3 stages) 128 x 512 x 128 forward
+  reported  step3.cuh: B's source chunk from the lane in A's layout (t % 8 for t % 32)
+            first failed run: step3 v0 (step 3: 3 stages) 16 x 256 x 64 forward
+  reported  step3.cuh: A copied without the swizzle (read with it)
+            first failed run: step3 v0 (step 3: 3 stages) 16 x 256 x 64 forward
+  reported  step3.cuh: B's stage stride of A's (the stages of B overlap)
+            first failed run: step3 v0 (step 3: 3 stages) 128 x 512 x 128 forward
+  reported  step3.cuh: no M - 1 clamp of the rows of A (edge tiles)
+            first failed run: step3 v0 (step 3: 3 stages) 16 x 256 x 64 forward
+  reported  step2.cuh: no barrier between the copy and the compute
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: no barrier after the compute (the next slice's stores race with the reads)
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: no barrier between the epilogue's STS.32 and its copy out
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: no barrier after the epilogue's copy out of a half tile
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: B's two mma registers swapped (K rows 0-7 and 8-15)
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: B's n8 halves swapped
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: A's ldmatrix quarters in the wrong order (a[1] and a[2] exchanged)
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: A's rows 8-15 read as rows 0-7 (lane % 8 for lane % 16)
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: B read without .trans
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: A read with .trans
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: A read without the swizzle (ldmatrix rows of A)
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: A stored without the swizzle
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: B read without the swizzle
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: B stored without the swizzle
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: B's swizzle on two bits on both sides (right values, two-way LDSM conflicts)
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: A's swizzle on rows by pairs on both sides (right values, two-way LDSM conflicts)
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: v1's padding of 8 halves (its stated two-way LDSM pattern no longer holds)
+            first failed run: step2 v1 (without 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: one A offset for the four K16 steps
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: B's K16 step left out (the first K16 of B read four times)
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: A's slice without its k0 (the first K64 of A read at every step)
+            first failed run: step2 v0 (step 2: 2a + 2b) 128 x 512 x 128 forward
+  reported  step2.cuh: B's slice without its k0
+            first failed run: step2 v0 (step 2: 2a + 2b) 128 x 512 x 128 forward
+  reported  step2.cuh: K by steps of 128 (one slice in two left out)
+            first failed run: step2 v0 (step 2: 2a + 2b) 128 x 512 x 128 forward
+  reported  step2.cuh: the tile's row from the column index (tiles mixed up)
+            first failed run: step2 v0 (step 2: 2a + 2b) 144 x 256 x 64 forward
+  reported  step2.cuh: no M - 1 clamp of the rows of A (edge tiles)
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: C stored without the bound gr < M (edge tiles write rows >= M)
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: wrong epilogue layout: D[g][2t + 1] taken from D[g + 8][2t]
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: the epilogue's rows g + 8 written 4 rows down
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step2.cuh: only the first half tile's warps store their accumulators
+            first failed run: step2 v0 (step 2: 2a + 2b) 144 x 256 x 64 forward
+  reported  step2.cuh: the second half tile copied to the first's rows of C
+            first failed run: step2 v0 (step 2: 2a + 2b) 16 x 256 x 64 forward
+  reported  step1.cuh: no barrier between the copy and the compute
+            first failed run: step1 v0 (step 1) 16 x 256 x 64 forward
+  reported  step1.cuh: no barrier after the compute
+            first failed run: step1 v0 (step 1) 16 x 256 x 64 forward
+  reported  step1.cuh: no barrier between the epilogue's fragment stores and its copy out
+            first failed run: step1 v0 (step 1) 16 x 256 x 64 forward
+  reported  step1.cuh: no barrier after the epilogue's copy out of a half tile
+            first failed run: step1 v0 (step 1) 16 x 256 x 64 forward
+  reported  step1.cuh: that barrier only after the first half tile (a persistent block's next tile races)
+            first failed run: step1 v3 (1d alone), 3 blocks 144 x 256 x 64 forward
+  reported  step1.cuh: no M - 1 clamp of the rows of A (edge tiles)
+            first failed run: step1 v0 (step 1) 16 x 256 x 64 forward
+  reported  step1.cuh: the persistent grid steps by one tile (blocks share tiles)
+            first failed run: step1 v3 (1d alone), 108 blocks 16 x 256 x 64 forward
+130 of 130 planted bugs reported as failures; the unmodified copy passes
+PLANTED-BUG TEST OK
