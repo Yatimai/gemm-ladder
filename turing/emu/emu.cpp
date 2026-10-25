@@ -65,6 +65,7 @@ static Array g_P{"parts"};               // step 6's parts (6b, 6c), sized to th
 static half* g_sh;                       // the launch's shared memory (the kernel's namespace's shmem)
 static int g_shBytes, g_bStageBytes;     // its size; where B's stages begin (a copy's store below it is to A)
 static int g_block;                      // the running block (linear index)
+static std::vector<int> g_gridBarriers;  // per block of the run: its arrivals at a grid barrier (step 6, 6d)
 static long g_errors;                    // errors found in the current run
 constexpr long kShownErrors = 6;         // printed per run; the others are counted
 static std::vector<uint8_t> g_cWrites;   // per element of C: the writes counted (up to 255)
@@ -85,6 +86,9 @@ static void error(const char* fmt, ...)
     va_end(ap);
     printf("EMU ERROR: %s\n", msg);
 }
+
+// step6.cuh's grid barrier, emulated: the block's thread 0 counts the block's arrival (between two block barriers).
+namespace step6 { void emu_grid_barrier() { g_gridBarriers[g_block]++; } }
 
 // ---------------------------------------------------------------- threads: coroutines, barriers, warp exchanges
 constexpr int kMaxThreads = 512;
@@ -442,12 +446,13 @@ static void on_fault(int sig, siginfo_t* si, void*)
 // step6.cu's, at the sizes of the shapes here: 6b's and 6c's parts in g_P, an array between guard regions like A, B
 // and C, sized to the launch (6b: 16 x BN halves per block; 6c: 2 x M x N) and filled with NaN before each run, so that
 // a part read before it is written shows in C and one written or read out of place is reported; the counters of 6b's
-// bands and 6c's tiles, zero at the start, which each run must leave so (Kernel::dirty).
+// bands and 6c's tiles, zero at the start, which each run must leave so (Kernel::dirty; 6d's barrier words too, which
+// the emulated barrier never writes: for 6d, the emulator counts each block's arrivals at the barrier instead).
 static void allocate(Array& a, int rows, int cols, bool writable);
 static void release(Array& a);
 namespace emu6 {
 constexpr int kCounters = 128;
-unsigned g_bandCounts[kCounters], g_splitCounts[kCounters];
+unsigned g_bandCounts[kCounters], g_splitCounts[kCounters], g_sync[2];
 void counters(int needed)   // the counters a launch indexes: within the arrays (they are not guarded)
 {
     if (needed > kCounters) {
@@ -459,6 +464,24 @@ template <int BM> void split(const half* A, const half* B, half* C, int M, int N
 {
     counters((M + BM - 1) / BM * (N / 256));
     step6::gemm_split<BM, true>(A, B, C, M, N, K, g_P.p, g_splitCounts);
+}
+template <int BM> void waves(const half* A, const half* B, half* C, int M, int N, int K)   // 6d
+{
+    step6::gemm_waves<BM, true>(A, B, C, M, N, K, g_sync);
+}
+template <int BM> void split_persistent(const half* A, const half* B, half* C, int M, int N, int K)   // v7's 6c
+{
+    counters((M + BM - 1) / BM * (N / 256));
+    step6::gemm_split_persistent<BM, true>(A, B, C, M, N, K, g_P.p, g_splitCounts);
+}
+template <int BM> void split_rows(const half* A, const half* B, half* C, int M, int N, int K)   // v8's 6c
+{
+    counters((M + BM - 1) / BM * (N / 256));
+    step6::gemm_split_rows<BM, true>(A, B, C, M, N, K, g_P.p, g_splitCounts);
+}
+template <int BM> void waves_rows(const half* A, const half* B, half* C, int M, int N, int K)   // v8's 6d
+{
+    step6::gemm_waves_rows<BM, true>(A, B, C, M, N, K, g_sync);
 }
 template <int BN, int S> void bands(const half* A, const half* B, half* C, int M, int N, int K)
 {
@@ -473,6 +496,10 @@ template <int BN, int S> void bands_v5(const half* A, const half* B, half* C, in
     step6::gemm_bands<BN, true, false>(A, B, C, M, N, K, steps / S, steps % S, g_P.p, g_bandCounts);
 }
 template <int BN, int S> emu_dim3 grid_bands(int, int N) { return emu_dim3{(unsigned)S, (unsigned)(N / BN), 1}; }
+template <int BM> emu_dim3 grid_split(int M, int N)   // 6c: one block per half of a 128 x 256 tile (6e)
+{
+    return emu_dim3{(unsigned)((M + BM - 1) / BM * (N / 256) * 2), 1, 1};
+}
 // The shapes each kernel runs at: the rung's (M a multiple of 16), 6c's (K of 128 too), 6b's band (M <= 16, N a
 // multiple of its width, at least 3 steps per slice: the kernel's contract).
 bool rung(int M, int, int) { return M % 16 == 0; }
@@ -492,9 +519,10 @@ void parts_split() { parts(2 * g_M, g_N); }                                     
 template <int BN> void parts_bands() { parts(gridDim.x * gridDim.y * 16, BN); }        // 6b: 16 x BN per block
 int dirty()   // the counters left non-zero by a run, then put back to zero for the next one
 {
-    int n = 0;
+    int n = g_sync[0] != 0;
     for (unsigned& c : g_bandCounts) n += c != 0, c = 0;
     for (unsigned& c : g_splitCounts) n += c != 0, c = 0;
+    g_sync[0] = 0;
     return n;
 }
 }  // namespace emu6
@@ -532,11 +560,20 @@ static std::vector<Kernel> kernels()
     using G4 = step4::G;                       // step 4's v0: step 2's v0 stages
     using G5a = step5::Geometry<64>;           // step 5's two tiles
     using G5b = step5::Geometry<128>;
+    using G6a = step6::Geometry<64, 128>;      // step 6's four tiles
+    using G6b = step6::Geometry<64, 256>;
+    using G6c = step6::Geometry<128, 128>;
+    using G6d = step6::Geometry<128, 256>;
     using GB128 = step6::BandGeometry<128>;    // 6b's two widths
     using GB256 = step6::BandGeometry<256>;
     auto sms = [](int, int) { return emu_dim3{40, 1, 1}; };    // a persistent grid on the T4's 40 SMs, as verif.cu
     auto three = [](int, int) { return emu_dim3{3, 1, 1}; };   // so that each block also goes through several tiles
     auto simple = [](int M, int N) { return emu_dim3{(unsigned)((M + 63) / 64), (unsigned)(N / 64), 1}; };
+    // One block per tile (6e), at each of step 6's four tiles.
+    auto tiles256 = [](int M, int N) { return emu_dim3{(unsigned)((M + 127) / 128 * (N / 256)), 1, 1}; };
+    auto tiles128 = [](int M, int N) { return emu_dim3{(unsigned)((M + 127) / 128 * (N / 128)), 1, 1}; };
+    auto tiles64x128 = [](int M, int N) { return emu_dim3{(unsigned)((M + 63) / 64 * (N / 128)), 1, 1}; };
+    auto tiles64x256 = [](int M, int N) { return emu_dim3{(unsigned)((M + 63) / 64 * (N / 256)), 1, 1}; };
     const emu_dim3 b256 = {256, 1, 1}, b128 = {128, 1, 1}, b64 = {64, 1, 1}, b128x4 = {128, 4, 1};
     // The headers' bank patterns. The copy's STS.128 of A: two-way on rows of 96 bytes (K32 + 16 halves of padding,
     // step 1's double buffer: a quarter warp stores into two rows whose groups overlap), conflict-free on rows of 160
@@ -545,7 +582,9 @@ static std::vector<Kernel> kernels()
     // Steps 3 and 4 keep step 2's swizzled stages, copy and epilogue: step 3 changes no shared access, and each matrix
     // of 4a's LDSM is, as in step 2, 8 rows of one chunk (the first row a multiple of 8): step 2's v0 pattern in all
     // their variants. Step 5's two tiles keep that pattern: the rows of their stages and of their output buffer are
-    // step 4's, with its swizzle. Step 6 keeps step 5's tiles; 6b's bands apply step 2's swizzle rule to their rows of
+    // step 4's, with its swizzle. Step 6's four tiles keep it too: the rows of B's stages and of the output buffer
+    // change length (256 or 512 bytes; 272 or 528 for the output), not the swizzle nor what a quarter warp touches.
+    // 6b's bands apply step 2's swizzle rule to their rows of
     // 32 or 64 bytes of A and 256 or 512 of B, and pad the output's rows by 8 halves: the same counts (step6.cuh).
     const std::vector<Expect> pad160 = {{"STS.128 A", 4}, {"STS.128 B", 4}, {"LDS.128", 4}};
     const std::vector<Expect> pad96 = {{"STS.128 A", 8}, {"STS.128 B", 4}, {"LDS.128", 4}};
@@ -617,22 +656,64 @@ static std::vector<Kernel> kernels()
          2 * G5b::kAStage * 2, swizzle, same},
         {"step5 128 x 256, 3 blocks", kStep5, step5::gemm<128>, three, b256, step5::shmem, G5b::kSmemBytes,
          2 * G5b::kAStage * 2, swizzle, same},
-        // Step 6, L2-only loads, 16-row bands, split-K in two (its kernels, each at every shape of step6 it accepts;
-        // step6.cu chooses among them by shape). 6a's loads are plain copies here: step 5's tiles with 6a give the bits
-        // of step 2's v0. 6c (K in two halves) and 6b (bands of B, S slices of K) sum fp16 parts: other bits, within
-        // the tolerance; their counters must be back at zero after each run.
-        {"step6 64 x 256 (6a), 40 blocks", kStep6, step6::gemm<64, true>, sms, b128, step6::shmem, G5a::kSmemBytes,
-         2 * G5a::kAStage * 2, swizzle, same, emu6::rung},
-        {"step6 64 x 256 (6a), 3 blocks", kStep6, step6::gemm<64, true>, three, b128, step6::shmem, G5a::kSmemBytes,
-         2 * G5a::kAStage * 2, swizzle, same, emu6::rung},
-        {"step6 128 x 256 (6a), 40 blocks", kStep6, step6::gemm<128, true>, sms, b256, step6::shmem, G5b::kSmemBytes,
-         2 * G5b::kAStage * 2, swizzle, same, emu6::rung},
-        {"step6 128 x 256 (6a), 3 blocks", kStep6, step6::gemm<128, true>, three, b256, step6::shmem, G5b::kSmemBytes,
-         2 * G5b::kAStage * 2, swizzle, same, emu6::rung},
-        {"step6 6c K in 2, 40 blocks", kStep6, emu6::split<128>, sms, b256, step6::shmem, G5b::kSmemBytes + 16,
-         2 * G5b::kAStage * 2, swizzle, 0, emu6::halves, emu6::parts_split, emu6::dirty},
-        {"step6 6c K in 2, 3 blocks", kStep6, emu6::split<128>, three, b256, step6::shmem, G5b::kSmemBytes + 16,
-         2 * G5b::kAStage * 2, swizzle, 0, emu6::halves, emu6::parts_split, emu6::dirty},
+        // Step 6, L2-only loads, 16-row bands, split-K in two, synchronized waves (its kernels, each at every shape of
+        // step6 it accepts; step6.cu chooses among them by shape). 6a's loads are plain copies here: its tiles with
+        // 6a give the bits of step 2's v0. 6c (K in two halves) and 6b (bands of B, S slices of K) sum fp16 parts:
+        // other bits, within the tolerance; their counters must be back at zero after each run.
+        {"step6 64 x 128 (6a)", kStep6, step6::gemm<64, 128, true>, tiles64x128, b64, step6::shmem, G6a::kSmemBytes,
+         2 * G6a::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 64 x 256 (6a)", kStep6, step6::gemm<64, 256, true>, tiles64x256, b128, step6::shmem, G6b::kSmemBytes,
+         2 * G6b::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 128 x 128 (6a)", kStep6, step6::gemm<128, 128, true>, tiles128, b128, step6::shmem, G6c::kSmemBytes,
+         2 * G6c::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 128 x 256 (6a)", kStep6, step6::gemm<128, 256, true>, tiles256, b256, step6::shmem, G6d::kSmemBytes,
+         2 * G6d::kAStage * 2, swizzle, same, emu6::rung},
+        // v7, without 6e: the four tiles with 6a on step 0's persistent grid (40 and 3 blocks).
+        {"step6 v7 64 x 128 (6a, without 6e), 40 blocks", kStep6, step6::gemm_persistent<64, 128, true>, sms, b64,
+         step6::shmem, G6a::kSmemBytes, 2 * G6a::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 v7 64 x 128 (6a, without 6e), 3 blocks", kStep6, step6::gemm_persistent<64, 128, true>, three, b64,
+         step6::shmem, G6a::kSmemBytes, 2 * G6a::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 v7 64 x 256 (6a, without 6e), 40 blocks", kStep6, step6::gemm_persistent<64, 256, true>, sms, b128,
+         step6::shmem, G6b::kSmemBytes, 2 * G6b::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 v7 64 x 256 (6a, without 6e), 3 blocks", kStep6, step6::gemm_persistent<64, 256, true>, three, b128,
+         step6::shmem, G6b::kSmemBytes, 2 * G6b::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 v7 128 x 128 (6a, without 6e), 40 blocks", kStep6, step6::gemm_persistent<128, 128, true>, sms, b128,
+         step6::shmem, G6c::kSmemBytes, 2 * G6c::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 v7 128 x 128 (6a, without 6e), 3 blocks", kStep6, step6::gemm_persistent<128, 128, true>, three, b128,
+         step6::shmem, G6c::kSmemBytes, 2 * G6c::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 v7 128 x 256 (6a, without 6e), 40 blocks", kStep6, step6::gemm_persistent<128, 256, true>, sms, b256,
+         step6::shmem, G6d::kSmemBytes, 2 * G6d::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 v7 128 x 256 (6a, without 6e), 3 blocks", kStep6, step6::gemm_persistent<128, 256, true>, three, b256,
+         step6::shmem, G6d::kSmemBytes, 2 * G6d::kAStage * 2, swizzle, same, emu6::rung},
+        // v8, without 6f: the four tiles with 6a, a slice's HMMA in step 2's order (the same bits: 6f orders the HMMA,
+        // not the sum of each accumulator).
+        {"step6 v8 64 x 128 (6a, without 6f)", kStep6, step6::gemm_rows<64, 128, true>, tiles64x128, b64, step6::shmem,
+         G6a::kSmemBytes, 2 * G6a::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 v8 64 x 256 (6a, without 6f)", kStep6, step6::gemm_rows<64, 256, true>, tiles64x256, b128, step6::shmem,
+         G6b::kSmemBytes, 2 * G6b::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 v8 128 x 128 (6a, without 6f)", kStep6, step6::gemm_rows<128, 128, true>, tiles128, b128, step6::shmem,
+         G6c::kSmemBytes, 2 * G6c::kAStage * 2, swizzle, same, emu6::rung},
+        {"step6 v8 128 x 256 (6a, without 6f)", kStep6, step6::gemm_rows<128, 256, true>, tiles256, b256, step6::shmem,
+         G6d::kSmemBytes, 2 * G6d::kAStage * 2, swizzle, same, emu6::rung},
+        // 6d, the waves: the 128 x 256 tile with 6a, a grid barrier between two waves (40 blocks: one, two or three
+        // waves at the shapes here; 3 blocks: several), the same bits as step 2's v0.
+        {"step6 6d waves, 40 blocks", kStep6, emu6::waves<128>, sms, b256, step6::shmem, G6d::kSmemBytes,
+         2 * G6d::kAStage * 2, swizzle, same, emu6::rung, nullptr, emu6::dirty},
+        {"step6 6d waves, 3 blocks", kStep6, emu6::waves<128>, three, b256, step6::shmem, G6d::kSmemBytes,
+         2 * G6d::kAStage * 2, swizzle, same, emu6::rung, nullptr, emu6::dirty},
+        {"step6 6c K in 2, 128 x 256", kStep6, emu6::split<128>, emu6::grid_split<128>, b256, step6::shmem,
+         G6d::kSmemBytes + 16, 2 * G6d::kAStage * 2, swizzle, 0, emu6::halves, emu6::parts_split, emu6::dirty},
+        // v7's 6c (its halves on step 0's persistent grid, 40 and 3 blocks), v8's 6c and 6d (step 2's order).
+        {"step6 v7 6c K in 2 (without 6e), 40 blocks", kStep6, emu6::split_persistent<128>, sms, b256, step6::shmem,
+         G6d::kSmemBytes + 16, 2 * G6d::kAStage * 2, swizzle, 0, emu6::halves, emu6::parts_split, emu6::dirty},
+        {"step6 v7 6c K in 2 (without 6e), 3 blocks", kStep6, emu6::split_persistent<128>, three, b256, step6::shmem,
+         G6d::kSmemBytes + 16, 2 * G6d::kAStage * 2, swizzle, 0, emu6::halves, emu6::parts_split, emu6::dirty},
+        {"step6 v8 6c K in 2 (without 6f)", kStep6, emu6::split_rows<128>, emu6::grid_split<128>, b256, step6::shmem,
+         G6d::kSmemBytes + 16, 2 * G6d::kAStage * 2, swizzle, 0, emu6::halves, emu6::parts_split, emu6::dirty},
+        {"step6 v8 6d waves (without 6f), 40 blocks", kStep6, emu6::waves_rows<128>, sms, b256, step6::shmem,
+         G6d::kSmemBytes, 2 * G6d::kAStage * 2, swizzle, same, emu6::rung, nullptr, emu6::dirty},
+        {"step6 v8 6d waves (without 6f), 3 blocks", kStep6, emu6::waves_rows<128>, three, b256, step6::shmem,
+         G6d::kSmemBytes, 2 * G6d::kAStage * 2, swizzle, same, emu6::rung, nullptr, emu6::dirty},
         {"step6 6b band 128, 1 slice", kStep6, emu6::bands<128, 1>, emu6::grid_bands<128, 1>, b256, step6::shmem,
          GB128::kSmemBytes, 2 * GB128::kAStage * 2, swizzle, 0,
          emu6::band<128, 1>, nullptr, emu6::dirty},
@@ -743,6 +824,7 @@ static bool run(const Kernel& k, int M, int N, int K, Order order, std::vector<u
     if (order == kReverse) std::reverse(blocks.begin(), blocks.end());
     if (order == kRandom) std::shuffle(blocks.begin(), blocks.end(), rng);
     bool complete = true;
+    g_gridBarriers.assign(blocks.size(), 0);
     for (size_t n = 0; n < blocks.size() && complete; n++) {
         const unsigned bx = blocks[n] % gridDim.x, by = blocks[n] / gridDim.x;
         blockIdx = {bx, by, 0};
@@ -812,6 +894,13 @@ static bool run(const Kernel& k, int M, int N, int K, Order order, std::vector<u
         const int dirty = k.dirty();
         if (dirty) add(std::to_string(dirty) + " counters left non-zero (each call must put them back to zero)");
     }
+    for (size_t b = 1; b < g_gridBarriers.size() && complete; b++)   // on the GPU, a block that arrives less hangs
+        if (g_gridBarriers[b] != g_gridBarriers[0]) {
+            snprintf(s, sizeof s, "blocks reach the grid barrier different numbers of times (block 0 %d, block %zu %d)",
+                     g_gridBarriers[0], b, g_gridBarriers[b]);
+            add(s);
+            break;
+        }
     std::string banks;   // "LDSM.x4 4.00  STS.128 A 4.00 B 4.00  STS.32 1.00  LDS.128 4.00", then any other class
     std::vector<std::string> classes = {"LDSM.x4", "STS.128 A", "STS.128 B", "STS.32", "LDS.128"};
     for (const auto& b : g_banks)
@@ -852,15 +941,17 @@ static bool run(const Kernel& k, int M, int N, int K, Order order, std::vector<u
 }
 
 // ---------------------------------------------------------------- the order of the tiles
-// Steps 3 and 4 find their tile with step3::tile_of, step 5 with step5::tile_of, the same order for any tile size: with
-// 3b, the places of a group cover 8 rows of tiles (the last group fewer, when fewer are left), column by column;
-// without it (step 3's v2), step 0's order. The runs see at most three groups (1168 x 512 x 64 in 64-row tiles); so
-// each order is also checked on its own, at every M multiple of 16 up to kTileMaxM (64 or 128 rows of tiles; the last
-// row of tiles cut by M or not) and every N multiple of the tile's width up to kTileMaxN (48 columns of tiles). The
-// persistent grid, as step3.cu to step6.cu launch it, gives each block the places block_pos, block_pos + gridDim.x, ...
-// (6c: two places per tile, place p on tile p / 2 over K's half p % 2); tile_of maps each place of the order, from 0
-// to the number of tiles less one, to a tile: no place may get a tile outside the grid, nor two places the same tile;
-// there being as many places as tiles, each tile then has its place. One line per order, counted as a run.
+// Steps 3 and 4 find their tile with step3::tile_of, step 5 with step5::tile_of and step 6 with step6::tile_of, the
+// same order for any tile size: with 3b, the places of a group cover 8 rows of tiles (the last group fewer, when fewer
+// are left), column by column; without it (step 3's v2), step 0's order. The runs see at most three groups (1168 x 512
+// x 64 in 64-row tiles); so each order is also checked on its own, at every M multiple of 16 up to kTileMaxM (64 or 128
+// rows of tiles; the last row of tiles cut by M or not) and every N multiple of the tile's width up to kTileMaxN (48
+// columns of tiles). The grids, as step3.cu to step6.cu launch them, give each block one place, its block index (6e:
+// one block per tile; 6c: two places per tile, place p on tile p / 2 over K's half p % 2), or, in a persistent grid
+// (steps 3 to 5, step 6's v7, 6d's waves), the places block_pos, block_pos + gridDim.x, ...; tile_of maps each place of
+// the order, from 0 to the number of tiles less one, to a tile: no place may get a tile outside the grid, nor two
+// places the same tile; there being as many places as tiles, each tile then has its place. One line per order, counted
+// as a run.
 constexpr int kTileMaxM = 8192, kTileMaxN = 12288;
 struct TileOrder {
     const char* label;
@@ -947,70 +1038,120 @@ static bool check_choice(Totals& totals)
     return false;
 }
 
+// ---------------------------------------------------------------- step 6's choice of tile
+// step6::choose must give, on the T4's 40 SMs, at each of the judge's 17 shapes, with cols128 (as v2 and v3 ask for
+// it): 64 x 256 at qkv_m16 and gateup_m16, 64 x 128 at o_m16 and down_m16, 128 x 128 at o_m128 and down_m128,
+// 128 x 256 elsewhere; without cols128, the same rows (5a) and 256 columns. One line, counted as a run.
+static bool check_choice6(Totals& totals)
+{
+    struct Row { const char* name; int M, N, bm, bn; };
+    const Row rows[] = {{"qkv_m16", 16, 6144, 64, 256},       {"qkv_m128", 128, 6144, 128, 256},
+                        {"qkv_m512", 512, 6144, 128, 256},    {"qkv_m2048", 2048, 6144, 128, 256},
+                        {"o_m16", 16, 4096, 64, 128},         {"o_m128", 128, 4096, 128, 128},
+                        {"o_m512", 512, 4096, 128, 256},      {"o_m2048", 2048, 4096, 128, 256},
+                        {"gateup_m16", 16, 28672, 64, 256},   {"gateup_m128", 128, 28672, 128, 256},
+                        {"gateup_m512", 512, 28672, 128, 256}, {"gateup_m2048", 2048, 28672, 128, 256},
+                        {"down_m16", 16, 4096, 64, 128},      {"down_m128", 128, 4096, 128, 128},
+                        {"down_m512", 512, 4096, 128, 256},   {"down_m2048", 2048, 4096, 128, 256},
+                        {"ladder", 2048, 2560, 128, 256}};
+    int wrong = 0;
+    for (const Row& r : rows) {
+        const step6::Choice c = step6::choose(r.M, r.N, 40, true, true);
+        const step6::Choice d = step6::choose(r.M, r.N, 40, true, false);
+        if (c.bm != r.bm || c.bn != r.bn || d.bm != r.bm || d.bn != 256) {
+            printf("EMU ERROR: step6::choose at %s (%d x %d): %d x %d, without cols128 %d x %d; the rules give %d x %d,"
+                   " %d x 256\n", r.name, r.M, r.N, c.bm, c.bn, d.bm, d.bn, r.bm, r.bn, r.bm);
+            wrong++;
+        }
+    }
+    snprintf(g_label, sizeof g_label, "%-33s %-27s", "step6 choose, 40 SMs", "the judge's 17 shapes");
+    totals.runs++;
+    if (!wrong) {
+        printf("%s  ok      the fallback's tile at each of them, with and without cols128\n", g_label);
+        return true;
+    }
+    printf("%s  FAILED  [%d of the 17 shapes]\n", g_label, wrong);
+    totals.failed++;
+    totals.failures.push_back("step6 choose at the judge's 17 shapes");
+    return false;
+}
+
 // ---------------------------------------------------------------- step 6's plan
 // step6::plan must give, on the T4's 40 SMs, at the judge's 17 shapes: 6b's bands at the four M = 16 shapes, with the
 // widths and slices of step6.cuh (qkv_m16 128 columns x 1 slice, o_m16 256 x 3, gateup_m16 256 x 1, down_m16 256 x 5);
-// 6c at o_m128 and down_m128; step 5's 128 x 256 grid at qkv_m128, gateup_m128, M >= 512 and ladder. With 6b and 6c
-// switched off, step 5's choice at every shape; with one of them off (the variants v2 and v3 of step6.cu), step 5's
-// choice where it acted and the whole plan elsewhere. One line, counted as a run.
+// 6c at o_m128 and down_m128; 6d's waves at M >= 512 and ladder; 128 x 256 tiles at qkv_m128 and gateup_m128. With 6b,
+// 6c and 6d switched off, the fallback's tile at every shape (step6::choose: 5a's rows, 128 columns where 256 would
+// give fewer blocks than half the SMs); with one of them off (the variants v2, v3 and v6 of step6.cu), that tile where
+// it acted and the whole plan elsewhere. The fallback's 128 columns serve v2 and v3 only: at 128 x 4096 x 4160 (K not a
+// multiple of 128: no 6c), v0 and v3 take 128 x 256. One line, counted as a run.
 static bool check_plan(Totals& totals)
 {
     struct Row { const char* name; int M, N, K; step6::Kind kind; int bn, slices; };
-    using step6::kBands, step6::kGrid, step6::kSplit;
+    using step6::kBands, step6::kGrid, step6::kSplit, step6::kWaves;
     const Row rows[] = {
         {"qkv_m16", 16, 6144, 4096, kBands, 128, 1},
         {"qkv_m128", 128, 6144, 4096, kGrid, 256, 1},
-        {"qkv_m512", 512, 6144, 4096, kGrid, 256, 1},
-        {"qkv_m2048", 2048, 6144, 4096, kGrid, 256, 1},
+        {"qkv_m512", 512, 6144, 4096, kWaves, 256, 1},
+        {"qkv_m2048", 2048, 6144, 4096, kWaves, 256, 1},
         {"o_m16", 16, 4096, 4096, kBands, 256, 3},
         {"o_m128", 128, 4096, 4096, kSplit, 256, 2},
-        {"o_m512", 512, 4096, 4096, kGrid, 256, 1},
-        {"o_m2048", 2048, 4096, 4096, kGrid, 256, 1},
+        {"o_m512", 512, 4096, 4096, kWaves, 256, 1},
+        {"o_m2048", 2048, 4096, 4096, kWaves, 256, 1},
         {"gateup_m16", 16, 28672, 4096, kBands, 256, 1},
         {"gateup_m128", 128, 28672, 4096, kGrid, 256, 1},
-        {"gateup_m512", 512, 28672, 4096, kGrid, 256, 1},
-        {"gateup_m2048", 2048, 28672, 4096, kGrid, 256, 1},
+        {"gateup_m512", 512, 28672, 4096, kWaves, 256, 1},
+        {"gateup_m2048", 2048, 28672, 4096, kWaves, 256, 1},
         {"down_m16", 16, 4096, 14336, kBands, 256, 5},
         {"down_m128", 128, 4096, 14336, kSplit, 256, 2},
-        {"down_m512", 512, 4096, 14336, kGrid, 256, 1},
-        {"down_m2048", 2048, 4096, 14336, kGrid, 256, 1},
-        {"ladder", 2048, 2560, 2048, kGrid, 256, 1},
+        {"down_m512", 512, 4096, 14336, kWaves, 256, 1},
+        {"down_m2048", 2048, 4096, 14336, kWaves, 256, 1},
+        {"ladder", 2048, 2560, 2048, kWaves, 256, 1},
     };
-    const char* kinds[] = {"step 5's grid", "6c's split", "6b's bands"};
+    const char* kinds[] = {"6e's grid", "6c's split", "6b's bands", "6d's waves"};
     int wrong = 0;
     for (const Row& r : rows) {
-        const step6::Plan p = step6::plan(r.M, r.N, r.K, 40, true, true);
+        const step6::Plan p = step6::plan(r.M, r.N, r.K, 40, true, true, true);
         if (p.kind != r.kind || p.bn != r.bn || p.slices != r.slices) {
             printf("EMU ERROR: step6::plan at %s (%d x %d x %d): %s, %d columns, %d slices; expected %s, %d, %d\n",
                    r.name, r.M, r.N, r.K, kinds[p.kind], p.bn, p.slices, kinds[r.kind], r.bn, r.slices);
             wrong++;
         }
-        const step6::Plan off = step6::plan(r.M, r.N, r.K, 40, false, false);
-        const int bm = step5::choose(r.M, true);
-        if (off.kind != kGrid || off.bm != bm || off.bn != 256) {
-            printf("EMU ERROR: step6::plan at %s without 6b, 6c: %s, %d x %d; step 5's is %d x 256\n", r.name,
-                   kinds[off.kind], off.bm, off.bn, bm);
+        const step6::Plan off = step6::plan(r.M, r.N, r.K, 40, false, false, false);
+        const step6::Choice c5 = step6::choose(r.M, r.N, 40, true, true);
+        if (off.kind != kGrid || off.bm != c5.bm || off.bn != c5.bn) {
+            printf("EMU ERROR: step6::plan at %s without 6b, 6c, 6d: %s, %d x %d; the fallback's is %d x %d\n", r.name,
+                   kinds[off.kind], off.bm, off.bn, c5.bm, c5.bn);
             wrong++;
         }
-        // One mechanism off (v2, v3): step 5's tile where it acted, the whole plan elsewhere.
-        const char* names[] = {"6b", "6c"};
-        const step6::Kind kindOf[] = {kBands, kSplit};
-        for (int m = 0; m < 2; m++) {
-            const step6::Plan q = step6::plan(r.M, r.N, r.K, 40, m != 0, m != 1);
+        // One mechanism off (v2, v3, v6): the fallback's tile where it acted, the whole plan elsewhere.
+        const char* names[] = {"6b", "6c", "6d"};
+        const step6::Kind kindOf[] = {kBands, kSplit, kWaves};
+        for (int m = 0; m < 3; m++) {
+            const step6::Plan q = step6::plan(r.M, r.N, r.K, 40, m != 0, m != 1, m != 2);
             const bool acted = p.kind == kindOf[m];
-            const bool ok = acted ? q.kind == kGrid && q.bm == bm && q.bn == 256
+            const bool ok = acted ? q.kind == kGrid && q.bm == c5.bm && q.bn == c5.bn
                                   : q.kind == p.kind && q.bm == p.bm && q.bn == p.bn && q.slices == p.slices;
             if (!ok) {
                 printf("EMU ERROR: step6::plan at %s without %s: %s, %d x %d, %d slices; expected %s\n", r.name,
-                       names[m], kinds[q.kind], q.bm, q.bn, q.slices, acted ? "step 5's tile" : "the whole plan");
+                       names[m], kinds[q.kind], q.bm, q.bn, q.slices, acted ? "the fallback's tile" : "the whole plan");
                 wrong++;
             }
         }
     }
-    snprintf(g_label, sizeof g_label, "%-33s %-27s", "step6 plan, 40 SMs", "the judge's 17 shapes");
+    // The fallback's 128 columns serve v2 and v3 only, where 6b or 6c would run: at 128 x 4096 x 4160 (K not a
+    // multiple of 128, hence no 6c), v0 and v3 take 128 x 256, though 256 columns give 16 blocks there.
+    for (int m = 0; m < 2; m++) {
+        const step6::Plan q = step6::plan(128, 4096, 4160, 40, true, m == 0, true);
+        if (q.kind != kGrid || q.bm != 128 || q.bn != 256) {
+            printf("EMU ERROR: step6::plan at 128 x 4096 x 4160%s: %s, %d x %d; expected 6e's grid, 128 x 256\n",
+                   m ? " without 6c" : "", kinds[q.kind], q.bm, q.bn);
+            wrong++;
+        }
+    }
+    snprintf(g_label, sizeof g_label, "%-33s %-27s", "step6 plan, 40 SMs", "the judge's 17 shapes, +1");
     totals.runs++;
     if (!wrong) {
-        printf("%s  ok      its mechanism at each, step 5's tile without it\n", g_label);
+        printf("%s  ok      its mechanism at each, the fallback's tile without it\n", g_label);
         return true;
     }
     printf("%s  FAILED  [%d errors]\n", g_label, wrong);
@@ -1061,9 +1202,12 @@ int main(int argc, char** argv)
                    "         v0 (the reference of the same bits), and 3b's order of the tiles\n"
                    "  step5  step 5's two tiles (step5.cuh: the tile per shape), step 4's v0 and step 2's v0, the two\n"
                    "         orders of the tiles of step5::tile_of, and step5::choose at the judge's 17 shapes\n"
-                   "  step6  step 6's kernels (step6.cuh): step 5's two tiles with 6a, 6c's K in two halves, 6b's\n"
-                   "         bands (128 and 256 columns, 1 to 5 slices; v5's with slices), step 2's v0, the two\n"
-                   "         orders of the tiles of step5::tile_of, and step6::plan at the judge's 17 shapes; at the\n"
+                   "  step6  step 6's kernels (step6.cuh): its four tiles with 6a, 6c's K in two halves, 6d's\n"
+                   "         waves, 6b's bands (128 and 256 columns, 1 to 5 slices; v5's with slices), v7's\n"
+                   "         kernels (without 6e: the four tiles and 6c's halves on a persistent grid), v8's\n"
+                   "         (without 6f: the four tiles, 6c's halves and 6d's waves in step 2's order of the HMMA),\n"
+                   "         step 2's v0, the four orders of the tiles of step6::tile_of, step6::choose and\n"
+                   "         step6::plan at the judge's 17 shapes (the plan at one more); at the\n"
                    "         shapes of verif.cu and two more with M < 16 (6b's rows >= M)\n"
                    "         (every variant of steps 3 to 5, and step 6's tiles, must give the bits of step 2's v0;\n"
                    "         the kernels of a persistent grid run at 40 and at 3 blocks)\n"
@@ -1108,21 +1252,27 @@ int main(int argc, char** argv)
     Totals totals;
     const TileOrder orders[] = {{"step3 tile_of<true>, 3b's order", kStep3 | kStep4, step3::tile_of<true>},
                                 {"step3 tile_of<false>, step 0's", kStep3, step3::tile_of<false>},
-                                {"step5 tile_of<64>", kStep5 | kStep6, step5::tile_of<64>, 64},
-                                {"step5 tile_of<128>", kStep5 | kStep6, step5::tile_of<128>, 128}};
+                                {"step5 tile_of<64>", kStep5, step5::tile_of<64>, 64},
+                                {"step5 tile_of<128>", kStep5, step5::tile_of<128>, 128},
+                                {"step6 tile_of<64, 128>", kStep6, step6::tile_of<64, 128>, 64, 128},
+                                {"step6 tile_of<64, 256>", kStep6, step6::tile_of<64, 256>, 64, 256},
+                                {"step6 tile_of<128, 128>", kStep6, step6::tile_of<128, 128>, 128, 128},
+                                {"step6 tile_of<128, 256>", kStep6, step6::tile_of<128, 256>, 128, 256}};
     for (const TileOrder& o : orders)
         if ((o.in & sel) && !check_tiles(o, totals) && stopAtFirst) return summary(totals, true);
     if ((sel & kStep5) && !check_choice(totals) && stopAtFirst) return summary(totals, true);
+    if ((sel & kStep6) && !check_choice6(totals) && stopAtFirst) return summary(totals, true);
     if ((sel & kStep6) && !check_plan(totals) && stopAtFirst) return summary(totals, true);
-    // The shapes of verif.cu: its first six for every step, its last three for step 6 (6b in 12 slices of 4 bands, and
-    // in 48 bands of 128 columns; 6c at a tile cut by M); and, for step 6 only, two with
+    // The shapes of verif.cu: its first six for every step, its last five for step 6 (6b in 12 slices of 4 bands, and
+    // in 48 bands of 128 columns; 6c at a tile cut by M; 6d in two and three waves); and, for step 6 only, two with
     // M < 16 (6b's bands take 1 to 16 rows; the host passes M multiples of 16): its rows of A >= M, its rows of C not
     // written. Step 6's small shapes come early, so that -x finds a bug of 6b or 6c before the large shapes.
     struct Shape { int M, N, K; unsigned in; };
     const Shape shapes[] = {{16, 256, 64, kAll},      {16, 1024, 1024, kStep6}, {16, 6144, 128, kStep6},
                             {11, 768, 2048, kStep6},  {1, 256, 1280, kStep6},   {144, 256, 64, kAll},
                             {128, 512, 128, kAll},    {144, 512, 256, kStep6},  {208, 512, 192, kAll},
-                            {272, 5376, 128, kAll},   {1168, 512, 64, kAll}};
+                            {272, 5376, 128, kAll},   {528, 2560, 64, kStep6},  {528, 5376, 64, kStep6},
+                            {1168, 512, 64, kAll}};
     for (const Shape& shape : shapes) {
         if (!(shape.in & sel)) continue;
         const int M = shape.M, N = shape.N, K = shape.K;

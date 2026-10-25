@@ -1,0 +1,45 @@
+candidate turing/step6.cu; step2.cuh md5 4ee66134ecbaf4cb28ec2f1c4da5a8d9; step3.cuh md5 ce6d9a236ccd2f0cca307ebc9698d71c; step1.cuh md5 ee50bf0b5d312bdd7ae5b7a885af6d27; step4.cuh md5 a53db76072b6650c5f1a39aeec5ab476; step6.cuh md5 132a313fafa9b32ed4665ff4dfe6bf85; step5.cuh md5 51207723b115eb0162c851472eb6b355; nvidia_sample.cuh md5 687b3acf5cba867a7ee7c4476e704945; step6.cu md5 ab5747c88e66a7f8cce44b240519a31c
+probe.cu md5 aa7ee2d6; modal_probe.py md5 7608c03c; variant Tesla_T4|70W|lt130201|cuda13030 (try 1/8)
+card Tesla_T4|70W|lt130201|cuda13030
+Tesla T4, 610.57.04, 1590 MHz, 70.00 W, 24
+Sun Oct 25 16:38:17 UTC 2026
+build rc 0
+
+== ncu try: rc 0
+1 pass
+ncu: done
+==PROF== Disconnected from process 111
+[111] probe@127.0.0.1
+  fill(__half *, unsigned long, unsigned int) (1024, 1, 1)x(256, 1, 1), Context 1, Stream 7, Device 0, CC 7.5
+    Warning: Data collection happened without fixed GPU frequencies. Profiling results may be inconsistent.
+    Section: Command line profiler metrics
+    ---------------------- ----------- ------------
+    Metric Name            Metric Unit Metric Value
+    ---------------------- ----------- ------------
+    gpu__time_duration.sum          us        27.74
+    ---------------------- ----------- ------------
+
+== ncu v0 512x28672x4096 : rc 0
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 145 (/tmp/s/probe)
+==PROF== Profiling "gemm_waves" - 0 (1/6): 0%....50%....100% - 33 passes
+==PROF== Profiling "gemm_waves" - 1 (2/6): 0%....50%....100% - 33 passes
+ncu: done
+==PROF== Disconnected from process 145
+==PROF== Report: /tmp/s/ncu_v0_512x28672x4096.ncu-rep
+== ncu v1 512x28672x4096 : rc 0
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 249 (/tmp/s/probe)
+==PROF== Profiling "gemm_waves" - 0 (1/6): 0%....50%....100% - 33 passes
+==PROF== Profiling "gemm_waves" - 1 (2/6): 0%....50%....100% - 33 passes
+ncu: done
+==PROF== Disconnected from process 249
+==PROF== Report: /tmp/s/ncu_v1_512x28672x4096.ncu-rep
+== ncu x:05000000180000000700000001000000000000000100000000000000000000000100000099fc0100020000000200000002000200440000000000000000000000 512x28672x4096 : rc 0
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 353 (/tmp/s/probe)
+==PROF== Profiling "turing_fp16_s1688gemm_fp16_25..." - 0 (1/6): 0%....50%....100% - 33 passes
+==PROF== Profiling "turing_fp16_s1688gemm_fp16_25..." - 1 (2/6): 0%....50%....100% - 33 passes
+ncu: done
+==PROF== Disconnected from process 353
+==PROF== Report: /tmp/s/ncu_x_05000000180000000700000001000000000000000100000000000000000000000100000099fc0100020000000200000002000200440000000000000000000000_512x28672x4096.ncu-rep

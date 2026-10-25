@@ -26,7 +26,7 @@ the documentation of CUDA 13.1 Update 1, whose cuBLAS is 13.2.1):
 
 | Rung | GPU | Mechanisms | Score |
 |---|---|---|---|
-| [Turing](turing/) | T4, sm_75 | tensor cores through `mma.sync` and `ldmatrix`, swizzled shared stages, fragment double buffering; then loads through the L2 only, 16-row bands at M <= 16, split-K in two | 1.05 |
+| [Turing](turing/) | T4, sm_75 | tensor cores through `mma.sync` and `ldmatrix`, swizzled shared stages, fragment double buffering; then loads through the L2 only, 16-row bands at M <= 16, split-K in two, synchronized waves | 1.05 |
 | [Ampere](ampere/) | A100-SXM4-80GB, sm_80 | `mma.sync` and `ldmatrix`, a swizzle, `cp.async` in three stages, evict-first stores, a pipeline of the fragments; then a tile per shape, 16-row tiles at M <= 16, split-K at four shapes, L2 cache hints | 1.01 |
 
 Score: the reference's time over the rung's, geometric mean over the 17 shapes (above 1: faster than the reference); the
@@ -42,9 +42,9 @@ sources.
   process per arm, the step, a removal and the configuration of a REFERENCE line of the judge (arm `x:`).
 - The host emulator (`turing/emu`, `ampere/emu`) runs every kernel on the CPU and checks its accesses, barriers, bank
   conflicts and results (to the bit where the headers say so); its planted-bug test checks that the emulator catches
-  bugs planted in the kernels. Their outputs on each rung's sources: `turing/results/emu/` (`emu_all.txt`: 771 runs,
-  771 ok, 0 failed; `planted_bugs.txt`: 79 of 79 planted bugs reported as failures) and `ampere/results/emu/` (767 runs,
-  767 ok, 0 failed; 130 of 130).
+  bugs planted in the kernels. Their outputs on each rung's sources: `turing/results/emu/` (`emu_all.txt`: 1370 runs,
+  1370 ok, 0 failed; `planted_bugs.txt`: 95 of 95 planted bugs reported as failures) and `ampere/results/emu/` (767
+  runs, 767 ok, 0 failed; 130 of 130).
 - compute-sanitizer (memcheck, racecheck, synccheck) on each rung's `verif.cu`, ncu at ladder, and ncu in the probes of
   the last step (step 6 on the T4, step 7 on the A100). cuBLAS is described only by its documentation (above), ncu's
   counters, its kernels' names and grids, and cuBLASLt's documented attributes.

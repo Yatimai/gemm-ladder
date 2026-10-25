@@ -6,8 +6,8 @@
 // or after the run's budget (GEMM_LADDER_BUDGET, set by the session), ends the check: HANG, with its shape and variant,
 // exit code 1. The output goes out line by line, so that a killed run keeps what it has checked.
 //   ./verif                       shapes 16 x 256 x 64, 144 x 256 x 64, 128 x 512 x 128, 208 x 512 x 192,
-//                                 272 x 5376 x 128, 1168 x 512 x 64, 144 x 512 x 256, 16 x 1024 x 1024,
-//                                 16 x 6144 x 128
+//                                 272 x 5376 x 128, 1168 x 512 x 64, 144 x 512 x 256, 528 x 2560 x 64,
+//                                 528 x 5376 x 64, 16 x 1024 x 1024, 16 x 6144 x 128
 //   ./verif M N K [hex]           one call of each variant of the step, then one of cuBLASLt (fp16 output), at
 //                                 M x N x K, on inputs drawn like the judge's (uniform in [-1, 1)); with hex (a
 //                                 cublasLtMatmulAlgo_t as the judge stores it in its cache), cuBLASLt runs that
@@ -124,12 +124,17 @@ int main(int argc, char** argv)
     // (126 of 128 x 128) for 40 blocks, so a persistent grid moves on to further tiles (the sanitizer sees that
     // transition), some of them in the edge row; 1168 x 512 x 64: 10 rows of tiles, so that step 3's groups of 8
     // rows (3b) end with a group of 2 rows, the second of them cut by M (16 rows left). Step 6's
-    // mechanisms: 144 x 512 x 256, K cut in two (6c) at a tile cut by M; 16 x 1024 x 1024, 4 bands of 256 columns,
-    // each in 12 slices of K summed by the last block (6b); 16 x 6144 x 128, 48 bands of 128 columns without slices
-    // (6b). Of these, 144 x 512 x 256 reaches 6c's counters (as 128 x 512 x 128 does), 16 x 1024 x 1024 6b's
-    // counters; candidate_dirty checks them after each call.
+    // mechanisms: 144 x 512 x 256, K cut in two (6c) at a tile cut by M; 528 x 2560 x 64, 50 tiles of 128 x 256 in two
+    // waves (6d), one barrier of the whole grid per call; 528 x 5376 x 64, 105 tiles in three waves, two barriers per
+    // call, the last row of tiles cut by M; 16 x 1024 x 1024, 4 bands of 256 columns, each in 12 slices of K summed by
+    // the last block (6b); 16 x 6144 x 128, 48 bands of 128 columns without slices (6b). Of these, 144 x 512 x 256
+    // reaches 6c's counters (as 128 x 512 x 128 does), 528 x 2560 x 64 and 528 x 5376 x 64 6d's barrier
+    // (1168 x 512 x 64 is one wave), 16 x 1024 x 1024 6b's counters; candidate_dirty checks them after each call. A
+    // counter of the barrier left non-zero by a call is reported at 528 x 2560 x 64, where the call has one barrier;
+    // where it has two, the second hangs (HANG).
     const int shapes[][3] = {{16, 256, 64}, {144, 256, 64}, {128, 512, 128}, {208, 512, 192}, {272, 5376, 128},
-                             {1168, 512, 64}, {144, 512, 256}, {16, 1024, 1024}, {16, 6144, 128}};
+                             {1168, 512, 64}, {144, 512, 256}, {528, 2560, 64}, {528, 5376, 64}, {16, 1024, 1024},
+                             {16, 6144, 128}};
     double worst = 0;
     for (auto& sh : shapes) {
         const int M = sh[0], N = sh[1], K = sh[2];

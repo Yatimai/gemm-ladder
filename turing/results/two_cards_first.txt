@@ -1,20 +1,20 @@
 == two cards: two containers running at the same time have two different cards (a container keeps its card for its whole life); times in UTC
-step1  series 1: turing/results/20261015-1355_step1_probe, Modal app from 15/10/2026 11:55:57 to 12:08:40 UTC, 102 ARM lines, 510 rounds: at least 680 s of work -> surely running from 11:57:21 to 12:07:17
-       series 2: turing/results/20261015-1356_step1_probe, Modal app from 15/10/2026 11:56:04 to 12:09:01 UTC, 102 ARM lines, 510 rounds: at least 680 s of work -> surely running from 11:57:42 to 12:07:24
-       -> running together at least from 11:57:42 to 12:07:17 (575 s): TWO DIFFERENT CARDS
-step2  series 1: turing/results/20261015-1334_step2_probe, Modal app from 15/10/2026 11:34:10 to 11:45:55 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 11:38:23 to 11:41:43
-       series 2: turing/results/20261015-1335_step2_probe, Modal app from 15/10/2026 11:35:04 to 11:43:47 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 11:36:15 to 11:42:37
-       -> running together at least from 11:38:23 to 11:41:43 (200 s): TWO DIFFERENT CARDS
-step3  series 1: turing/results/20261015-1355_step3_probe, Modal app from 15/10/2026 11:55:57 to 12:06:44 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 11:57:19 to 12:05:23
-       series 2: turing/results/20261015-1356_step3_probe, Modal app from 15/10/2026 11:56:04 to 12:06:40 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 11:57:15 to 12:05:30
-       -> running together at least from 11:57:19 to 12:05:23 (485 s): TWO DIFFERENT CARDS
-step4  series 1: turing/results/20261015-1334_step4_probe, Modal app from 15/10/2026 11:34:11 to 11:48:47 UTC, 51 ARM lines, 255 rounds: at least 340 s of work -> no sure moment (its app lasted more than twice its work: a late start or a relaunch)
-       series 2: turing/results/20261015-1335_step4_probe, Modal app from 15/10/2026 11:35:04 to 11:41:38 UTC, 51 ARM lines, 255 rounds: at least 340 s of work -> surely running from 11:35:59 to 11:40:44
+step1  series 1: turing/results/20261025-1737_step1_probe, Modal app from 25/10/2026 16:37:55 to 16:50:55 UTC, 102 ARM lines, 510 rounds: at least 680 s of work -> surely running from 16:39:36 to 16:49:15
+       series 2: turing/results/20261025-1738_step1_probe, Modal app from 25/10/2026 16:38:03 to 16:53:38 UTC, 102 ARM lines, 510 rounds: at least 680 s of work -> surely running from 16:42:19 to 16:49:23
+       -> running together at least from 16:42:19 to 16:49:15 (416 s): TWO DIFFERENT CARDS
+step2  series 1: turing/results/20261025-1737_step2_probe, Modal app from 25/10/2026 16:37:55 to 16:46:50 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 16:39:18 to 16:45:28
+       series 2: turing/results/20261025-1738_step2_probe, Modal app from 25/10/2026 16:38:03 to 16:52:54 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 16:45:22 to 16:45:36
+       -> running together at least from 16:45:22 to 16:45:28 (6 s): TWO DIFFERENT CARDS
+step3  series 1: turing/results/20261025-1808_step3_probe, Modal app from 25/10/2026 17:08:13 to 17:16:47 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 17:09:15 to 17:15:46
+       series 2: turing/results/20261025-1809_step3_probe, Modal app from 25/10/2026 17:09:00 to 17:17:42 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 17:10:10 to 17:16:33
+       -> running together at least from 17:10:10 to 17:15:46 (336 s): TWO DIFFERENT CARDS
+step4  series 1: turing/results/20261025-1809_step4_probe, Modal app from 25/10/2026 17:09:00 to 17:15:34 UTC, 51 ARM lines, 255 rounds: at least 340 s of work -> surely running from 17:09:55 to 17:14:40
+       series 2: turing/results/20261025-1810_step4_probe, Modal app from 25/10/2026 17:10:00 to 17:16:32 UTC, 51 ARM lines, 255 rounds: at least 340 s of work -> surely running from 17:10:53 to 17:15:40
+       -> running together at least from 17:10:53 to 17:14:40 (227 s): TWO DIFFERENT CARDS
+step5  series 1: turing/results/20261025-1737_step5_probe, Modal app from 25/10/2026 16:37:56 to 16:44:59 UTC, 51 ARM lines, 255 rounds: at least 340 s of work -> surely running from 16:39:20 to 16:43:36
+       series 2: turing/results/20261025-1738_step5_probe, Modal app from 25/10/2026 16:38:03 to 16:52:04 UTC, 51 ARM lines, 255 rounds: at least 340 s of work -> no sure moment (its app lasted more than twice its work: a late start or a relaunch)
        -> NO PROOF
-step5  series 1: turing/results/20261015-1334_step5_probe, Modal app from 15/10/2026 11:34:11 to 11:43:46 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 11:36:14 to 11:41:44
-       series 2: turing/results/20261015-1335_step5_probe, Modal app from 15/10/2026 11:35:04 to 11:43:56 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 11:36:24 to 11:42:37
-       -> running together at least from 11:36:24 to 11:41:44 (320 s): TWO DIFFERENT CARDS
-step6  series 1: turing/results/20261015-1334_step6_probe, Modal app from 15/10/2026 11:34:11 to 11:51:51 UTC, 119 ARM lines, 595 rounds: at least 793 s of work -> surely running from 11:38:39 to 11:47:24
-       series 2: turing/results/20261015-1335_step6_probe, Modal app from 15/10/2026 11:35:04 to 11:49:57 UTC, 119 ARM lines, 595 rounds: at least 793 s of work -> surely running from 11:36:45 to 11:48:17
-       -> running together at least from 11:38:39 to 11:47:24 (525 s): TWO DIFFERENT CARDS
-NO PROOF FOR: step4 (two different cards is not claimed for these steps)
+step6  series 1: turing/results/20261025-1737_step6_probe, Modal app from 25/10/2026 16:37:56 to 16:57:15 UTC, 153 ARM lines, 765 rounds: at least 1020 s of work -> surely running from 16:40:16 to 16:54:56
+       series 2: turing/results/20261025-1738_step6_probe, Modal app from 25/10/2026 16:38:03 to 17:04:07 UTC, 153 ARM lines, 765 rounds: at least 1020 s of work -> surely running from 16:47:08 to 16:55:03
+       -> running together at least from 16:47:08 to 16:54:56 (468 s): TWO DIFFERENT CARDS
+NO PROOF FOR: step5 (two different cards is not claimed for these steps)
