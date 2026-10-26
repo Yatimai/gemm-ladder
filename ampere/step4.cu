@@ -1,6 +1,6 @@
-// Step 4 of the Ampere rung, as a candidate for the judge: the memory hierarchy (see step4.cuh). Its variants, for the
-// interleaved probe (arm v<i> sets g_var) and for verif.cu (g_nvar): v0 = step 4 (4a + 4b), v1 = without 4a, v2 =
-// without 4b, v3 = step 3 itself (step3::gemm<3>, the anchor).
+// Step 4 of the Ampere rung, as a candidate for the judge: evict-first stores, a tile swizzle (see step4.cuh). Its
+// variants, for the interleaved probe (arm v<i> sets g_var) and for verif.cu (g_nvar): v0 = step 4 (4a + 4b),
+// v1 = without 4a, v2 = without 4b, v3 = step 3 itself (step3::gemm<3>, the anchor).
 #include <cstdio>
 #include <cstdlib>
 #include "step3.cuh"

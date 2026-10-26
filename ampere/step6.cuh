@@ -31,6 +31,7 @@
 // The judge's format: C = A B with A (M x K) and B (K x N) fp16 row-major, fp32 accumulation, C (M x N) fp16 row-major.
 #pragma once
 #include <cstdint>
+#include <type_traits>
 #include <cuda_fp16.h>
 #include <cuda_runtime.h>
 #include "step5.cuh"
@@ -40,17 +41,18 @@
 
 namespace step6 {
 
-// ---------------------------------------------------------------- step 6: the schedule per shape
+// --------------------------------------------------------- step 6: the tile per shape, 16-row bands, a stream in phase
 // Steps 1 to 5 run one tile, 128 x 256 (in three stages of K64 from step 3), at every shape. Step 6 adds a tile (6a),
 // through one kernel at either tile (step 5's loop, 5a's pipeline of the fragments and 5b's order of the HMMA, with
 // warps of 64 x 64), and a rule that picks, for each shape, the tile: the plan (choose). Two mechanisms follow (6b and
 // 6c), each with its kernel and its rule; the plan's kernels stay where neither applies. Step 6 keeps K whole in the
 // plan's tiles. Step 7 splits it (7a, and 7b on its parts; step7.cuh) at four of the judge's shapes, where cuBLASLt
 // splits K too (its configurations kept there for the measured card set CUBLASLT_ALGO_CONFIG_SPLITK_NUM above 1); the
-// kernels of 7a and 7b are written here, beside the plan's, and step 6 does not run them. The kernels of 6b, 6c and 7b
-// carry step 7's L2 cache hints (7d, step7.cuh) behind a template parameter, kHint: step 6 runs those of 6b and 6c
-// without. The judge's 17 shapes: qkv (N 10240, K 8192), o (8192, 8192), gateup (57344, 8192), down (8192, 28672),
-// each at M = 16, 128, 512 and 2048, and the ladder (3456 x 4096 x 2048).
+// kernels of 7a, 7b and 7e (the tail of the waves cut in K) are written here, beside the plan's, and step 6 does not
+// run them. The kernels of 6b, 6c, 7b and 7e carry step 7's L2 cache hints (7d, step7.cuh) behind a template parameter,
+// kHint, and those of 7a's parts in place and of 6c step 7's reads together (7h) behind another, kTogether: step 6 runs
+// those of 6b and 6c without either. The judge's 17 shapes: qkv (N 10240, K 8192), o (8192, 8192), gateup (57344,
+// 8192), down (8192, 28672), each at M = 16, 128, 512 and 2048, and the ladder (3456 x 4096 x 2048).
 // (6a) A 128 x 128 tile, 4 warps of 64 x 64, five stages of K32 (80 KB of shared memory: two blocks fit on an SM), when
 //      128 x 256 would give fewer than three waves of tiles: at M = 16 and 128 (qkv, o, gateup, down) and at qkv, o
 //      and down M = 512. A's rows of K32 (64 bytes, two to a 128-byte line) are swizzled by pairs: chunk c of row r at
@@ -75,6 +77,8 @@ namespace step6 {
 // The rules give, at the judge's 17 shapes: 6b's bands at qkv_m16 and o_m16, its stream at gateup_m16 and down_m16;
 // 6c at gateup_m128 and gateup_m512; 6a's tile at qkv_m128, qkv_m512, o_m128, o_m512, down_m128 and down_m512;
 // qkv_m2048, o_m2048, gateup_m2048, down_m2048 and the ladder keep step 5's 128 x 256.
+// The counts below are read with nvcc 13.2 (a local compilation); the measured binaries are built by nvcc 13.1.1 (the
+// Modal images).
 // Compiled (nvcc 13.2, sm_80), no spill. The plan's kernels, main loop per slice and per warp (static counts):
 //                             registers    slice   instructions   HMMA   LDSM.x4   LDGSTS   shared memory
 //   128 x 256 (step 5)        250          K64     270            128    32        12       147 456 bytes
@@ -107,6 +111,10 @@ enum Split { kWhole, kParts, kInPlace };
 // sets its tile's flag must have waited on it, for the value before.
 void emu_wait_flag(const unsigned* flag, unsigned value);
 void emu_set_flag(unsigned* flag, unsigned value);
+// It also checks that a read of another block's data (ld16_cg) comes after the block's acquisition (its wait on the
+// tile's flag, its arrival on a count, its wait on a count) for the tile it computes (compute_tile marks its start).
+void emu_tile_begin();
+void emu_read_shared(const void* p);
 #endif
 
 // 7a, in place: a 16-byte load of C through the L2 only (the previous part of the tile was written by another block,
@@ -114,6 +122,7 @@ void emu_set_flag(unsigned* flag, unsigned value);
 __device__ __forceinline__ int4 ld16_cg(const int4* p)
 {
 #ifdef GEMM_LADDER_EMULATE
+    emu_read_shared(p);
     return *p;
 #else
     int4 v;
@@ -212,12 +221,20 @@ struct PlainCopy {
 };
 
 // One BM x BN tile: step 5's (5a's pipeline of the fragments, 5b's order of the HMMA, 4a's stores of C) at that
-// geometry. kEdge: the tile is cut by M (the row of A each thread copies is clamped to M - 1).
-template <int BM, int BN, int WM, int SK, int kStages, int kSplit, bool kEdge, class Copy = PlainCopy>
+// geometry. kEdge: the tile is cut by M (the row of A each thread copies is clamped to M - 1). With kParts, the flag
+// is not used: a later step can pass in its place a keeper of its own (step 7's 7g), which keeps some of the chunks of
+// the part in registers instead of writing them (chunk threadIdx.x + kThreads u of the tile, u = 0, 1, ... in the
+// order of the output); this step writes them all. Flag is never deduced: a null flag stays an unsigned*. kTogether
+// (7h, in place): the reads of C issued together (below).
+template <int BM, int BN, int WM, int SK, int kStages, int kSplit, bool kEdge, class Copy = PlainCopy,
+          class Flag = unsigned*, bool kTogether = false>
 __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const half* B, half* C, int M, int N, int K,
-                                             int row0, int col0, int kBegin, int steps, half* part, unsigned* flag,
-                                             int s, int S)
+                                             int row0, int col0, int kBegin, int steps, half* part,
+                                             typename std::common_type<Flag>::type flag, int s, int S)
 {
+#ifdef GEMM_LADDER_EMULATE
+    emu_tile_begin();
+#endif
     using G = Geometry<BM, BN, WM, SK, kStages>;
     constexpr int kSteps16 = SK / 16, kFM = G::kFragsM, kH = 8 * kFM;   // K16 steps per slice; HMMA per K16
     half* As = shmem;             // kStages x BM rows of a slice of A
@@ -311,7 +328,7 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
     // The output, 64 rows at a time: 4a's stores of C (kWhole); the part to the workspace, in the tile's own rows of BN
     // halves (kParts); with kInPlace, once the tile's previous part is in C (thread 0 waits on the flag), C plus this
     // part.
-    if constexpr (kSplit == kInPlace) {
+    if constexpr (kSplit == kInPlace && !kTogether) {
         if (threadIdx.x == 0) wait_flag(flag, (unsigned)s);
         __syncthreads();
     }
@@ -332,22 +349,56 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
                     }
         }
         __syncthreads();
+        if constexpr (kSplit == kInPlace && kTogether) {
+            // 7h: the wait on the tile's flag once the first 64 rows are in shared memory; then, in each round, every
+            // read of C issued before its additions and stores (one round trip of the L2, not one per chunk). The
+            // reads stay after the wait and the barrier that follows it.
+            if (h == 0) {
+                if (threadIdx.x == 0) wait_flag(flag, (unsigned)s);
+                __syncthreads();
+            }
+            int4 old[G::kOPer];
+            if (s > 0) {
 #pragma unroll
-        for (int i = 0; i < G::kOPer; i++) {
-            const int r = threadIdx.x / G::kBChunks + i * G::kBRows;   // row among the 64
-            const int gr = row0 + h * 64 + r;
-            if (gr < M) {
-                const int ch = threadIdx.x % G::kBChunks;
-                int4 v = *((const int4*)&Os[r * G::kOStride] + ch);
-                int4* dst = (int4*)&C[(size_t)gr * N + col0] + ch;
-                if constexpr (kSplit == kParts) {
-                    step4::st16<false>((int4*)&part[(size_t)(h * 64 + r) * BN] + ch, v);
-                } else if constexpr (kSplit == kInPlace) {
-                    if (s > 0) v = add8(v, ld16_cg(dst));
+                for (int i = 0; i < G::kOPer; i++) {
+                    const int gr = row0 + h * 64 + threadIdx.x / G::kBChunks + i * G::kBRows;
+                    if (gr < M) old[i] = ld16_cg((const int4*)&C[(size_t)gr * N + col0] + threadIdx.x % G::kBChunks);
+                }
+            }
+#pragma unroll
+            for (int i = 0; i < G::kOPer; i++) {
+                const int r = threadIdx.x / G::kBChunks + i * G::kBRows;   // row among the 64
+                const int gr = row0 + h * 64 + r;
+                if (gr < M) {
+                    const int ch = threadIdx.x % G::kBChunks;
+                    int4 v = *((const int4*)&Os[r * G::kOStride] + ch);
+                    int4* dst = (int4*)&C[(size_t)gr * N + col0] + ch;
+                    if (s > 0) v = add8(v, old[i]);
                     if (s + 1 == S) step4::st16<true>(dst, v);
                     else step4::st16<false>(dst, v);
-                } else {
-                    step4::st16<true>(dst, v);
+                }
+            }
+        } else {
+#pragma unroll
+            for (int i = 0; i < G::kOPer; i++) {
+                const int r = threadIdx.x / G::kBChunks + i * G::kBRows;   // row among the 64
+                const int gr = row0 + h * 64 + r;
+                if (gr < M) {
+                    const int ch = threadIdx.x % G::kBChunks;
+                    int4 v = *((const int4*)&Os[r * G::kOStride] + ch);
+                    int4* dst = (int4*)&C[(size_t)gr * N + col0] + ch;
+                    if constexpr (kSplit == kParts && std::is_same_v<Flag, unsigned*>) {
+                        step4::st16<false>((int4*)&part[(size_t)(h * 64 + r) * BN] + ch, v);
+                    } else if constexpr (kSplit == kParts) {   // a keeper in the flag's place
+                        if (!flag->keep(h * G::kOPer + i, v))
+                            step4::st16<false>((int4*)&part[(size_t)(h * 64 + r) * BN] + ch, v);
+                    } else if constexpr (kSplit == kInPlace) {
+                        if (s > 0) v = add8(v, ld16_cg(dst));
+                        if (s + 1 == S) step4::st16<true>(dst, v);
+                        else step4::st16<false>(dst, v);
+                    } else {
+                        step4::st16<true>(dst, v);
+                    }
                 }
             }
         }
@@ -363,7 +414,7 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
 
 // Block b of a grid of S x tiles: part s = b / tiles of tile b % tiles (step 4's order of the tiles); the parts of a
 // tile share its K slices, the first ones one more when they do not divide evenly. kWhole: S = 1.
-template <int BM, int BN, int WM, int SK, int kStages, int kSplit, class Copy = PlainCopy>
+template <int BM, int BN, int WM, int SK, int kStages, int kSplit, class Copy = PlainCopy, bool kTogether = false>
 __device__ __forceinline__ void run(half* shmem, const half* A, const half* B, half* C, int M, int N, int K, int S,
                                     half* parts, unsigned* flags)
 {
@@ -377,11 +428,11 @@ __device__ __forceinline__ void run(half* shmem, const half* A, const half* B, h
     half* part = kSplit == kParts ? parts + ((size_t)s * tiles + t) * BM * BN : nullptr;
     unsigned* flag = kSplit == kInPlace ? flags + t : nullptr;
     if (row0 + BM <= M)
-        compute_tile<BM, BN, WM, SK, kStages, kSplit, false, Copy>(shmem, A, B, C, M, N, K, row0, col0, kBegin, steps,
-                                                                   part, flag, s, S);
+        compute_tile<BM, BN, WM, SK, kStages, kSplit, false, Copy, unsigned*, kTogether>(
+            shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, flag, s, S);
     else
-        compute_tile<BM, BN, WM, SK, kStages, kSplit, true, Copy>(shmem, A, B, C, M, N, K, row0, col0, kBegin, steps,
-                                                                  part, flag, s, S);
+        compute_tile<BM, BN, WM, SK, kStages, kSplit, true, Copy, unsigned*, kTogether>(
+            shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, flag, s, S);
 }
 
 // One block per BM x BN tile (6a).
@@ -392,13 +443,13 @@ __global__ void gemm(const half* A, const half* B, half* C, int M, int N, int K)
     run<BM, BN, WM, SK, kStages, kWhole>(shmem, A, B, C, M, N, K, 1, nullptr, nullptr);
 }
 
-// S blocks per tile, each one part of K (7a): kParts or kInPlace.
-template <int BM, int BN, int WM, int SK, int kStages, int kSplit>
+// S blocks per tile, each one part of K (7a): kParts or kInPlace; kTogether: with kInPlace, 7h's reads of C.
+template <int BM, int BN, int WM, int SK, int kStages, int kSplit, bool kTogether = false>
 __global__ void gemm_split(const half* A, const half* B, half* C, int M, int N, int K, int S, half* parts,
                            unsigned* flags)
 {
     extern __shared__ __align__(128) half shmem[];
-    run<BM, BN, WM, SK, kStages, kSplit>(shmem, A, B, C, M, N, K, S, parts, flags);
+    run<BM, BN, WM, SK, kStages, kSplit, PlainCopy, kTogether>(shmem, A, B, C, M, N, K, S, parts, flags);
 }
 
 // 7a, parts: one block of 256 threads per tile sums the tile's S parts in the order of K, in fp32 rounded once to
@@ -472,12 +523,12 @@ __device__ __forceinline__ unsigned arrive(unsigned* count) { return atomicAdd(c
 
 // ---------------------------------------------------------------- 7d: L2 cache hints in the kernels of 6b, 6c and 7b
 // Step 7's 7d (step7.cuh), here beside the kernels that carry it: kHint = true in step 7, false in step 6.
-// In the kernels where each slice of B is read by one block, or by one group of blocks in phase (6b, 6c, 7b):
-// A, read by every column of tiles, is kept (evict_last); B is evicted first (evict_first). The copy into a stage
-// carries the policy (cp.async with an L2 cache hint, the policies made once per tile by createpolicy). In every kernel
-// of 6b, 6c and 7b with parts of K (6b's stream, 6c, 7b), the parts, once added, are discarded from the L2
-// (discard.global.L2, 128-byte lines): their dirty lines are dropped instead of written back to DRAM. kHint = false:
-// step 3's copies, no discard.
+// In the kernels where each slice of B is read by one block, or by one group of blocks in phase (6b, 6c, 7b; and 7g's
+// in step7.cuh): A, read by every column of tiles, is kept (evict_last); B is evicted first (evict_first). The copy
+// into a stage carries the policy (cp.async with an L2 cache hint, the policies made once per tile by createpolicy).
+// In every kernel of 6b, 6c and 7b with parts of K (6b's stream, 6c, 7b; and 7e's tail, whose copies take no hint),
+// the parts, once added, are discarded from the L2 (discard.global.L2, 128-byte lines): their dirty lines are dropped
+// instead of written back to DRAM. kHint = false: step 3's copies, no discard.
 #ifdef GEMM_LADDER_EMULATE
 void emu_discard(const void* line);   // the emulation fills the line with NaN: its content is undefined after a discard
 #endif
@@ -753,10 +804,11 @@ inline M16 m16(int M, int N, int K, int sms)
 // the group's slot (two per block: the range's first segment and its last), and the last block of the tile to arrive
 // adds the tile's parts in the order of K (the groups' order), in fp32 rounded once, writes C, and puts the tile's
 // counter back to zero for the next call.
-template <int BM, int BN, int WM, int SK, int kStages, bool kHint>
-__global__ void gemm_phase(const half* A, const half* B, half* C, int M, int N, int K, half* parts, unsigned* counts)
+// kTogether (7h, step 7's): the sum of a cut tile's parts reads each part with every read issued together (below).
+template <int BM, int BN, int WM, int SK, int kStages, bool kHint, bool kTogether>
+__device__ __forceinline__ void phase_tiles(half* shmem, const half* A, const half* B, half* C, int M, int N, int K,
+                                            half* parts, unsigned* counts)
 {
-    extern __shared__ __align__(128) half shmem[];
     using G = Geometry<BM, BN, WM, SK, kStages>;
     const int MT = (M + BM - 1) / BM, tilesN = N / BN, tm = blockIdx.x % MT, row0 = tm * BM;
     const long steps = K / SK, U = (long)tilesN * steps, P = gridDim.x / MT, g = blockIdx.x / MT;
@@ -802,23 +854,68 @@ __global__ void gemm_phase(const half* A, const half* B, half* C, int M, int N, 
             if (*last) {
                 fence();
                 constexpr int kChunks = BM * BN / 8, kBChunks = BN / 8;
-                for (int q = threadIdx.x; q < kChunks; q += G::kThreads) {
-                    const int r = q / kBChunks, cc = q % kBChunks;
-                    if (row0 + r >= M) continue;
-                    float v[8] = {0, 0, 0, 0, 0, 0, 0, 0};
-                    for (long sg = gFirst; sg <= gLast; sg++) {
-                        const int4 x = ld16_cg((const int4*)&slot(sg, tn)[(size_t)r * BN] + cc);
-                        half h[8];
-                        memcpy(h, &x, 16);
+                if constexpr (kTogether) {
+                    // 7h: the tile's chunks of thread t are t + kThreads u (u < kPer), as below, taken kBatch at a
+                    // time; part by part, in the order of K, every read of the batch issued before its sums (one round
+                    // trip of the L2 per batch and part, not one per chunk and part), the same sums in the same order.
+                    // The reads stay after the arrival and the fence.
+                    constexpr int kPer = kChunks / G::kThreads, kBatch = kPer < 2 ? kPer : 2;
+                    static_assert(kPer * G::kThreads == kChunks && kPer % kBatch == 0, "the chunks not spread evenly");
+#pragma unroll 1
+                    for (int u0 = 0; u0 < kPer; u0 += kBatch) {
+                        float v[kBatch][8];
 #pragma unroll
-                        for (int e = 0; e < 8; e++) v[e] += __half2float(h[e]);
+                        for (int u = 0; u < kBatch; u++)
+#pragma unroll
+                            for (int e = 0; e < 8; e++) v[u][e] = 0.0f;
+                        for (long sg = gFirst; sg <= gLast; sg++) {
+                            const half* src = slot(sg, tn);
+                            int4 x[kBatch];
+#pragma unroll
+                            for (int u = 0; u < kBatch; u++) {
+                                const int q = threadIdx.x + (u0 + u) * G::kThreads, r = q / kBChunks;
+                                if (row0 + r < M) x[u] = ld16_cg((const int4*)&src[(size_t)r * BN] + q % kBChunks);
+                            }
+#pragma unroll
+                            for (int u = 0; u < kBatch; u++) {
+                                if (row0 + (threadIdx.x + (u0 + u) * G::kThreads) / kBChunks >= M) continue;
+                                half h[8];
+                                memcpy(h, &x[u], 16);
+#pragma unroll
+                                for (int e = 0; e < 8; e++) v[u][e] += __half2float(h[e]);
+                            }
+                        }
+#pragma unroll
+                        for (int u = 0; u < kBatch; u++) {
+                            const int q = threadIdx.x + (u0 + u) * G::kThreads, r = q / kBChunks, cc = q % kBChunks;
+                            if (row0 + r >= M) continue;
+                            half o[8];
+#pragma unroll
+                            for (int e = 0; e < 8; e++) o[e] = __float2half(v[u][e]);
+                            int4 w;
+                            memcpy(&w, o, 16);
+                            step4::st16<true>((int4*)&C[(size_t)(row0 + r) * N + col0] + cc, w);
+                        }
                     }
-                    half o[8];
+                } else {
+                    for (int q = threadIdx.x; q < kChunks; q += G::kThreads) {
+                        const int r = q / kBChunks, cc = q % kBChunks;
+                        if (row0 + r >= M) continue;
+                        float v[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+                        for (long sg = gFirst; sg <= gLast; sg++) {
+                            const int4 x = ld16_cg((const int4*)&slot(sg, tn)[(size_t)r * BN] + cc);
+                            half h[8];
+                            memcpy(h, &x, 16);
 #pragma unroll
-                    for (int e = 0; e < 8; e++) o[e] = __float2half(v[e]);
-                    int4 w;
-                    memcpy(&w, o, 16);
-                    step4::st16<true>((int4*)&C[(size_t)(row0 + r) * N + col0] + cc, w);
+                            for (int e = 0; e < 8; e++) v[e] += __half2float(h[e]);
+                        }
+                        half o[8];
+#pragma unroll
+                        for (int e = 0; e < 8; e++) o[e] = __float2half(v[e]);
+                        int4 w;
+                        memcpy(&w, o, 16);
+                        step4::st16<true>((int4*)&C[(size_t)(row0 + r) * N + col0] + cc, w);
+                    }
                 }
                 if (threadIdx.x == 0) *count = 0;   // for the next call
                 if constexpr (kHint) {   // 7d: the tile's parts, every thread's reads done
@@ -831,6 +928,22 @@ __global__ void gemm_phase(const half* A, const half* B, half* C, int M, int N, 
         }
         u = end;
     }
+}
+
+template <int BM, int BN, int WM, int SK, int kStages, bool kHint>
+__global__ void gemm_phase(const half* A, const half* B, half* C, int M, int N, int K, half* parts, unsigned* counts)
+{
+    extern __shared__ __align__(128) half shmem[];
+    phase_tiles<BM, BN, WM, SK, kStages, kHint, false>(shmem, A, B, C, M, N, K, parts, counts);
+}
+
+// 7h: 6c's kernel as step 7 runs it, the sums of its cut tiles with their reads together.
+template <int BM, int BN, int WM, int SK, int kStages, bool kHint>
+__global__ void gemm_phase_sums(const half* A, const half* B, half* C, int M, int N, int K, half* parts,
+                                unsigned* counts)
+{
+    extern __shared__ __align__(128) half shmem[];
+    phase_tiles<BM, BN, WM, SK, kStages, kHint, true>(shmem, A, B, C, M, N, K, parts, counts);
 }
 
 // 6c's rule (ours): at 16 < M <= 512, where the plan keeps whole tiles over at least two
@@ -931,5 +1044,103 @@ __global__ void gemm_parallel(const half* A, const half* B, half* C, int M, int 
 // 7b's condition: S x tiles blocks resident together, one block per SM at the parts' tiles (147 456 bytes of shared
 // memory each).
 inline bool parallel_fits(int tiles, int S, int sms) { return (long)S * tiles <= sms; }
+
+// ---------------------------------------------------------------- 7e: the tail of the waves, cut in K
+// Step 7's 7e (step7.cuh), here beside the plan's kernels; step 6 does not run it. Whole tiles at M > 512 (128 x 256,
+// the plan's): T tiles in waves of sms, the last wave R = T mod sms tiles. The first T - R tiles run whole (one block
+// each, the plan's order); the last R are cut into S parts of K, R S blocks that the GPU places as the SMs of the last
+// whole wave free up. Each part to its place in the workspace in fp16; the last part of a tile to arrive adds the S
+// parts in the order of K, in fp32 rounded once, writes C (4a's stores), and puts the tile's counter back to zero for
+// the next call; with 7d, the parts are then discarded from the L2 (the copies take no hint: at these shapes each slice
+// of B is read by every row of tiles).
+template <int BM, int BN, int WM, int SK, int kStages, bool kHint>
+__global__ void gemm_tail(const half* A, const half* B, half* C, int M, int N, int K, int whole, int S, half* parts,
+                          unsigned* counts)
+{
+    extern __shared__ __align__(128) half shmem[];
+    using G = Geometry<BM, BN, WM, SK, kStages>;
+    using Copy = PlainCopy;   // B is read again by every row of tiles here: none of 7d's hints on the copies
+    const int tilesN = N / BN, tiles = (M + BM - 1) / BM * tilesN, R = tiles - whole;
+    const int b = blockIdx.x;
+    const int j = b < whole ? 0 : (b - whole) % R, s = b < whole ? 0 : (b - whole) / R;   // tail tile j, part s
+    int tm, tn;
+    tile_of<BM, BN>(b < whole ? b : whole + j, M, N, tm, tn);
+    const int row0 = tm * BM, col0 = tn * BN, slices = K / SK;
+    if (b < whole) {
+        if (row0 + BM <= M)
+            compute_tile<BM, BN, WM, SK, kStages, kWhole, false, Copy>(
+                shmem, A, B, C, M, N, K, row0, col0, 0, slices, nullptr, nullptr, 0, 1);
+        else
+            compute_tile<BM, BN, WM, SK, kStages, kWhole, true, Copy>(
+                shmem, A, B, C, M, N, K, row0, col0, 0, slices, nullptr, nullptr, 0, 1);
+        return;
+    }
+    const int per = slices / S, extra = slices % S, kBegin = s * per + min(s, extra), steps = per + (s < extra);
+    half* part = parts + ((size_t)s * R + j) * BM * BN;
+    if (row0 + BM <= M)
+        compute_tile<BM, BN, WM, SK, kStages, kParts, false, Copy>(
+            shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, nullptr, s, S);
+    else
+        compute_tile<BM, BN, WM, SK, kStages, kParts, true, Copy>(
+            shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, nullptr, s, S);
+    fence();   // this block's part, before its arrival
+    __syncthreads();
+    // The flag, after the stages and the output (as 6b's)
+    unsigned* last = (unsigned*)((char*)shmem + G::kSmemBytes);
+    if (threadIdx.x == 0) *last = arrive(counts + j) == (unsigned)S - 1;
+    __syncthreads();
+    if (!*last) return;
+    fence();
+    constexpr int kChunks = BM * BN / 8, kBChunks = BN / 8;
+    for (int q = threadIdx.x; q < kChunks; q += G::kThreads) {
+        const int r = q / kBChunks, cc = q % kBChunks;
+        if (row0 + r >= M) continue;
+        float v[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+        for (int ss = 0; ss < S; ss++) {
+            const int4 x = ld16_cg((const int4*)&parts[((size_t)ss * R + j) * BM * BN + (size_t)r * BN] + cc);
+            half h[8];
+            memcpy(h, &x, 16);
+#pragma unroll
+            for (int e = 0; e < 8; e++) v[e] += __half2float(h[e]);
+        }
+        half o[8];
+#pragma unroll
+        for (int e = 0; e < 8; e++) o[e] = __float2half(v[e]);
+        int4 w;
+        memcpy(&w, o, 16);
+        step4::st16<true>((int4*)&C[(size_t)(row0 + r) * N + col0] + cc, w);
+    }
+    if (threadIdx.x == 0) counts[j] = 0;   // for the next call
+    if constexpr (kHint) {   // 7d: the tile's parts, every thread's reads done
+        __syncthreads();
+        for (int ss = 0; ss < S; ss++)
+            for (int l = threadIdx.x; l < BM * BN * 2 / 128; l += G::kThreads)
+                discard_line((const char*)(parts + ((size_t)ss * R + j) * BM * BN) + 128 * (size_t)l);
+    }
+}
+
+// 7e's rule (ours): at M > 512, where the plan keeps whole tiles of 128 x 256 over at
+// least one full wave and the last wave is partial (R = T mod sms > 0): S from 2 to 8 parts with at least 64 slices of
+// K64 each (a part's fill of two slices is then 1/32 of it at most), the S that minimizes ceil(R S / sms) / S,
+// the tail's time in tiles (the smallest S at a tie), if that time is below one tile. Returns S, or 0: no 7e.
+inline int tail_parts(int M, int N, int K, int sms)
+{
+    if (M <= 512) return 0;
+    const Plan p = choose(M, N, K, sms, true, true);
+    if (p.split != kWhole || p.tile != k128x256) return 0;
+    const long tiles = (long)(M + 127) / 128 * (N / 256), R = tiles % sms;
+    if (tiles < sms || R == 0) return 0;
+    int best = 0;
+    long bestNum = 1, bestDen = 1;   // the best time, a fraction of a tile: ceil(R S / sms) / S < 1
+    for (int S = 2; S <= 8 && K / 64 / S >= 64; S++) {
+        const long num = (R * S + sms - 1) / sms;
+        if (num * bestDen < bestNum * S) {
+            best = S;
+            bestNum = num;
+            bestDen = S;
+        }
+    }
+    return best;
+}
 
 }  // namespace step6

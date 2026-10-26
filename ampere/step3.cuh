@@ -37,7 +37,7 @@
 
 namespace step3 {
 
-// ---------------------------------------------------------------- step 3: Ampere's asynchronous copy
+// ---------------------------------------------------------------- step 3: cp.async, three stages
 // Ampere's asynchronous copy, new against the Turing rung, nested on step 2 (step2.cuh, v0), whose rest is kept: the
 // 128 x 256 tile, the 8 warps of 64 x 64, step 2's swizzled stage of K64 (48 KB), its compute (ldmatrix.x4, mma.sync
 // m16n8k16 in the same order: the same C to the bit, which the emulator checks), its epilogue. Only the copy changes.
@@ -53,6 +53,8 @@ namespace step3 {
 // emulator (emu/) performs each copy as late as the program allows (at its wait) in one order of the threads, as early
 // as possible (when issued) in another, and either way at random in the third: a missing wait or barrier, or a copy
 // into a stage still being read, gives a wrong C (emu/planted_bugs.py plants them).
+// The counts below are read with nvcc 13.2 (a local compilation); the measured binaries are built by nvcc 13.1.1 (the
+// Modal images).
 // Compiled (nvcc 13.2, sm_80): 3 stages at 236 registers, 2 at 228, 3a at 218 (step 2: 224), no spill; one block per SM
 // (by the registers; 2 and 3 stages also by their shared memory). Main loop, per K64 and per warp (static counts; in
 // 3b one forward branch skips the issue for the last kStages - 1 slices):

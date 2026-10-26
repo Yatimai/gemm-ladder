@@ -38,7 +38,7 @@
 
 namespace step2 {
 
-// ---------------------------------------------------------------- step 2: the path to the tensor cores
+// ---------------------------------------------------------------- step 2: mma.sync and ldmatrix, a swizzle
 // Two mechanisms, nested on step 1 (step1.cuh, v0), whose rest is kept: one block per 128 x 256 tile, 8 warps of
 // 64 x 64 (2 along M x 4 along N) computed in step 1's order, one shared stage of K64 filled through registers between
 // two barriers, every thread copying its share of A and B (4 + 8 chunks of 16 bytes per K64, the 12 loads issued before
@@ -68,6 +68,8 @@ namespace step2 {
 //   loop. The epilogue is conflict-free in all variants (pitch 132 words, 4 mod 32: an STS.32 hits 32 banks; a quarter
 //   warp's LDS.128 reads 128 contiguous bytes). The host emulator (emu/) counts the wavefronts of v0's and v1's shared
 //   accesses: 4.00 per LDSM.x4 with the swizzle, 8.00 with the padding, 4.00 per STS.128 and LDS.128, 1.00 per STS.32.
+// The counts below are read with nvcc 13.2 (a local compilation); the measured binaries are built by nvcc 13.1.1 (the
+// Modal images).
 // Compiled (nvcc 13.2, sm_80): v0 at 224 registers, v1 at 228, step 1 at 244, no spill; one block per SM. Main loop,
 // per K64 and per warp (static counts; no branch in the loops but their own, so each instruction runs once per K64;
 // the integer instructions left in v0 and v1 compute the 64-bit global addresses of the slice's 12 loads and run the

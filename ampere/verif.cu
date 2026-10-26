@@ -127,9 +127,10 @@ int main(int argc, char** argv)
     // and 16 slices of K64, so that three stages come round; 16 x 6144 x 128: 48 bands of 128 columns. On 108 SMs, the
     // rules take 6b's bands at the three M = 16 shapes, and 7a's (step 7) split K in place at five of the others; step
     // 6's variants force 6b's stream (v6) and the stream in phase (v7); step 7's variants force the parts with 7b and
-    // 7d's hints (v6) and without them (v10), 7c's parts in place (v7), 7a's parts with its reduction kernel (v11) and
-    // its in-place split (v12), and, with 7d's hints, 6b's stream (v8) and the stream in phase (v9). candidate_dirty
-    // checks the flags and counters after each call; a wait that never ends is a HANG.
+    // 7g (v6), 7c's parts in place (v7), 7a's parts with its reduction kernel (v11) and its in-place split with 7h (v12)
+    // and without it (v18), 7e's tail in 2 parts (v20), and, with 7d's hints, 6b's stream (v8), the stream in phase
+    // with 7h's sums (v9) and without them (v19), the parts with 7b and 7d's hints (v17) and with 7g without them (v10).
+    // candidate_dirty checks the flags and counters after each call; a wait that never ends is a HANG.
     const int shapes[][3] = {{16, 256, 64}, {144, 256, 64}, {128, 512, 128}, {208, 512, 192}, {272, 5376, 128},
                              {1168, 512, 64}, {144, 512, 256}, {16, 1024, 1024}, {16, 6144, 128}};
     double worst = 0;

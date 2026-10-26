@@ -1,0 +1,126 @@
+candidate ampere/step6.cu; step2.cuh md5 99685a21443df4281b3448e2f21a8b90; step7.cuh md5 2e5f1a57d1bd2b4ff47bdf2ac9502e52; step3.cuh md5 1e877a0419630bd2aba7d7bb7431ba2d; step1.cuh md5 feb8ddc17d30d14ada1890ce26d164b7; step4.cuh md5 04d22b9e36cf61e61e9b3f96d5a3f0c0; step6.cuh md5 6f5cfb1101f42f6a7528f4e50e6ac674; step5.cuh md5 49bb988a80c92052fb4ff0c6f4b6f9d8; nvidia_sample.cuh md5 8d2d0f67b2e4d343c9433c956cdf52ea; step6.cu md5 5ac6e6f3835906825668b6b0e31fd9fd
+probe.cu md5 aa7ee2d6; modal_probe.py md5 7608c03c; variant NVIDIA_A100-SXM4-80GB|400W|lt130201|cuda13030 (try 3/8)
+card NVIDIA_A100-SXM4-80GB|400W|lt130201|cuda13030
+NVIDIA A100-SXM4-80GB, 610.57.04, 1410 MHz, 400.00 W, 30
+Mon Oct 26 15:56:39 UTC 2026
+build rc 0
+
+== energy 16 10240 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 16 x 10240 x 8192
+ARM v0      :    99.39 us | 31.806 mJ per call | SM 1410 MHz | 329.6 W | G 187 | rounds 99.39 99.40 99.37 99.37 99.39 us | err 2.50e-04 / graph 2.50e-04
+ARM twin    :    99.39 us | 31.680 mJ per call | SM 1410 MHz | 328.9 W | G 187 | rounds 99.39 99.39 99.39 99.37 99.36 us | err 2.50e-04 / graph 2.50e-04
+ARM v1      :    99.38 us | 32.186 mJ per call | SM 1410 MHz | 329.6 W | G 185 | rounds 99.38 99.41 99.38 99.38 99.37 us | err 2.50e-04 / graph 3.98e-04
+ARM v2      :   307.85 us | 79.175 mJ per call | SM 1410 MHz | 258.0 W | G 49 | rounds 307.86 307.85 307.84 307.76 307.89 us | err 2.50e-04 / graph 2.50e-04
+ARM v3      :    99.38 us | 34.353 mJ per call | SM 1410 MHz | 328.5 W | G 190 | rounds 99.36 99.39 99.36 99.41 99.38 us | err 2.50e-04 / graph 2.50e-04
+== energy 128 10240 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 128 x 10240 x 8192
+ARM v0      :   121.69 us | 49.962 mJ per call | SM 1205 MHz | 398.4 W | G 184 | rounds 121.24 121.69 121.68 121.89 122.00 us | err 4.17e-04 / graph 4.17e-04
+ARM twin    :   121.71 us | 49.908 mJ per call | SM 1206 MHz | 399.6 W | G 184 | rounds 121.38 121.56 121.83 121.71 121.94 us | err 4.17e-04 / graph 4.17e-04
+ARM v1      :   195.11 us | 66.662 mJ per call | SM 1410 MHz | 346.1 W | G 101 | rounds 195.25 195.12 195.10 195.11 195.08 us | err 4.17e-04 / graph 3.62e-04
+ARM v2      :   121.67 us | 50.050 mJ per call | SM 1206 MHz | 398.2 W | G 184 | rounds 121.41 121.52 121.67 121.72 122.01 us | err 4.17e-04 / graph 4.17e-04
+ARM v3      :   121.86 us | 49.961 mJ per call | SM 1205 MHz | 399.1 W | G 184 | rounds 121.40 121.65 121.87 121.86 121.89 us | err 4.17e-04 / graph 4.17e-04
+== energy 512 10240 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 512 x 10240 x 8192
+ARM v0      :   375.19 us | 149.700 mJ per call | SM 1148 MHz | 399.9 W | G 61 | rounds 375.03 375.21 375.88 375.19 375.15 us | err 3.97e-04 / graph 3.97e-04
+ARM twin    :   375.33 us | 149.752 mJ per call | SM 1149 MHz | 396.6 W | G 61 | rounds 375.19 375.33 375.54 375.71 375.16 us | err 3.97e-04 / graph 3.97e-04
+ARM v1      :   420.98 us | 167.275 mJ per call | SM 1310 MHz | 396.6 W | G 50 | rounds 419.32 420.27 420.98 421.51 421.87 us | err 3.97e-04 / graph 3.67e-04
+ARM v2      :   375.57 us | 149.932 mJ per call | SM 1148 MHz | 398.4 W | G 61 | rounds 375.01 374.85 375.75 375.72 375.57 us | err 3.97e-04 / graph 3.97e-04
+ARM v3      :   375.39 us | 149.721 mJ per call | SM 1148 MHz | 398.3 W | G 61 | rounds 375.15 375.32 375.39 375.61 375.56 us | err 3.97e-04 / graph 3.97e-04
+== energy 2048 10240 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 2048 x 10240 x 8192
+ARM v0      :  1358.97 us | 574.150 mJ per call | SM 1214 MHz | 398.7 W | G 16 | rounds 1358.47 1357.88 1358.97 1359.87 1359.65 us | err 3.73e-04 / graph 3.73e-04
+ARM twin    :  1358.41 us | 573.889 mJ per call | SM 1214 MHz | 396.3 W | G 16 | rounds 1357.40 1358.41 1358.33 1360.77 1360.37 us | err 3.73e-04 / graph 3.73e-04
+ARM v1      :  1358.68 us | 523.661 mJ per call | SM 1217 MHz | 397.0 W | G 16 | rounds 1354.26 1357.49 1358.68 1360.09 1358.97 us | err 3.73e-04 / graph 3.73e-04
+ARM v2      :  1358.16 us | 565.899 mJ per call | SM 1217 MHz | 398.6 W | G 15 | rounds 1356.37 1356.43 1358.62 1358.16 1359.24 us | err 3.73e-04 / graph 4.08e-04
+ARM v3      :  1359.25 us | 563.228 mJ per call | SM 1215 MHz | 399.3 W | G 14 | rounds 1357.63 1359.33 1358.72 1359.78 1359.25 us | err 3.73e-04 / graph 3.69e-04
+== energy 16 8192 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 16 x 8192 x 8192
+ARM v0      :    82.50 us | 26.783 mJ per call | SM 1410 MHz | 328.6 W | G 237 | rounds 82.50 82.50 82.50 82.48 82.51 us | err 3.80e-04 / graph 2.98e-04
+ARM twin    :    82.49 us | 26.768 mJ per call | SM 1410 MHz | 328.6 W | G 237 | rounds 82.48 82.48 82.49 82.49 82.49 us | err 3.80e-04 / graph 2.98e-04
+ARM v1      :    82.50 us | 26.764 mJ per call | SM 1410 MHz | 328.5 W | G 237 | rounds 82.47 82.51 82.48 82.50 82.51 us | err 3.80e-04 / graph 2.98e-04
+ARM v2      :   224.34 us | 61.474 mJ per call | SM 1410 MHz | 284.4 W | G 90 | rounds 224.26 224.34 224.37 224.25 224.40 us | err 3.80e-04 / graph 2.98e-04
+ARM v3      :    82.49 us | 26.926 mJ per call | SM 1410 MHz | 328.7 W | G 236 | rounds 82.47 82.50 82.49 82.49 82.49 us | err 3.80e-04 / graph 3.82e-04
+== energy 128 8192 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 128 x 8192 x 8192
+ARM v0      :   111.97 us | 44.246 mJ per call | SM 1297 MHz | 397.1 W | G 189 | rounds 111.65 111.83 111.98 112.06 111.97 us | err 3.92e-04 / graph 3.97e-04
+ARM twin    :   111.91 us | 44.212 mJ per call | SM 1299 MHz | 399.4 W | G 189 | rounds 111.77 111.96 111.89 111.91 111.96 us | err 3.92e-04 / graph 3.97e-04
+ARM v1      :   194.82 us | 57.905 mJ per call | SM 1410 MHz | 300.5 W | G 101 | rounds 194.82 194.83 194.81 194.82 194.84 us | err 3.92e-04 / graph 3.16e-04
+ARM v2      :   111.95 us | 44.325 mJ per call | SM 1298 MHz | 399.0 W | G 189 | rounds 111.95 111.89 111.90 111.98 112.09 us | err 3.92e-04 / graph 3.97e-04
+ARM v3      :   111.94 us | 44.275 mJ per call | SM 1299 MHz | 398.0 W | G 189 | rounds 111.69 111.89 112.04 112.08 111.94 us | err 3.92e-04 / graph 3.97e-04
+== energy 512 8192 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 512 x 8192 x 8192
+ARM v0      :   345.13 us | 145.869 mJ per call | SM 1245 MHz | 396.0 W | G 63 | rounds 343.07 343.63 345.13 345.50 345.38 us | err 4.00e-04 / graph 3.99e-04
+ARM twin    :   345.10 us | 132.960 mJ per call | SM 1243 MHz | 399.0 W | G 63 | rounds 343.30 344.67 345.24 345.10 345.17 us | err 4.00e-04 / graph 3.99e-04
+ARM v1      :   401.33 us | 165.519 mJ per call | SM 1385 MHz | 392.1 W | G 50 | rounds 398.03 399.84 401.42 401.33 401.86 us | err 4.00e-04 / graph 3.51e-04
+ARM v2      :   344.96 us | 133.116 mJ per call | SM 1245 MHz | 396.9 W | G 63 | rounds 343.35 343.34 345.19 344.96 345.67 us | err 4.00e-04 / graph 3.99e-04
+ARM v3      :   345.36 us | 132.695 mJ per call | SM 1243 MHz | 399.4 W | G 63 | rounds 343.49 345.05 345.58 345.36 345.60 us | err 4.00e-04 / graph 3.99e-04
+== energy 2048 8192 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 2048 x 8192 x 8192
+ARM v0      :  1116.34 us | 440.322 mJ per call | SM 1232 MHz | 398.7 W | G 19 | rounds 1115.30 1116.06 1116.99 1116.34 1117.11 us | err 3.75e-04 / graph 3.75e-04
+ARM twin    :  1116.54 us | 441.015 mJ per call | SM 1233 MHz | 396.2 W | G 19 | rounds 1116.54 1115.98 1116.02 1116.78 1116.84 us | err 3.75e-04 / graph 3.75e-04
+ARM v1      :  1116.34 us | 440.630 mJ per call | SM 1234 MHz | 399.0 W | G 19 | rounds 1113.30 1116.40 1116.28 1116.34 1117.40 us | err 3.75e-04 / graph 3.75e-04
+ARM v2      :  1116.20 us | 428.934 mJ per call | SM 1233 MHz | 400.0 W | G 18 | rounds 1116.09 1115.80 1116.20 1118.00 1117.01 us | err 3.75e-04 / graph 3.94e-04
+ARM v3      :  1116.37 us | 470.484 mJ per call | SM 1232 MHz | 399.9 W | G 18 | rounds 1116.08 1115.61 1116.39 1116.37 1116.72 us | err 3.75e-04 / graph 3.94e-04
+== energy 16 57344 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 16 x 57344 x 8192
+ARM v0      :   521.72 us | 182.143 mJ per call | SM 1410 MHz | 356.3 W | G 38 | rounds 521.70 521.70 521.75 521.73 521.72 us | err 4.86e-04 / graph 6.03e-04
+ARM twin    :   521.75 us | 181.908 mJ per call | SM 1410 MHz | 357.1 W | G 38 | rounds 521.76 521.73 521.82 521.72 521.75 us | err 4.86e-04 / graph 6.03e-04
+ARM v1      :   521.72 us | 182.114 mJ per call | SM 1410 MHz | 357.5 W | G 38 | rounds 521.76 521.72 521.68 521.72 521.70 us | err 4.86e-04 / graph 6.03e-04
+ARM v2      :  1022.61 us | 399.880 mJ per call | SM 1410 MHz | 390.4 W | G 19 | rounds 1022.14 1022.32 1023.81 1023.77 1022.61 us | err 4.02e-04 / graph 4.02e-04
+ARM v3      :   521.67 us | 181.954 mJ per call | SM 1410 MHz | 356.8 W | G 38 | rounds 521.67 521.70 521.60 521.66 521.71 us | err 4.86e-04 / graph 6.03e-04
+== energy 128 57344 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 128 x 57344 x 8192
+ARM v0      :   631.19 us | 265.343 mJ per call | SM 1155 MHz | 395.6 W | G 32 | rounds 631.23 631.14 631.19 631.14 631.24 us | err 6.07e-04 / graph 5.65e-04
+ARM twin    :   631.21 us | 264.728 mJ per call | SM 1154 MHz | 397.9 W | G 32 | rounds 631.21 631.27 631.30 631.15 631.15 us | err 6.07e-04 / graph 5.65e-04
+ARM v1      :   631.26 us | 241.104 mJ per call | SM 1155 MHz | 398.2 W | G 32 | rounds 632.54 631.60 631.12 631.17 631.26 us | err 6.07e-04 / graph 5.65e-04
+ARM v2      :   631.18 us | 265.281 mJ per call | SM 1153 MHz | 399.9 W | G 32 | rounds 631.29 631.21 631.14 631.18 631.07 us | err 6.07e-04 / graph 5.65e-04
+ARM v3      :   649.05 us | 273.232 mJ per call | SM 1135 MHz | 399.6 W | G 31 | rounds 648.64 648.88 649.06 649.05 649.58 us | err 4.10e-04 / graph 4.10e-04
+== energy 512 57344 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 512 x 57344 x 8192
+ARM v0      :  2019.01 us | 761.695 mJ per call | SM 1182 MHz | 397.2 W | G 11 | rounds 2022.46 2020.45 2018.87 2015.68 2019.01 us | err 4.78e-04 / graph 5.93e-04
+ARM twin    :  2019.08 us | 848.277 mJ per call | SM 1184 MHz | 398.2 W | G 10 | rounds 2019.72 2018.50 2019.77 2019.08 2017.80 us | err 4.78e-04 / graph 4.78e-04
+ARM v1      :  2017.80 us | 773.456 mJ per call | SM 1186 MHz | 399.7 W | G 10 | rounds 2015.10 2020.52 2017.80 2015.88 2017.85 us | err 4.78e-04 / graph 4.78e-04
+ARM v2      :  2019.32 us | 773.465 mJ per call | SM 1182 MHz | 397.2 W | G 10 | rounds 2019.81 2019.97 2019.32 2018.88 2014.96 us | err 4.78e-04 / graph 4.78e-04
+ARM v3      :  2031.32 us | 797.831 mJ per call | SM 1212 MHz | 397.4 W | G 9 | rounds 2032.37 2031.66 2030.67 2031.32 2028.81 us | err 3.63e-04 / graph 3.53e-04
+== energy 2048 57344 8192 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 2048 x 57344 x 8192
+ARM v0      :  7628.50 us | 3044.780 mJ per call | SM 1215 MHz | 399.9 W | G 3 | rounds 7613.55 7633.33 7628.50 7631.65 7626.87 us | err 3.56e-04 / graph 3.44e-04
+ARM twin    :  7630.71 us | 3047.530 mJ per call | SM 1214 MHz | 398.6 W | G 3 | rounds 7639.55 7630.71 7633.79 7628.43 7628.59 us | err 3.56e-04 / graph 3.44e-04
+ARM v1      :  7636.03 us | 3039.894 mJ per call | SM 1214 MHz | 395.4 W | G 3 | rounds 7643.12 7638.95 7625.36 7630.74 7636.03 us | err 3.56e-04 / graph 3.44e-04
+ARM v2      :  7631.40 us | 3047.879 mJ per call | SM 1216 MHz | 396.4 W | G 3 | rounds 7631.40 7626.74 7632.37 7629.26 7632.44 us | err 3.56e-04 / graph 3.44e-04
+ARM v3      :  7628.78 us | 3043.144 mJ per call | SM 1214 MHz | 400.7 W | G 3 | rounds 7628.27 7628.78 7631.07 7634.73 7628.50 us | err 3.56e-04 / graph 3.44e-04
+== energy 16 8192 28672 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 16 x 8192 x 28672
+ARM v0      :   268.52 us | 92.833 mJ per call | SM 1410 MHz | 349.1 W | G 73 | rounds 268.52 268.49 268.57 268.52 268.45 us | err 4.39e-04 / graph 4.39e-04
+ARM twin    :   268.49 us | 100.715 mJ per call | SM 1410 MHz | 348.7 W | G 74 | rounds 268.47 268.49 268.51 268.49 268.47 us | err 4.39e-04 / graph 4.54e-04
+ARM v1      :   268.49 us | 92.850 mJ per call | SM 1410 MHz | 349.7 W | G 73 | rounds 268.53 268.49 268.48 268.50 268.47 us | err 4.39e-04 / graph 4.39e-04
+ARM v2      :   557.29 us | 212.978 mJ per call | SM 1410 MHz | 359.0 W | G 36 | rounds 557.36 557.39 557.29 557.03 556.66 us | err 3.47e-04 / graph 2.58e-04
+ARM v3      :   268.51 us | 92.764 mJ per call | SM 1410 MHz | 350.3 W | G 73 | rounds 268.51 268.53 268.52 268.48 268.48 us | err 4.39e-04 / graph 4.39e-04
+== energy 128 8192 28672 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 128 x 8192 x 28672
+ARM v0      :   384.09 us | 149.677 mJ per call | SM 1280 MHz | 400.0 W | G 56 | rounds 382.58 383.95 384.09 384.99 384.93 us | err 4.56e-04 / graph 4.18e-04
+ARM twin    :   384.65 us | 149.858 mJ per call | SM 1279 MHz | 398.1 W | G 56 | rounds 383.13 385.32 385.13 384.31 384.65 us | err 4.56e-04 / graph 4.18e-04
+ARM v1      :   667.54 us | 209.042 mJ per call | SM 1410 MHz | 312.2 W | G 29 | rounds 667.67 667.54 667.51 667.47 667.63 us | err 4.56e-04 / graph 4.18e-04
+ARM v2      :   384.46 us | 149.628 mJ per call | SM 1280 MHz | 396.2 W | G 56 | rounds 383.37 384.09 384.46 384.59 384.75 us | err 4.56e-04 / graph 4.18e-04
+ARM v3      :   384.56 us | 149.403 mJ per call | SM 1280 MHz | 399.6 W | G 56 | rounds 383.41 384.56 384.55 384.76 384.92 us | err 4.56e-04 / graph 4.18e-04
+== energy 512 8192 28672 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 512 x 8192 x 28672
+ARM v0      :  1202.37 us | 465.126 mJ per call | SM 1219 MHz | 399.3 W | G 18 | rounds 1201.21 1203.24 1202.58 1202.37 1199.51 us | err 4.23e-04 / graph 3.78e-04
+ARM twin    :  1201.71 us | 464.807 mJ per call | SM 1220 MHz | 398.2 W | G 18 | rounds 1203.02 1204.15 1201.71 1200.87 1201.59 us | err 4.23e-04 / graph 3.78e-04
+ARM v1      :  1373.89 us | 549.490 mJ per call | SM 1391 MHz | 392.7 W | G 14 | rounds 1373.89 1380.15 1373.89 1375.42 1371.92 us | err 4.23e-04 / graph 4.06e-04
+ARM v2      :  1202.70 us | 498.675 mJ per call | SM 1217 MHz | 398.6 W | G 17 | rounds 1202.88 1203.25 1202.70 1200.66 1200.33 us | err 4.23e-04 / graph 4.06e-04
+ARM v3      :  1200.41 us | 500.511 mJ per call | SM 1219 MHz | 398.9 W | G 17 | rounds 1202.84 1203.42 1200.41 1199.78 1200.10 us | err 4.23e-04 / graph 4.06e-04
+== energy 2048 8192 28672 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 2048 x 8192 x 28672
+ARM v0      :  3828.29 us | 1574.500 mJ per call | SM 1231 MHz | 398.9 W | G 5 | rounds 3828.24 3833.55 3828.29 3830.16 3827.76 us | err 4.28e-04 / graph 3.86e-04
+ARM twin    :  3832.95 us | 1573.107 mJ per call | SM 1230 MHz | 394.3 W | G 5 | rounds 3833.75 3831.36 3833.29 3832.95 3828.75 us | err 4.28e-04 / graph 3.86e-04
+ARM v1      :  3833.00 us | 1575.504 mJ per call | SM 1229 MHz | 399.9 W | G 5 | rounds 3840.93 3834.26 3831.13 3833.00 3828.75 us | err 4.28e-04 / graph 3.86e-04
+ARM v2      :  3833.30 us | 1574.796 mJ per call | SM 1228 MHz | 399.8 W | G 5 | rounds 3833.30 3834.86 3834.57 3831.34 3828.67 us | err 4.28e-04 / graph 3.86e-04
+ARM v3      :  3833.05 us | 1574.882 mJ per call | SM 1230 MHz | 397.5 W | G 5 | rounds 3833.72 3834.72 3832.69 3833.05 3831.03 us | err 4.28e-04 / graph 3.86e-04
+== energy 3456 4096 2048 arms v0,twin,v1,v2,v3 (limit 157 s): rc 0
+shape 3456 x 4096 x 2048
+ARM v0      :   242.20 us | 101.090 mJ per call | SM 1240 MHz | 398.9 W | G 91 | rounds 242.15 242.23 242.20 242.20 242.08 us | err 3.93e-04 / graph 3.93e-04
+ARM twin    :   242.12 us | 100.987 mJ per call | SM 1239 MHz | 398.3 W | G 91 | rounds 242.12 242.24 242.16 242.10 242.12 us | err 3.93e-04 / graph 3.93e-04
+ARM v1      :   242.14 us | 101.028 mJ per call | SM 1240 MHz | 396.4 W | G 91 | rounds 241.89 242.14 242.22 242.21 242.11 us | err 3.93e-04 / graph 3.93e-04
+ARM v2      :   242.22 us | 91.918 mJ per call | SM 1241 MHz | 398.8 W | G 91 | rounds 242.09 242.24 242.22 242.00 242.24 us | err 3.93e-04 / graph 3.93e-04
+ARM v3      :   242.26 us | 92.059 mJ per call | SM 1241 MHz | 398.6 W | G 91 | rounds 241.38 242.26 242.30 242.13 242.28 us | err 3.93e-04 / graph 3.93e-04

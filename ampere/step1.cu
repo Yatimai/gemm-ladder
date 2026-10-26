@@ -1,7 +1,7 @@
-// Step 1 of the Ampere rung, as a candidate for the judge: granularity (see step1.cuh; the template is the Turing
-// rung's, used without its double buffer). Its variants, for the interleaved probe (arm v<i> sets g_var) and for verif.cu (g_nvar):
-// v0 = step 1 (1a + 1c + 1d), v1 = without 1a, v2 = without 1c; v3 = 1d alone (step 0 with step 1's spread of the copy); v4 = step 0
-// itself (compute_gemm).
+// Step 1 of the Ampere rung, as a candidate for the judge: one block per tile, a 128 x 256 tile, every thread copying
+// (see step1.cuh; the template is the Turing rung's, used without its double buffer). Its variants, for the interleaved
+// probe (arm v<i> sets g_var) and for verif.cu (g_nvar): v0 = step 1 (1a + 1b + 1c), v1 = without 1a, v2 = without 1b;
+// v3 = 1c alone (step 0 with step 1's spread of the copy); v4 = step 0 itself (compute_gemm).
 #include <cstdio>
 #include <cstdlib>
 #include "nvidia_sample.cuh"
@@ -41,8 +41,8 @@ void candidate_gemm(const half* A, const half* B, half* C, int M, int N, int K, 
     switch (v) {
     case 0: launch<true, false, 256>(tiles, A, B, C, M, N, K, s); break;    // step 1
     case 1: launch<false, false, 256>(sms, A, B, C, M, N, K, s); break;     // without 1a: one block per SM
-    case 2: launch<true, false, 128>(tiles, A, B, C, M, N, K, s); break;    // without 1c
-    case 3: launch<false, false, 128>(sms, A, B, C, M, N, K, s); break;     // 1d alone: step 0 with the copy spread
+    case 2: launch<true, false, 128>(tiles, A, B, C, M, N, K, s); break;    // without 1b
+    case 3: launch<false, false, 128>(sms, A, B, C, M, N, K, s); break;     // 1c alone: step 0 with the copy spread
     case 4: nvidia_sample::compute_gemm<<<sms, 256, nvidia_sample::kSmemBytes, s>>>(A, B, C, M, N, K); break;   // step 0
     }
 }

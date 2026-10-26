@@ -36,45 +36,45 @@
 namespace step1 {
 using namespace nvcuda;
 
-// ---------------------------------------------------------------- step 1: granularity
+// -------------------------------------------------- step 1: one block per tile, a 128 x 256 tile, every thread copying
 // The template is the Turing rung's step 1 (turing/step1.cuh), code line for line; only comments differ. On the A100,
 // step 1 applies three of the template's four mechanisms to step 0 (compute_gemm, nvidia_sample.cuh): one block per
-// tile (1a), a 128 x 256 tile (1c), and CUTLASS's spread of the copy over all threads (CUTLASS v4.4.1,
+// tile (1a), a 128 x 256 tile (1b), and CUTLASS's spread of the copy over all threads (CUTLASS v4.4.1,
 // include/cutlass/gemm/threadblock/default_mma_core_sm80.h: each operand's copy spread over all the block's threads).
-// Not taken: (1b), the template's double buffer filled through registers; step 3 copies asynchronously instead.
+// Not taken: the template's double buffer filled through registers; step 3 copies asynchronously instead.
 // The loop is therefore step 0's: copy a K64 slice through registers, barrier, compute, barrier (kDouble = false
 // throughout).
 // Kept from step 0: wmma 16 x 16 x 16 fragments (on sm_80: HMMA.16816 and LDSM.x4), rows padded by 16 halves, 16-byte
 // global loads and shared stores, ordinary global loads, the order of the tiles (N fastest), the edge in M, the fp16
-// output through shared memory half a tile at a time. Shapes: M a multiple of 16, N of 256 (of 128 without 1c),
+// output through shared memory half a tile at a time. Shapes: M a multiple of 16, N of 256 (of 128 without 1b),
 // K of 64.
 // (1a) One block per tile: the grid has as many blocks as tiles; step 0 runs one block per SM over a list of
 //      tiles fixed at launch (block_pos += gridDim.x). At the ladder (3456 x 4096 x 2048) both are full waves on 108
 //      SMs (432 tiles of 128 x 256, 864 of 128 x 128).
-// (1c) A 128 x 256 tile, 8 warps of 64 x 64 (4 x 4 fragments: 128 HMMA.16816 per K64 and per warp) instead of 128 x 128
+// (1b) A 128 x 256 tile, 8 warps of 64 x 64 (4 x 4 fragments: 128 HMMA.16816 per K64 and per warp) instead of 128 x 128
 //      with warps of 32 x 64. Per K64 a warp issues 12 LDG.128 and 32 LDSM.x4 for 128 HMMA instead of 8 and 24 for 64:
 //      a quarter fewer global loads and a third fewer LDSM per HMMA (sm_80, nvcc 13.2). The price: 244 registers
 //      instead of 168 (one block per SM either way).
-// (1d) The spread of the copy, CUTLASS's: each of the 256 threads copies its share of the slice of A and of B, where
+// (1c) The spread of the copy, CUTLASS's: each of the 256 threads copies its share of the slice of A and of B, where
 //      step 0 gives A to warps 0-3 and B to warps 4-7. Probed on step 0 (v3 against v4): the template's single copy
 //      rule keeps it in step 1.
 //      In the SASS (nvcc 13.2): step 0's loop issues its copy in three dependent waves,
 //      L S LLL SSS LLLL SSSS (L = LDG.128, S = STS.128: each group of loads is consumed by its stores before the next
 //      group is issued), v3's issues 7 loads in a row, LLLLLLL S L SSSSSSS.
 // Variants (g_var in step1.cu, for the interleaved probe: the step, and each removal = the step without one mechanism):
-//   v0 = step 1 (1a + 1c + 1d; 244 registers, 272 instructions per K64 and per warp in the loop, sm_80, nvcc 13.2);
+//   v0 = step 1 (1a + 1b + 1c; 244 registers, 272 instructions per K64 and per warp in the loop, sm_80, nvcc 13.2);
 //   v1 = without 1a: step 0's persistent grid (one block per SM) at the 128 x 256 tile (237 registers, 294
 //        instructions);
-//   v2 = without 1c: the 128 x 128 tile (8 warps of 32 x 64) with 1a and 1d (161 registers, 168 instructions);
-//   v3 = 1d alone: step 0 except for the spread of the copy (128 registers, 204 instructions);
+//   v2 = without 1b: the 128 x 128 tile (8 warps of 32 x 64) with 1a and 1c (161 registers, 168 instructions);
+//   v3 = 1c alone: step 0 except for the spread of the copy (128 registers, 204 instructions);
 //   v4 = step 0 itself (nvidia_sample::compute_gemm), so that v3 and v4 run in the same probe.
 // Shared memory (dynamic; above 48 KB the launch needs cudaFuncSetAttribute): v0 and v1 55 296 bytes, v2 to v4 38 912;
-// the output's half tile reuses the loop's buffers. The Turing comments on (1b), below, describe the template's other
-// path.
+// the output's half tile reuses the loop's buffers. The Turing comments on the double buffer, below, describe the
+// template's other path.
 constexpr int kSkew = 16;   // step 0's padding (the sample's SKEW_HALF), in halves
 
-// The geometry of a variant: kBN, the tile's width (256 with 1c, 128 without); kDouble, two K32 stages (1b) or one K64
-// slice. Sizes in halves unless said otherwise.
+// The geometry of a variant: kBN, the tile's width (256 with 1b, 128 without); kDouble, two K32 stages (the double
+// buffer) or one K64 slice. Sizes in halves unless said otherwise.
 template <int kBN, bool kDouble>
 struct Geometry {
     static constexpr int kSliceK = kDouble ? 32 : 64;    // K per stage
@@ -158,7 +158,7 @@ __device__ __forceinline__ void compute_tile(half* shmem, const half* A, const h
         }
     };
     if constexpr (kDouble) {
-        // (1b), the double buffer: the first K32 slice to stage 0; then per K32, the next slice's loads, the compute of
+        // The double buffer: the first K32 slice to stage 0; then per K32, the next slice's loads, the compute of
         // the current stage, the stores to the other stage, one barrier. An iteration covers step 0's K64, stage 0 then
         // stage 1, so that each stage keeps a fixed place.
         load(0);

@@ -1,6 +1,6 @@
-// Step 3 of the Ampere rung, as a candidate for the judge: Ampere's asynchronous copy (see step3.cuh). Its variants,
-// for the interleaved probe (arm v<i> sets g_var) and for verif.cu (g_nvar), nested: v0 = step 3 (3a + 3b, three
-// stages), v1 = two stages, v2 = 3a alone (one stage), v3 = step 2 itself (step2::gemm<true>, the anchor).
+// Step 3 of the Ampere rung, as a candidate for the judge: cp.async, three stages (see step3.cuh). Its variants, for
+// the interleaved probe (arm v<i> sets g_var) and for verif.cu (g_nvar), nested: v0 = step 3 (3a + 3b, three stages),
+// v1 = two stages, v2 = 3a alone (one stage), v3 = step 2 itself (step2::gemm<true>, the anchor).
 #include <cstdio>
 #include <cstdlib>
 #include "step2.cuh"

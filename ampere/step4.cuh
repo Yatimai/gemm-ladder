@@ -37,7 +37,7 @@
 
 namespace step4 {
 
-// ---------------------------------------------------------------- step 4: the memory hierarchy
+// ---------------------------------------------------------------- step 4: evict-first stores, a tile swizzle
 // Two mechanisms on the way to and from DRAM, on step 3 (step3.cuh, three stages), whose rest is kept: the loop does
 // not change (the same 256 instructions per K64 and per warp), nor the arithmetic (the variants give step 3's bits).
 // (4a) Stores of C marked evict-first: st.global.cs (STG.E.EF.128 in place of STG.E.128). C is written once and never
@@ -49,6 +49,8 @@ namespace step4 {
 //      reads all of B in each of the 4.7 waves (about 2.3 GB from DRAM), the groups of 16 rows read A once per wave and
 //      each column of B once (about 1.0 GB); at the ladder (27 x 16 tiles, 31 MB of operands, 40 MB of L2) the two
 //      orders read about as much.
+// The counts below are read with nvcc 13.2 (a local compilation); the measured binaries are built by nvcc 13.1.1 (the
+// Modal images).
 // Compiled (nvcc 13.2, sm_80): the three variants of step 4 at 240 registers (step 3: 236), no spill; the main loop
 // is step 3's; 4b computes its tile before the loop (about 40 more instructions per tile).
 // Variants (g_var in step4.cu, for the interleaved probe; each removal keeps the other mechanism):

@@ -30,10 +30,10 @@ STEP = {"step1.cuh": "step1", "step2.cuh": "step2", "step3.cuh": "step3", "step4
         "step6.cuh": "step6", "step7.cuh": "step7"}
 CXX = os.environ.get("CXX", "g++")
 
-# (header, the bug, exact text, its replacement). step1.cuh's double buffer (kDouble, the Turing rung's 1b) is not
+# (header, the bug, exact text, its replacement). step1.cuh's double buffer (kDouble) is not
 # planted here: no variant of the Ampere rung runs it.
 BUGS = [
-    # step 7, 7c: its rule
+    # step 7, 7c and 7f: their rules
     ("step7.cuh", "7c: the rule's waves 3/4 full, not 9/10 (o_m512 in 2 parts in place)",
      "return best && 10 * best * T >= 9 * bestWaves * sms ? best : 0;",
      "return best && 4 * best * T >= 3 * bestWaves * sms ? best : 0;"),
@@ -42,6 +42,130 @@ BUGS = [
      "        const long waves = (S * T + sms - 1) / sms;",
      "for (int S = 2; S <= 8; S++) {\n"
      "        const long waves = (S * T + sms - 1) / sms;"),
+    ("step7.cuh", "7f: the rule without 7c's shapes (down_m512 in the stream)",
+     "if (p.split != step6::kInPlace || inplace_parts(M, N, K, sms)) return false;",
+     "if (p.split != step6::kInPlace) return false;"),
+    # step 7, 7g: 7b without the block's own part (the keeper, its range, the own part, the discards)
+    ("step7.cuh", "7g: every chunk kept, none written (the other blocks read parts never written)",
+     "        return u >= u0 && u < u1;",
+     "        return true;"),
+    ("step7.cuh", "7g: the own part read from the workspace, where it was not written",
+     "                const int4 x = ss == s ? own.mine[u]\n",
+     "                const int4 x = false ? own.mine[u]\n"),
+    ("step7.cuh", "7g: the kept range one chunk row wider at its start (a row the block before reads, never written)",
+     "        own.u0 = s * kU / S;\n"
+     "        own.u1 = (s + 1) * kU / S;\n"
+     "        if (row0 + BM <= M)",
+     "        own.u0 = s * kU / S - (s > 0);\n"
+     "        own.u1 = (s + 1) * kU / S;\n"
+     "        if (row0 + BM <= M)"),
+    ("step7.cuh", "7g: one chunk row more added than kept (C's elements of the next block's row written twice)",
+     "            if (u < own.u0 || u >= own.u1 || row0 + r >= M) continue;",
+     "            if (u < own.u0 || u > own.u1 || row0 + r >= M) continue;"),
+    ("step7.cuh", "7d: 7g discards the next block's lines in the other parts (read after their discard)",
+     "        const int l0 = own.u0 * kThreads / 8, l1 = own.u1 * kThreads / 8;",
+     "        const int l0 = own.u0 * kThreads / 8, l1 = (own.u1 + 1) * kThreads / 8;"),
+    ("step7.cuh", "7g: the keeper holds each chunk in its neighbour's place (the own part's wrong chunks added)",
+     "        mine[u] = v;",
+     "        mine[u ^ 1] = v;"),
+    # step 7, 7g: 7b's copy in step7::gemm_parallel_own (the wait, the arrival, the share, the counters, the
+    # barrier), as 7b's own bugs
+    ("step7.cuh", "7g: the wait on S - 1 arrivals (a block reduces before the last part has arrived)",
+     "step6::wait_count(arrived, (unsigned)S);",
+     "step6::wait_count(arrived, (unsigned)S - 1);"),
+    ("step7.cuh", "7g: the wait removed (the parts read before they arrive)",
+     "        step6::arrive(arrived);\n"
+     "        step6::wait_count(arrived, (unsigned)S);\n",
+     "        step6::arrive(arrived);\n"),
+    ("step7.cuh", "7g: the wait on S + 1 arrivals (no block of the tile goes on: a hang)",
+     "step6::wait_count(arrived, (unsigned)S);",
+     "step6::wait_count(arrived, (unsigned)S + 1);"),
+    ("step7.cuh", "7g: the arrival at the block's start (the S parts reduced before they are all written)",
+     "    KeepOwn<kU> own;\n"
+     "    {   // step6::run's part of K, with the keeper in the flag's place\n"
+     "        const int tilesN = N / BN, tiles = (M + BM - 1) / BM * tilesN, s = blockIdx.x / tiles;\n"
+     "        int tm, tn;\n"
+     "        step6::tile_of<BM, BN>(blockIdx.x % tiles, M, N, tm, tn);\n"
+     "        const int t = tm * tilesN + tn, row0 = tm * BM, col0 = tn * BN;\n"
+     "        const int slices = K / SK, per = slices / S, extra = slices % S;\n"
+     "        const int kBegin = s * per + min(s, extra), steps = per + (s < extra);\n"
+     "        half* part = parts + ((size_t)s * tiles + t) * BM * BN;\n"
+     "        own.u0 = s * kU / S;\n"
+     "        own.u1 = (s + 1) * kU / S;\n"
+     "        if (row0 + BM <= M)\n"
+     "            step6::compute_tile<BM, BN, WM, SK, kStages, step6::kParts, false, Copy, KeepOwn<kU>*>(\n"
+     "                shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, &own, s, S);\n"
+     "        else\n"
+     "            step6::compute_tile<BM, BN, WM, SK, kStages, step6::kParts, true, Copy, KeepOwn<kU>*>(\n"
+     "                shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, &own, s, S);\n"
+     "    }\n"
+     "    const int tilesN = N / BN, tiles = (M + BM - 1) / BM * tilesN;\n"
+     "    const int s = blockIdx.x / tiles;\n"
+     "    int tm, tn;\n"
+     "    step6::tile_of<BM, BN>(blockIdx.x % tiles, M, N, tm, tn);\n"
+     "    const int t = tm * tilesN + tn, row0 = tm * BM, col0 = tn * BN;\n"
+     "    unsigned* arrived = counts + 2 * t;\n"
+     "    unsigned* departed = arrived + 1;\n"
+     "    step6::fence();   // this block's part, before its arrival\n"
+     "    __syncthreads();\n"
+     "    if (threadIdx.x == 0) {\n"
+     "        step6::arrive(arrived);\n"
+     "        step6::wait_count(arrived, (unsigned)S);\n"
+     "    }\n",
+     "    KeepOwn<kU> own;\n"
+     "    if (threadIdx.x == 0) {\n"
+     "        const int tilesN0 = N / BN, tiles0 = (M + BM - 1) / BM * tilesN0;\n"
+     "        int tm0, tn0;\n"
+     "        step6::tile_of<BM, BN>(blockIdx.x % tiles0, M, N, tm0, tn0);\n"
+     "        step6::arrive(counts + 2 * (tm0 * tilesN0 + tn0));\n"
+     "    }\n"
+     "    {   // step6::run's part of K, with the keeper in the flag's place\n"
+     "        const int tilesN = N / BN, tiles = (M + BM - 1) / BM * tilesN, s = blockIdx.x / tiles;\n"
+     "        int tm, tn;\n"
+     "        step6::tile_of<BM, BN>(blockIdx.x % tiles, M, N, tm, tn);\n"
+     "        const int t = tm * tilesN + tn, row0 = tm * BM, col0 = tn * BN;\n"
+     "        const int slices = K / SK, per = slices / S, extra = slices % S;\n"
+     "        const int kBegin = s * per + min(s, extra), steps = per + (s < extra);\n"
+     "        half* part = parts + ((size_t)s * tiles + t) * BM * BN;\n"
+     "        own.u0 = s * kU / S;\n"
+     "        own.u1 = (s + 1) * kU / S;\n"
+     "        if (row0 + BM <= M)\n"
+     "            step6::compute_tile<BM, BN, WM, SK, kStages, step6::kParts, false, Copy, KeepOwn<kU>*>(\n"
+     "                shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, &own, s, S);\n"
+     "        else\n"
+     "            step6::compute_tile<BM, BN, WM, SK, kStages, step6::kParts, true, Copy, KeepOwn<kU>*>(\n"
+     "                shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, &own, s, S);\n"
+     "    }\n"
+     "    const int tilesN = N / BN, tiles = (M + BM - 1) / BM * tilesN;\n"
+     "    const int s = blockIdx.x / tiles;\n"
+     "    int tm, tn;\n"
+     "    step6::tile_of<BM, BN>(blockIdx.x % tiles, M, N, tm, tn);\n"
+     "    const int t = tm * tilesN + tn, row0 = tm * BM, col0 = tn * BN;\n"
+     "    unsigned* arrived = counts + 2 * t;\n"
+     "    unsigned* departed = arrived + 1;\n"
+     "    step6::fence();   // this block's part, before its arrival\n"
+     "    __syncthreads();\n"
+     "    if (threadIdx.x == 0) step6::wait_count(arrived, (unsigned)S);\n"),
+    ("step7.cuh", "7g: the kept share of the block index divided by S, not of the part (the wrong chunks kept and added)",
+     "        own.u0 = s * kU / S;\n"
+     "        own.u1 = (s + 1) * kU / S;\n",
+     "        own.u0 = (int)(blockIdx.x / S) * kU / S;\n"
+     "        own.u1 = ((int)(blockIdx.x / S) + 1) * kU / S;\n"),
+    ("step7.cuh", "7g: the arrival counter not put back to zero",
+     "        *arrived = 0;\n",
+     ""),
+    ("step7.cuh", "7g: the departure counter not put back to zero",
+     "        *departed = 0;\n",
+     ""),
+    ("step7.cuh", "7g: the first block to depart puts the counters back to zero (the others still wait on them)",
+     "step6::arrive(departed) == (unsigned)S - 1",
+     "step6::arrive(departed) == 0u"),
+    ("step7.cuh", "7g: no barrier after the wait (the block's threads reduce before the S parts have arrived)",
+     "    __syncthreads();\n"
+     "    step6::fence();\n"
+     "    constexpr int kBChunks",
+     "    step6::fence();\n"
+     "    constexpr int kBChunks"),
     # step 6, 6b: the bands and the stream (the K steps of a segment, the columns, the parts, the last block, the rule)
     ("step6.cuh", "6b: a segment's K steps from 0, not from its first (the stream's segments overlap)",
      "const int kk = (k0 + k) * 64;",
@@ -162,14 +286,17 @@ BUGS = [
      "kParts, false, Copy>(\n"
      "                    shmem, A, B, C, M, N, K, row0, col0, 0, nk, part, nullptr, 0, 1);"),
     ("step6.cuh", "6c: the rows >= M added and written",
-     "                    if (row0 + r >= M) continue;\n",
-     ""),
+     "                        const int r = q / kBChunks, cc = q % kBChunks;\n"
+     "                        if (row0 + r >= M) continue;\n",
+     "                        const int r = q / kBChunks, cc = q % kBChunks;\n"),
     ("step6.cuh", "6c: every block of a group on the first row of tiles",
      "tilesN = N / BN, tm = blockIdx.x % MT, row0",
      "tilesN = N / BN, tm = 0, row0"),
     ("step6.cuh", "6c: the sum of the parts without the first group's",
-     "for (long sg = gFirst; sg <= gLast; sg++) {",
-     "for (long sg = gFirst + 1; sg <= gLast; sg++) {"),
+     "for (long sg = gFirst; sg <= gLast; sg++) {\n"
+     "                            const int4 x = ld16_cg(",
+     "for (long sg = gFirst + 1; sg <= gLast; sg++) {\n"
+     "                            const int4 x = ld16_cg("),
     ("step6.cuh", "6c: the rule's last wave below the SMs, not below half of them (qkv_m512 in the stream)",
      "return tiles >= 2L * sms && rest > 0 && 2 * rest < sms;\n"
      "}\n"
@@ -278,8 +405,9 @@ BUGS = [
      "        if (row0 + r >= M) continue;\n",
      "        const int r = q / (BN / 8), ch = q % (BN / 8);\n"),
     ("step6.cuh", "7a in place: no wait on the tile's flag",
+     "    if constexpr (kSplit == kInPlace && !kTogether) {\n"
      "        if (threadIdx.x == 0) wait_flag(flag, (unsigned)s);\n",
-     ""),
+     "    if constexpr (kSplit == kInPlace && !kTogether) {\n"),
     ("step6.cuh", "7a in place: the previous parts not added",
      "                    if (s > 0) v = add8(v, ld16_cg(dst));\n",
      ""),
@@ -287,11 +415,60 @@ BUGS = [
      "set_flag(flag, s + 1 == S ? 0u : (unsigned)s + 1);",
      "set_flag(flag, (unsigned)s + 1);"),
     ("step6.cuh", "7a in place: the flag set as soon as its wait returns (the next part adds before this one's stores)",
+     "    if constexpr (kSplit == kInPlace && !kTogether) {\n"
      "        if (threadIdx.x == 0) wait_flag(flag, (unsigned)s);\n",
+     "    if constexpr (kSplit == kInPlace && !kTogether) {\n"
      "        if (threadIdx.x == 0) {\n"
      "            wait_flag(flag, (unsigned)s);\n"
      "            set_flag(flag, s + 1 == S ? 0u : (unsigned)s + 1);\n"
      "        }\n"),
+    # step 7, 7h, written in step6.cuh (run by step 7, RUN_BY): the reads of an addition issued together, after the
+    # acquisition (the parts in place of 7a and 7c; the sums of 6c's cut tiles)
+    ("step6.cuh", "7h in place: the reads of C before the wait on the tile's flag",
+     "            if (h == 0) {\n"
+     "                if (threadIdx.x == 0) wait_flag(flag, (unsigned)s);\n"
+     "                __syncthreads();\n"
+     "            }\n"
+     "            int4 old[G::kOPer];\n"
+     "            if (s > 0) {\n"
+     "#pragma unroll\n"
+     "                for (int i = 0; i < G::kOPer; i++) {\n"
+     "                    const int gr = row0 + h * 64 + threadIdx.x / G::kBChunks + i * G::kBRows;\n"
+     "                    if (gr < M) old[i] = ld16_cg((const int4*)&C[(size_t)gr * N + col0] + "
+     "threadIdx.x % G::kBChunks);\n"
+     "                }\n"
+     "            }\n",
+     "            int4 old[G::kOPer];\n"
+     "            if (s > 0) {\n"
+     "#pragma unroll\n"
+     "                for (int i = 0; i < G::kOPer; i++) {\n"
+     "                    const int gr = row0 + h * 64 + threadIdx.x / G::kBChunks + i * G::kBRows;\n"
+     "                    if (gr < M) old[i] = ld16_cg((const int4*)&C[(size_t)gr * N + col0] + "
+     "threadIdx.x % G::kBChunks);\n"
+     "                }\n"
+     "            }\n"
+     "            if (h == 0) {\n"
+     "                if (threadIdx.x == 0) wait_flag(flag, (unsigned)s);\n"
+     "                __syncthreads();\n"
+     "            }\n"),
+    ("step6.cuh", "7h in place: no wait on the tile's flag",
+     "            if (h == 0) {\n"
+     "                if (threadIdx.x == 0) wait_flag(flag, (unsigned)s);\n",
+     "            if (h == 0) {\n"),
+    ("step6.cuh", "7h in place: the previous parts not added",
+     "                    if (s > 0) v = add8(v, old[i]);\n",
+     ""),
+    ("step6.cuh", "7h 6c: the sum of the parts without the first group's",
+     "for (long sg = gFirst; sg <= gLast; sg++) {\n"
+     "                            const half* src = slot(sg, tn);",
+     "for (long sg = gFirst + 1; sg <= gLast; sg++) {\n"
+     "                            const half* src = slot(sg, tn);"),
+    ("step6.cuh", "7h 6c: the rows >= M written",
+     "                            if (row0 + r >= M) continue;\n",
+     ""),
+    ("step6.cuh", "7h 6c: the last batch of chunks left out",
+     "for (int u0 = 0; u0 < kPer; u0 += kBatch) {",
+     "for (int u0 = 0; u0 < kPer - kBatch; u0 += kBatch) {"),
     ("step6.cuh", "7a plan: K in 2 parts instead of 3",
      "            p.S = 3;\n",
      "            p.S = 2;\n"),
@@ -601,11 +778,80 @@ BUGS = [
     ("step1.cuh", "the persistent grid steps by one tile (blocks share tiles)",
      "block_pos += gridDim.x) tile(block_pos);",
      "block_pos += 1) tile(block_pos);"),
+    # step 7, 7e, written in step6.cuh (run by step 7, RUN_BY): the tail in parts of K (the parts' K, the tiles of
+    # the tail, the last part, the counter, the rule)
+    ("step6.cuh", "7e: a part's K from its tile's first slice, not from its own",
+     "kBegin = s * per + min(s, extra), steps = per + (s < extra);\n"
+     "    half* part = parts + ((size_t)s * R + j)",
+     "kBegin = 0, steps = per + (s < extra);\n"
+     "    half* part = parts + ((size_t)s * R + j)"),
+    ("step6.cuh", "7e: a part's tile of the tail from its part index (the tail's tiles mixed up)",
+     "const int j = b < whole ? 0 : (b - whole) % R,",
+     "const int j = b < whole ? 0 : (b - whole) / R,"),
+    ("step6.cuh", "7e: the parts on the first tiles, not on the tail's (whole tiles computed again, the tail's never)",
+     "tile_of<BM, BN>(b < whole ? b : whole + j, M, N, tm, tn);",
+     "tile_of<BM, BN>(b < whole ? b : j, M, N, tm, tn);"),
+    ("step6.cuh", "7e: the last part found on the count of parts, not one less (no part adds them)",
+     "*last = arrive(counts + j) == (unsigned)S - 1;",
+     "*last = arrive(counts + j) == (unsigned)S;"),
+    ("step6.cuh", "7e: the arrival before the part is computed (the last part adds parts not yet written)",
+     "    half* part = parts + ((size_t)s * R + j) * BM * BN;\n"
+     "    if (row0 + BM <= M)\n"
+     "        compute_tile<BM, BN, WM, SK, kStages, kParts, false, Copy>(\n"
+     "            shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, nullptr, s, S);\n"
+     "    else\n"
+     "        compute_tile<BM, BN, WM, SK, kStages, kParts, true, Copy>(\n"
+     "            shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, nullptr, s, S);\n"
+     "    fence();   // this block's part, before its arrival\n"
+     "    __syncthreads();\n"
+     "    // The flag, after the stages and the output (as 6b's)\n"
+     "    unsigned* last = (unsigned*)((char*)shmem + G::kSmemBytes);\n"
+     "    if (threadIdx.x == 0) *last = arrive(counts + j) == (unsigned)S - 1;\n",
+     "    half* part = parts + ((size_t)s * R + j) * BM * BN;\n"
+     "    // The flag, after the stages and the output (as 6b's)\n"
+     "    unsigned* last = (unsigned*)((char*)shmem + G::kSmemBytes);\n"
+     "    if (threadIdx.x == 0) *last = arrive(counts + j) == (unsigned)S - 1;\n"
+     "    if (row0 + BM <= M)\n"
+     "        compute_tile<BM, BN, WM, SK, kStages, kParts, false, Copy>(\n"
+     "            shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, nullptr, s, S);\n"
+     "    else\n"
+     "        compute_tile<BM, BN, WM, SK, kStages, kParts, true, Copy>(\n"
+     "            shmem, A, B, C, M, N, K, row0, col0, kBegin, steps, part, nullptr, s, S);\n"
+     "    fence();   // this block's part, before its arrival\n"
+     "    __syncthreads();\n"),
+    ("step6.cuh", "7e: the tile's counter not put back to zero",
+     "    if (threadIdx.x == 0) counts[j] = 0;   // for the next call\n",
+     ""),
+    ("step6.cuh", "7e: the rule without its 64 slices of K64 per part (o_m2048 in 4 parts)",
+     "ceil(R S / sms) / S < 1\n"
+     "    for (int S = 2; S <= 8 && K / 64 / S >= 64; S++) {",
+     "ceil(R S / sms) / S < 1\n"
+     "    for (int S = 2; S <= 8; S++) {"),
+    ("step6.cuh", "7d: 7e discards the tile's parts before every thread has read them",
+     "    if constexpr (kHint) {   // 7d: the tile's parts, every thread's reads done\n"
+     "        __syncthreads();\n",
+     "    if constexpr (kHint) {   // 7d: the tile's parts, every thread's reads done\n"),
+    # step 7, the fusion of 7g's keeper and 7h's reads into compute_tile, written in step6.cuh (run by step 7, RUN_BY):
+    # the keeper's call, and the two conditions that choose between 7a's wait and 7h's
+    ("step6.cuh", "7g: the keeper's chunk without its round of 64 rows (the second round kept in the first's place)",
+     "                        if (!flag->keep(h * G::kOPer + i, v))",
+     "                        if (!flag->keep(i, v))"),
+    ("step6.cuh", "7g: the keeper's answer inverted (a block's own chunks written to its part, the others' left out)",
+     "                        if (!flag->keep(h * G::kOPer + i, v))",
+     "                        if (flag->keep(h * G::kOPer + i, v))"),
+    ("step6.cuh", "7h: the condition of 7a's wait inverted (without 7h, C read before the tile's flag)",
+     "    if constexpr (kSplit == kInPlace && !kTogether) {\n",
+     "    if constexpr (kSplit == kInPlace && kTogether) {\n"),
+    ("step6.cuh", "7h: the condition of 7h's branch inverted (with 7h, C read without the tile's flag)",
+     "        if constexpr (kSplit == kInPlace && kTogether) {\n",
+     "        if constexpr (kSplit == kInPlace && !kTogether) {\n"),
 ]
 
-# 7a, 7b and 7d, step 7's, written in step6.cuh beside the kernels that carry them (step 6 runs none of 7a's and 7b's
-# kernels, and those of 6b and 6c without 7d's hints): their bugs, each named from its letter, are run by step 7.
-RUN_BY = {what: "step7" for header, what, _, _ in BUGS if header == "step6.cuh" and what.startswith(("7a", "7b", "7d"))}
+# 7a, 7b, 7d, 7e, 7g and 7h, step 7's, written in step6.cuh beside the kernels that carry them (step 6 runs none of
+# 7a's, 7b's and 7e's kernels, nor 7g's keeper, and those of 6b and 6c without 7d's hints and 7h's sums): their bugs,
+# each named from its letter, are run by step 7.
+RUN_BY = {what: "step7" for header, what, _, _ in BUGS
+          if header == "step6.cuh" and what.startswith(("7a", "7b", "7d", "7e", "7g", "7h"))}
 
 
 def check_substitutions():

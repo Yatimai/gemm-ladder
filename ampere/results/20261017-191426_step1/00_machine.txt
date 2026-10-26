@@ -1,4 +1,0 @@
-NVIDIA A100-SXM4-80GB, 610.57.04, 1410 MHz, 400.00 W
-Build cuda_13.1.r13.1/compiler.37061995_0
-Version 2025.4.1.0 (build 37053803) (public-release)
-Sat Oct 17 17:13:40 UTC 2026

@@ -1,6 +1,6 @@
-// Step 5 of the Ampere rung, as a candidate for the judge: the issue (see step5.cuh). Its variants, for the interleaved
-// probe (arm v<i> sets g_var) and for verif.cu (g_nvar): v0 = step 5 (5a + 5b), v1 = without 5a, v2 = without 5b, v3 =
-// step 4 itself (step4::gemm<true, true>, the anchor).
+// Step 5 of the Ampere rung, as a candidate for the judge: fragment double buffering, a serpentine HMMA order (see
+// step5.cuh). Its variants, for the interleaved probe (arm v<i> sets g_var) and for verif.cu (g_nvar): v0 = step 5
+// (5a + 5b), v1 = without 5a, v2 = without 5b, v3 = step 4 itself (step4::gemm<true, true>, the anchor).
 #include <cstdio>
 #include <cstdlib>
 #include "step4.cuh"

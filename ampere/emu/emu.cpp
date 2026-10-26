@@ -2,16 +2,17 @@
 // compiles the kernels' own source, nvidia_sample.cuh (step 0's compute_gemm, and simple_wmma_gemm, the reference
 // point), step1.cuh to step7.cuh, as C++ against the headers in shim/, and runs each kernel on the CPU at shapes of
 // verif.cu, in three orders of its threads. It checks the result against a reference in double, its 16- and 4-byte
-// copies, wmma and ldmatrix accesses, that each element of C is written once (7a and 7c in place: once per part; 7b:
-// once per call), the shared-memory wavefronts against the values the headers state, and that the variants of steps 2
-// to 6 give the same bits where K is not split; the orders of the tiles of steps 4 and 6 on their own, at every shape
-// up to 8192 x 12288; step 6's choice of tile and the rules of steps 6 and 7 at the judge's 17 shapes.
+// copies, wmma and ldmatrix accesses, that each element of C is written once (7a and 7c in place: once per part; 7b and
+// 7g: once per call), the shared-memory wavefronts against the values the headers state, and that the variants of steps
+// 2 to 6 give the same bits where K is not split; the orders of the tiles of steps 4 and 6 on their own, at
+// every shape up to 8192 x 12288; step 6's choice of tile and the rules of steps 6 and 7 at the judge's 17 shapes.
 // Step 3's cp.async copies land as late as the program
 // allows (at their wait_group) in the forward order, as early as possible (when issued) in the reverse order, and
 // either way, copy by copy, in the random order: a missing wait and a copy into a stage still being read both show. The
 // blocks of a kernel run one at a time, or interleaved where they wait on each other or arrive on a count or a flag of
-// the grid (7a and 7c in place, 6b's stream, 7b, 6c): a block is suspended after each arrival, and a block that arrives
-// before its threads' writes are done shows.
+// the grid (7a and 7c in place, 6b's stream, 7b and 7g, 6c, 7e's tail): a block is suspended after each arrival, and
+// a block that arrives before its threads' writes are done shows; a read of another block's data (C in place, the
+// parts) before the block's acquisition for its tile (its wait on the flag, its arrival or its wait on a count) shows.
 //   build (in ampere/emu): g++ -std=c++17 -O2 -march=native -I.. -Ishim emu.cpp -o emu
 //   run:                   ./emu [step0|step1|step2|step3|step4|step5|step6|step7|all]... [-x]   (default: all; -x: stop at the first failure)
 // Exit code 0 only if every run passes; 1 if a run fails; 2 on a usage or internal error.
@@ -55,8 +56,9 @@ namespace step3 { alignas(4096) half shmem[kShArrayBytes / 2]; }
 namespace step4 { alignas(4096) half shmem[kShArrayBytes / 2]; }
 namespace step5 { alignas(4096) half shmem[kShArrayBytes / 2]; }
 namespace step6 { alignas(4096) half shmem[kShArrayBytes / 2]; }
+namespace step7 { alignas(4096) half shmem[kShArrayBytes / 2]; }
 static const half* const kShArrays[] = {nvidia_sample::shmem, step1::shmem, step2::shmem, step3::shmem, step4::shmem,
-                                        step5::shmem, step6::shmem};
+                                        step5::shmem, step6::shmem, step7::shmem};
 
 // ---------------------------------------------------------------- the launch under way
 constexpr size_t kPage = 4096, kGuardBytes = 8 << 20;
@@ -113,6 +115,7 @@ struct Thread {
     std::vector<std::vector<Copy>> groups;   // its committed groups not yet performed, oldest first
     const unsigned* waitCount = nullptr;     // at a wait of the grid (7b): the count it waits on, and for which value
     unsigned waitValue = 0;
+    int tileSeq = 0;                         // the tiles it has begun (step6.cuh's compute_tile)
 };
 static Thread g_thr0[kMaxThreads];
 static Thread* g_thr = g_thr0;   // the running block's threads (g_thr0, or a slot's: see the blocks that wait)
@@ -156,6 +159,20 @@ void step2::emu_warp_exchange(const void* mine, void* all, int bytes)
     memcpy(all, g_xall[t / 32], 32 * (size_t)bytes);
 }
 
+// The reads of another block's data (step6.cuh's ld16_cg: C in place, the parts of K) come after the block's
+// acquisition for the tile its threads compute: its wait on the tile's flag (7a and 7c in place), its arrival on a
+// count (6b's stream, 6c) or its wait on a count (7b). compute_tile numbers the tiles each thread begins; an
+// acquisition records the number of the acquiring thread's tile; a read by a thread whose tile has another number, or
+// before any acquisition, is an error (on the GPU, it could read the data before the other block has written it).
+static std::vector<int> g_acq;   // per block of the grid: the tile number of its last acquisition, -1 if none
+static void acquired() { g_acq[g_block] = g_thr[g_cur].tileSeq; }
+void step6::emu_tile_begin() { g_thr[g_cur].tileSeq++; }
+void step6::emu_read_shared(const void* p)
+{
+    if (g_acq[g_block] != g_thr[g_cur].tileSeq)
+        error("a read of another block's data (at %p) before the block's acquisition for its tile (%s)", p, who());
+}
+
 // step6.cuh's wait of the grid (7b): the thread waits until the count reaches `value`; if it has not, the block is
 // suspended there (the grid's scheduler runs other blocks and resumes this one once the count has reached the value).
 void step6::emu_wait_count(const unsigned* count, unsigned value)
@@ -167,6 +184,7 @@ void step6::emu_wait_count(const unsigned* count, unsigned value)
         th.state = kAtGridWait;
         swapcontext(&th.ctx, &g_sched);
     }
+    acquired();
 }
 
 // An arrival on a count or a flag of the grid (step6.cuh's arrive and set_flag): the block is suspended right
@@ -182,6 +200,7 @@ unsigned step6::emu_arrive(unsigned* count)
 {
     const unsigned before = (*count)++;
     suspend_at_arrival();
+    acquired();
     return before;
 }
 
@@ -328,6 +347,7 @@ static void start_block()
         g_thr[t].open.clear();
         g_thr[t].groups.clear();
         g_thr[t].waitCount = nullptr;
+        g_thr[t].tileSeq = 0;
     }
 }
 
@@ -417,8 +437,8 @@ static bool run_block(Order order, std::mt19937& rng)   // a block that waits on
 }
 
 // ---------------------------------------------------------------- blocks that wait on each other or arrive (6, 7)
-// A kernel whose blocks wait on counts of the grid (7b), or arrive on counts or flags of the grid (6b's stream, 7b, 6c,
-// 7a and 7c in place), runs with up to kSlots blocks alive at once, each in a slot of its own (its
+// A kernel whose blocks wait on counts of the grid (7b, 7g), or arrive on counts or flags of the grid (6b's stream, 7b,
+// 7g, 6c, 7a and 7c in place), runs with up to kSlots blocks alive at once, each in a slot of its own (its
 // threads, their stacks, its warps' exchanges, its shared memory while suspended). The scheduler resumes a suspended block whose wait is met,
 // starts the next block in the order of the run, or resumes a block suspended at an arrival, the last one first (the
 // order of these depends on the order of the run, below); when none of these is left: every alive block waits on a
@@ -680,6 +700,7 @@ void step6::emu_wait_flag(const unsigned* flag, unsigned value)
     g_waitBlock = g_block;
     g_waitFlag = flag;
     g_waitValue = value;
+    acquired();
 }
 void step6::emu_set_flag(unsigned* flag, unsigned value)
 {
@@ -764,10 +785,10 @@ static void on_fault(int sig, siginfo_t* si, void*)
 static void allocate(Array& a, int rows, int cols, bool writable);
 static void release(Array& a);
 namespace emu6 {
-template <int BM, int BN, int WM, int SK, int ST, int kSplit, int S>
+template <int BM, int BN, int WM, int SK, int ST, int kSplit, int S, bool kTogether = false>
 void split(const half* A, const half* B, half* C, int M, int N, int K)
 {
-    step6::gemm_split<BM, BN, WM, SK, ST, kSplit>(A, B, C, M, N, K, S, g_P.p, (unsigned*)g_F.p);
+    step6::gemm_split<BM, BN, WM, SK, ST, kSplit, kTogether>(A, B, C, M, N, K, S, g_P.p, (unsigned*)g_F.p);
 }
 template <int BM, int BN, int S>
 void reduce(const half*, const half*, half* C, int M, int N, int)
@@ -857,9 +878,12 @@ inline int phase_blocks(int P, int M)
     if (groups > U) groups = U;
     return (int)(groups * MT);
 }
-template <bool kHint> void phase(const half* A, const half* B, half* C, int M, int N, int K)
+template <bool kHint, bool kTogether = false> void phase(const half* A, const half* B, half* C, int M, int N, int K)
 {
-    step6::gemm_phase<128, 256, 64, 64, 3, kHint>(A, B, C, M, N, K, g_P.p, (unsigned*)g_F.p);
+    if constexpr (kTogether)
+        step6::gemm_phase_sums<128, 256, 64, 64, 3, kHint>(A, B, C, M, N, K, g_P.p, (unsigned*)g_F.p);
+    else
+        step6::gemm_phase<128, 256, 64, 64, 3, kHint>(A, B, C, M, N, K, g_P.p, (unsigned*)g_F.p);
 }
 template <int P> emu_dim3 grid_phase(int M, int) { return emu_dim3{(unsigned)phase_blocks(P, M), 1, 1}; }
 template <int P> void before_phase()
@@ -874,6 +898,42 @@ template <int P> void before_phase()
 }
 
 }  // namespace emu6
+
+namespace emu7 {
+// 7g: 7b's parts reduced by their own blocks, each keeping its own share in registers (7b's workspace and shapes);
+// kHint: with 7d's hints.
+template <int BM, int BN, int WM, int SK, int ST, int S, bool kHint>
+void parallel_own(const half* A, const half* B, half* C, int M, int N, int K)
+{
+    step7::gemm_parallel_own<BM, BN, WM, SK, ST, kHint>(A, B, C, M, N, K, S, g_P.p, (unsigned*)g_F.p);
+}
+
+// 7e: the tail as on P SMs (step7.cu takes the card's): 108, where every tile of verif.cu's shapes is in the tail, and
+// 6, where whole tiles come first; its parts in g_P (S R of them), one counter per tile of the tail in g_F; kHint:
+// with 7d's hints.
+inline int tiles256(int M, int N) { return (M + 127) / 128 * (N / 256); }
+template <int P, int S, bool kHint> void tail(const half* A, const half* B, half* C, int M, int N, int K)
+{
+    const int tiles = tiles256(M, N);
+    step6::gemm_tail<128, 256, 64, 64, 3, kHint>(A, B, C, M, N, K, tiles - tiles % P, S, g_P.p, (unsigned*)g_F.p);
+}
+template <int P, int S> emu_dim3 grid_tail(int M, int N)
+{
+    const int tiles = tiles256(M, N), R = tiles % P;
+    return emu_dim3{(unsigned)(tiles - R + R * S), 1, 1};
+}
+template <int P> bool has_tail(int M, int N, int) { return tiles256(M, N) % P != 0; }
+template <int P, int S> void before_tail()
+{
+    const int R = tiles256(g_M, g_N) % P;
+    if (g_P.p) release(g_P);
+    allocate(g_P, S * R, 128 * 256, true);
+    memset(g_P.p, 0xff, (size_t)g_P.rows * g_P.cols * 2);
+    if (g_F.p) release(g_F);
+    allocate(g_F, (R + 63) / 64 * 64, 2, true);
+    memset(g_F.p, 0, (size_t)g_F.rows * g_F.cols * 2);
+}
+}  // namespace emu7
 
 // ---------------------------------------------------------------- the kernels
 enum { kStep0 = 1, kStep1 = 2, kStep2 = 4, kStep3 = 8, kStep4 = 16, kStep5 = 32, kStep6 = 64, kStep7 = 128 };
@@ -908,7 +968,7 @@ static std::vector<Kernel> kernels()
 {
     namespace s0 = nvidia_sample;
     using G1a = step1::Geometry<256, false>;   // step 1's v0, v1
-    using G1c = step1::Geometry<128, false>;   // v2, v3
+    using G1b = step1::Geometry<128, false>;   // v2, v3
     using G2s = step2::Geometry<true>;         // step 2's v0
     using G2p = step2::Geometry<false>;        // v1
     using S3a = step3::Smem<3>;                // step 3's v0 to v2: 3, 2 and 1 stages
@@ -946,7 +1006,8 @@ static std::vector<Kernel> kernels()
     // and in which order the independent HMMA run, step 6 how the tile and its slices are cut): each element of C sums
     // the same products in the same order of K, the same C to the bit.
     const unsigned same2 = kStep2;
-    // 7b adds the parts as 7a's reduction kernel does, in the order of K, in fp32 rounded once: 7a's bits at its tile.
+    // 7b (and 7g) add the parts as 7a's reduction kernel does, in the order of K, in fp32 rounded once: 7a's bits at
+    // its tile.
     const unsigned parts256 = 1u << 21;
     return {
         {"ref simple_wmma_gemm", kStep0, s0::simple_wmma_gemm, simple, b128x4, s0::shmem, 0, 0, {}},
@@ -960,39 +1021,39 @@ static std::vector<Kernel> kernels()
          G1a::kSmemBytes, G1a::kAStage * 2, pad160},
         {"step1 v1 (without 1a), 3 blocks", kStep1, step1::gemm<false, false, 256>, three, b256, step1::shmem,
          G1a::kSmemBytes, G1a::kAStage * 2, pad160},
-        {"step1 v2 (without 1c)", kStep1, step1::gemm<true, false, 128>, tiles128, b256, step1::shmem, G1c::kSmemBytes,
-         G1c::kAStage * 2, pad160},
-        {"step1 v3 (1d alone), 108 blocks", kStep1, step1::gemm<false, false, 128>, sms, b256, step1::shmem,
-         G1c::kSmemBytes, G1c::kAStage * 2, pad160},
-        {"step1 v3 (1d alone), 3 blocks", kStep1, step1::gemm<false, false, 128>, three, b256, step1::shmem,
-         G1c::kSmemBytes, G1c::kAStage * 2, pad160},
+        {"step1 v2 (without 1b)", kStep1, step1::gemm<true, false, 128>, tiles128, b256, step1::shmem, G1b::kSmemBytes,
+         G1b::kAStage * 2, pad160},
+        {"step1 v3 (1c alone), 108 blocks", kStep1, step1::gemm<false, false, 128>, sms, b256, step1::shmem,
+         G1b::kSmemBytes, G1b::kAStage * 2, pad160},
+        {"step1 v3 (1c alone), 3 blocks", kStep1, step1::gemm<false, false, 128>, three, b256, step1::shmem,
+         G1b::kSmemBytes, G1b::kAStage * 2, pad160},
         {"step2 v0 (step 2: 2a + 2b)", kStep2 | kStep3 | kStep7, step2::gemm<true>, tiles256, b256, step2::shmem, G2s::kSmemBytes,
          G2s::kAStage * 2, swizzle, same2},
         {"step2 v1 (without 2b)", kStep2, step2::gemm<false>, tiles256, b256, step2::shmem, G2p::kSmemBytes,
          G2p::kAStage * 2, padLdsm, same2},
-        // Step 3, Ampere's asynchronous copy: its v3 is step 2's v0, above.
+        // Step 3 (cp.async, three stages): its v3 is step 2's v0, above.
         {"step3 v0 (step 3: 3 stages)", kStep3 | kStep4, step3::gemm<3>, tiles256, b256, step3::shmem, S3a::kBytes,
          S3a::kAAll * 2, async, same2},
         {"step3 v1 (2 stages)", kStep3, step3::gemm<2>, tiles256, b256, step3::shmem, S3b::kBytes, S3b::kAAll * 2,
          async, same2},
         {"step3 v2 (3a alone, 1 stage)", kStep3, step3::gemm<1>, tiles256, b256, step3::shmem, S3c::kBytes,
          S3c::kAAll * 2, async, same2},
-        // Step 4, the memory hierarchy: its v3 is step 3's v0, above.
+        // Step 4 (evict-first stores, a tile swizzle): its v3 is step 3's v0, above.
         {"step4 v0 (step 4: 4a + 4b)", kStep4 | kStep5, step4::gemm<true, true>, tiles256, b256, step4::shmem, S3a::kBytes,
          S3a::kAAll * 2, async, same2},
         {"step4 v1 (without 4a)", kStep4, step4::gemm<false, true>, tiles256, b256, step4::shmem, S3a::kBytes,
          S3a::kAAll * 2, async, same2},
         {"step4 v2 (without 4b)", kStep4, step4::gemm<true, false>, tiles256, b256, step4::shmem, S3a::kBytes,
          S3a::kAAll * 2, async, same2},
-        // Step 5, the issue: its v3 is step 4's v0, above.
+        // Step 5 (fragment double buffering, a serpentine HMMA order): its v3 is step 4's v0, above.
         {"step5 v0 (step 5: 5a + 5b)", kStep5 | kStep6, step5::gemm<true, true>, tiles256, b256, step5::shmem, S3a::kBytes,
          S3a::kAAll * 2, async, same2},
         {"step5 v1 (without 5a)", kStep5, step5::gemm<false, true>, tiles256, b256, step5::shmem, S3a::kBytes,
          S3a::kAAll * 2, async, same2},
         {"step5 v2 (without 5b)", kStep5, step5::gemm<true, false>, tiles256, b256, step5::shmem, S3a::kBytes,
          S3a::kAAll * 2, async, same2},
-        // Step 6, the schedule per shape: its new tile (6a), at every shape (step6.cu chooses between it and step 5's
-        // 128 x 256 by shape; its v4 is step 5's v0, above).
+        // Step 6 (the tile per shape, 16-row bands, a stream in phase): its new tile (6a), at every shape (step6.cu
+        // chooses between it and step 5's 128 x 256 by shape; its v4 is step 5's v0, above).
         {"step6 128 x 128, K32 x 5 (6a)", kStep6, step6::gemm<128, 128, 64, 32, 5>, tiles128, b128, step6::shmem,
          G6a::kSmemBytes, G6a::kAAll * 2, async, same2},
         // 6b at M <= 16: the bands (each element of C sums the same products in the same order of K as step 2's: the
@@ -1015,9 +1076,10 @@ static std::vector<Kernel> kernels()
         {"step6 phase, 7 blocks (6c)", kStep6, emu6::phase<false>, emu6::grid_phase<7>, b256, step6::shmem,
          G6s::kSmemBytes + 16, G6s::kAAll * 2, async, 0, nullptr, emu6::before_phase<7>, emu6::dirty_flags, 0, nullptr,
          nullptr, {0, 0, 0}, 1, true},
-        // Step 7, the refinements. 7a: K in parts. Each part is rounded to fp16 before the parts are added: other bits
-        // than step 2's, within the tolerance. Parts and reduction: two kernels, the second without shared memory; in
-        // place: the parts of a tile in the order of K, each writing C (2 writes of each element).
+        // Step 7 (split-K, parts reduced by their own blocks, L2 hints). 7a: K in parts. Each part is rounded to fp16
+        // before the parts are added: other bits than step 2's, within the tolerance. Parts and reduction: two kernels,
+        // the second without shared memory; in place: the parts of a tile in the order of K, each writing C (2 writes
+        // of each element).
         {"step7 128 x 256, K in 3 parts (7a)", kStep7, emu6::split<128, 256, 64, 64, 3, step6::kParts, 3>,
          emu6::grid_split<128, 256, 3>, b256, step6::shmem, G6s::kSmemBytes, G6s::kAAll * 2, async, parts256, nullptr,
          emu6::before_parts<128, 256, 3>, nullptr, 0, emu6::reduce<128, 256, 3>, emu6::grid_tiles<128, 256>, b256},
@@ -1032,9 +1094,14 @@ static std::vector<Kernel> kernels()
         {"step7 128 x 256, K in 2 in place (7c)", kStep7, emu6::split<128, 256, 64, 64, 3, step6::kInPlace, 2>,
          emu6::grid_split<128, 256, 2>, b256, step6::shmem, G6s::kSmemBytes, G6s::kAAll * 2, async, 0, nullptr,
          emu6::before_flags<128, 256>, emu6::dirty_flags, 2, nullptr, nullptr, {0, 0, 0}, 2, true},
-        // 7b without 7d's hints (step7.cu's v4 and v10); with them, below.
-        {"step7 128 x 256, K in 3 parts (7b, no 7d)", kStep7, emu6::parallel<128, 256, 64, 64, 3, 3, false>,
-         emu6::grid_split<128, 256, 3>, b256, step6::shmem, G6s::kSmemBytes, G6s::kAAll * 2, async, parts256,
+        // 7g: 7b without the block's own part (kept in registers): the same sums in the same order, 7a's bits.
+        {"step7 128 x 256, K in 3 parts (7g)", kStep7, emu7::parallel_own<128, 256, 64, 64, 3, 3, true>,
+         emu6::grid_split<128, 256, 3>, b256, step7::shmem, G6s::kSmemBytes, G6s::kAAll * 2, async, parts256,
+         emu6::fits<128, 256, 3>, emu6::before_parallel<128, 256, 3>, emu6::dirty_flags, 0, nullptr, nullptr, {0, 0, 0},
+         2, true, 2},
+        // 7g without 7d's hints (step7.cu's v4 and v10).
+        {"step7 128 x 256, K in 3 parts (7g, no 7d)", kStep7, emu7::parallel_own<128, 256, 64, 64, 3, 3, false>,
+         emu6::grid_split<128, 256, 3>, b256, step7::shmem, G6s::kSmemBytes, G6s::kAAll * 2, async, parts256,
          emu6::fits<128, 256, 3>, emu6::before_parallel<128, 256, 3>, emu6::dirty_flags, 0, nullptr, nullptr, {0, 0, 0},
          2, true, 2},
         // 7d: the kernels of 6b, 7b and 6c (step6.cuh) with their L2 cache hints, as step 7 runs them: the hints as
@@ -1060,6 +1127,48 @@ static std::vector<Kernel> kernels()
         {"step7 phase, 7 blocks (6c, 7d)", kStep7, emu6::phase<true>, emu6::grid_phase<7>, b256, step6::shmem,
          G6s::kSmemBytes + 16, G6s::kAAll * 2, async, 0, nullptr, emu6::before_phase<7>, emu6::dirty_flags, 0, nullptr,
          nullptr, {0, 0, 0}, 1, true},
+        // 7h: the reads of an addition issued together, in the parts in place of 7a and 7c and in 6c's kernel as step
+        // 7 runs it (the same bits as without 7h).
+        {"step7 128 x 128, K in 2 in place (7a, 7h)", kStep7,
+         emu6::split<128, 128, 64, 32, 5, step6::kInPlace, 2, true>, emu6::grid_split<128, 128, 2>, b128, step6::shmem,
+         G6a::kSmemBytes, G6a::kAAll * 2, async, 0, nullptr, emu6::before_flags<128, 128>, emu6::dirty_flags, 2,
+         nullptr, nullptr, {0, 0, 0}, 2, true},
+        {"step7 128 x 256, K in 5 in place (7c, 7h)", kStep7,
+         emu6::split<128, 256, 64, 64, 3, step6::kInPlace, 5, true>, emu6::grid_split<128, 256, 5>, b256, step6::shmem,
+         G6s::kSmemBytes, G6s::kAAll * 2, async, 0, nullptr, emu6::before_flags<128, 256>, emu6::dirty_flags, 5,
+         nullptr, nullptr, {0, 0, 0}, 5, true},
+        {"step7 128 x 256, K in 2 in place (7c, 7h)", kStep7,
+         emu6::split<128, 256, 64, 64, 3, step6::kInPlace, 2, true>, emu6::grid_split<128, 256, 2>, b256, step6::shmem,
+         G6s::kSmemBytes, G6s::kAAll * 2, async, 0, nullptr, emu6::before_flags<128, 256>, emu6::dirty_flags, 2,
+         nullptr, nullptr, {0, 0, 0}, 2, true},
+        {"step7 phase, 108 blocks (6c, 7d, 7h)", kStep7, emu6::phase<true, true>, emu6::grid_phase<108>, b256,
+         step6::shmem, G6s::kSmemBytes + 16, G6s::kAAll * 2, async, 0, nullptr, emu6::before_phase<108>,
+         emu6::dirty_flags, 0, nullptr, nullptr, {0, 0, 0}, 1, true},
+        {"step7 phase, 7 blocks (6c, 7d, 7h)", kStep7, emu6::phase<true, true>, emu6::grid_phase<7>, b256,
+         step6::shmem, G6s::kSmemBytes + 16, G6s::kAAll * 2, async, 0, nullptr, emu6::before_phase<7>,
+         emu6::dirty_flags, 0, nullptr, nullptr, {0, 0, 0}, 1, true},
+        // 6c's kernel with 7h, without 7d's hints (step7.cu's v4 and v10).
+        {"step7 phase, 108 blocks (6c, 7h, no 7d)", kStep7, emu6::phase<false, true>, emu6::grid_phase<108>, b256,
+         step6::shmem, G6s::kSmemBytes + 16, G6s::kAAll * 2, async, 0, nullptr, emu6::before_phase<108>,
+         emu6::dirty_flags, 0, nullptr, nullptr, {0, 0, 0}, 1, true},
+        {"step7 phase, 7 blocks (6c, 7h, no 7d)", kStep7, emu6::phase<false, true>, emu6::grid_phase<7>, b256,
+         step6::shmem, G6s::kSmemBytes + 16, G6s::kAAll * 2, async, 0, nullptr, emu6::before_phase<7>,
+         emu6::dirty_flags, 0, nullptr, nullptr, {0, 0, 0}, 1, true},
+        // 7e: the tail of the waves in parts of K, as on 108 SMs (every tile in the tail, 3 parts) and on 6 (whole
+        // tiles first, then the tail in 2 parts), with 7d's hints; its parts rounded to fp16 (other bits than step 5's).
+        {"step7 tail, 108 SMs, 3 parts (7e, 7d)", kStep7, emu7::tail<108, 3, true>, emu7::grid_tail<108, 3>, b256,
+         step6::shmem, G6s::kSmemBytes + 16, G6s::kAAll * 2, async, 0, emu7::has_tail<108>, emu7::before_tail<108, 3>,
+         emu6::dirty_flags, 0, nullptr, nullptr, {0, 0, 0}, 1, true},
+        {"step7 tail, 6 SMs, 2 parts (7e, 7d)", kStep7, emu7::tail<6, 2, true>, emu7::grid_tail<6, 2>, b256,
+         step6::shmem, G6s::kSmemBytes + 16, G6s::kAAll * 2, async, 0, emu7::has_tail<6>, emu7::before_tail<6, 2>,
+         emu6::dirty_flags, 0, nullptr, nullptr, {0, 0, 0}, 1, true},
+        // 7e without 7d's hints (step7.cu's v4 and v10).
+        {"step7 tail, 108 SMs, 3 parts (7e, no 7d)", kStep7, emu7::tail<108, 3, false>, emu7::grid_tail<108, 3>,
+         b256, step6::shmem, G6s::kSmemBytes + 16, G6s::kAAll * 2, async, 0, emu7::has_tail<108>,
+         emu7::before_tail<108, 3>, emu6::dirty_flags, 0, nullptr, nullptr, {0, 0, 0}, 1, true},
+        {"step7 tail, 6 SMs, 2 parts (7e, no 7d)", kStep7, emu7::tail<6, 2, false>, emu7::grid_tail<6, 2>, b256,
+         step6::shmem, G6s::kSmemBytes + 16, G6s::kAAll * 2, async, 0, emu7::has_tail<6>, emu7::before_tail<6, 2>,
+         emu6::dirty_flags, 0, nullptr, nullptr, {0, 0, 0}, 1, true},
     };
 }
 
@@ -1170,10 +1279,11 @@ static bool run(const Kernel& k, int M, int N, int K, Order order, std::vector<u
             check_canary((const char*)g_sh);
         }
     };
-    // 7b: two calls, the second on the state the first left (its counters, its parts). C is set to NaN again before the
-    // second and the two C compared: an error of the first call would otherwise be written over.
+    // 7b and 7g: two calls, the second on the state the first left (its counters, its parts). C is set to NaN again
+    // before the second and the two C compared: an error of the first call would otherwise be written over.
     std::vector<uint16_t> firstCall;
     for (int call = 0; call < k.calls && complete; call++) {
+        g_acq.assign((size_t)gridDim.x * gridDim.y, -1);
         if (call == 1) {
             firstCall.assign((const uint16_t*)g_C.p, (const uint16_t*)g_C.p + nC);
             memset(g_C.p, 0xff, nC * 2);
@@ -1539,41 +1649,49 @@ static bool check_phase(Totals& totals)
     return false;
 }
 
-// ---------------------------------------------------------------- the rule of 7c
+// ---------------------------------------------------------------- the rules of 7c, 7e and 7f
 // On the A100's 108 SMs, at the judge's 17 shapes: step7::inplace_parts (7c) gives 5 parts at down_m512 (128 tiles of
 // 128 x 256 in 5 parts: 640 blocks, 6 waves of 108, 99 % full) and none elsewhere (at o_m512, the other shape where
-// 7a adds parts in place, K = 8192 allows 2 parts of 64 slices at most: 256 blocks, 3 waves, 79 % full). One line,
-// counted as a run.
+// 7a adds parts in place, K = 8192 allows 2 parts of 64 slices at most: 256 blocks, 3 waves, 79 % full);
+// step6::tail_parts (7e) gives 4 parts at down_m2048 (512 tiles, a tail of 80: three rounds of quarter tiles, 0.75 of a
+// tile) and 2 at gateup_m2048 (3584 tiles, a tail of 20: 0.5); no tail at o_m2048 (a tail of 80, but K = 8192 allows 2
+// parts of 64 slices at most: still one tile), qkv_m2048 (a tail of 100: no S below one tile), the ladder (432 tiles,
+// 4 full waves), nor at M <= 512; step7::phase_in_place (7f) gives the stream in phase at o_m512 only (256 tiles of
+// 128 x 128, the third wave 40 tiles). One line, counted as a run.
 static bool check_rules_7(Totals& totals)
 {
-    struct Row { const char* name; int M, N, K; int f; };
+    struct Row { const char* name; int M, N, K; int f; int e; bool g; };
     const Row rows[] = {
-        {"qkv_m16", 16, 10240, 8192, 0},      {"qkv_m128", 128, 10240, 8192, 0},
-        {"qkv_m512", 512, 10240, 8192, 0},    {"qkv_m2048", 2048, 10240, 8192, 0},
-        {"o_m16", 16, 8192, 8192, 0},         {"o_m128", 128, 8192, 8192, 0},
-        {"o_m512", 512, 8192, 8192, 0},       {"o_m2048", 2048, 8192, 8192, 0},
-        {"gateup_m16", 16, 57344, 8192, 0},   {"gateup_m128", 128, 57344, 8192, 0},
-        {"gateup_m512", 512, 57344, 8192, 0}, {"gateup_m2048", 2048, 57344, 8192, 0},
-        {"down_m16", 16, 8192, 28672, 0},     {"down_m128", 128, 8192, 28672, 0},
-        {"down_m512", 512, 8192, 28672, 5},   {"down_m2048", 2048, 8192, 28672, 0},
-        {"ladder", 3456, 4096, 2048, 0}};
+        {"qkv_m16", 16, 10240, 8192, 0, 0, false},      {"qkv_m128", 128, 10240, 8192, 0, 0, false},
+        {"qkv_m512", 512, 10240, 8192, 0, 0, false},    {"qkv_m2048", 2048, 10240, 8192, 0, 0, false},
+        {"o_m16", 16, 8192, 8192, 0, 0, false},         {"o_m128", 128, 8192, 8192, 0, 0, false},
+        {"o_m512", 512, 8192, 8192, 0, 0, true},        {"o_m2048", 2048, 8192, 8192, 0, 0, false},
+        {"gateup_m16", 16, 57344, 8192, 0, 0, false},   {"gateup_m128", 128, 57344, 8192, 0, 0, false},
+        {"gateup_m512", 512, 57344, 8192, 0, 0, false}, {"gateup_m2048", 2048, 57344, 8192, 0, 2, false},
+        {"down_m16", 16, 8192, 28672, 0, 0, false},     {"down_m128", 128, 8192, 28672, 0, 0, false},
+        {"down_m512", 512, 8192, 28672, 5, 0, false},   {"down_m2048", 2048, 8192, 28672, 0, 4, false},
+        {"ladder", 3456, 4096, 2048, 0, 0, false}};
     int wrong = 0;
     for (const Row& r : rows) {
         const int f = step7::inplace_parts(r.M, r.N, r.K, 108);
-        if (f != r.f) {
-            printf("EMU ERROR: step 7's rule at %s: 7c %d parts; expected 7c %d\n", r.name, f, r.f);
+        const int e = step6::tail_parts(r.M, r.N, r.K, 108);
+        const bool g = step7::phase_in_place(r.M, r.N, r.K, 108);
+        if (f != r.f || e != r.e || g != r.g) {
+            printf("EMU ERROR: step 7's rules at %s: 7c %d parts, 7e %d, 7f %s; expected 7c %d, 7e %d, 7f %s\n", r.name,
+                   f, e, g ? "yes" : "no", r.f, r.e, r.g ? "yes" : "no");
             wrong++;
         }
     }
-    snprintf(g_label, sizeof g_label, "%-33s %-27s", "step7 rule of 7c, 108 SMs", "the judge's 17 shapes");
+    snprintf(g_label, sizeof g_label, "%-33s %-27s", "step7 rules of 7c 7e 7f, 108 SMs", "the judge's 17 shapes");
     totals.runs++;
     if (!wrong) {
-        printf("%s  ok      7c at down_m512 (5 parts)\n", g_label);
+        printf("%s  ok      7c at down_m512 (5 parts), 7e at down_m2048 (4) and gateup_m2048 (2), 7f at o_m512\n",
+               g_label);
         return true;
     }
     printf("%s  FAILED  [%d shapes]\n", g_label, wrong);
     totals.failed++;
-    totals.failures.push_back("step7 rule of 7c at the judge's shapes");
+    totals.failures.push_back("step7 rules of 7c, 7e and 7f at the judge's shapes");
     return false;
 }
 
@@ -1623,9 +1741,12 @@ int main(int argc, char** argv)
                    "         orders of their tiles, step6::choose at the judge's 17 shapes, step6::m16 at seven of\n"
                    "         them, phase at the 17\n"
                    "  step7  step 7's kernels: 7a's parts and its in-place split (step6.cuh; other bits); 7c's\n"
-                   "         parts in place (5 and 2); 7b's kernel without 7d's hints, with 7a's parts (the same\n"
-                   "         bits); 6b's, 7b's and 6c's kernels with 7d's hints; step6::choose, parallel_fits and 7c's\n"
-                   "         rule at the judge's 17 shapes\n"
+                   "         parts in place (5 and 2); 7g's parts reduced by their own blocks (step7.cuh), with and\n"
+                   "         without 7d's hints, with 7a's parts (the same bits); 6b's, 7b's and 6c's kernels with\n"
+                   "         7d's hints; 7h's reads together in the parts in place, and in 6c's kernel with and\n"
+                   "         without 7d's hints (the same bits); 7e's tail in parts (108 and 6 SMs, with and without\n"
+                   "         7d's hints; other bits); step6::choose, parallel_fits, 7c's, 7e's and 7f's rules at the\n"
+                   "         judge's 17 shapes\n"
                    "  all    every kernel once (the default)\n"
                    "  -x     stop at the first failed run\n", argv[0]);
             return 2;

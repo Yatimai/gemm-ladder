@@ -1,8 +1,9 @@
-// Step 6 of the Ampere rung, as a candidate for the judge: the schedule per shape (see step6.cuh). Its variants, for
-// the interleaved probe (arm v<i> sets g_var) and for verif.cu (g_nvar): v0 = step 6 (6a, 6b, 6c), v1 = without 6a,
-// v2 = without 6b, v3 = without 6c, v4 = step 5 itself (step5::gemm<true, true>, 128 x 256 at every shape, the
-// anchor), v5 = 6b's bands at every shape M <= 16; for verif.cu and compute-sanitizer only, whose shapes are too small
-// for the rules to choose 6b's stream or 6c: v6 = 6b's stream at every shape M <= 16, v7 = 6c at every shape M > 16.
+// Step 6 of the Ampere rung, as a candidate for the judge: the tile per shape, 16-row bands, a stream in phase (see
+// step6.cuh). Its variants, for the interleaved probe (arm v<i> sets g_var) and for verif.cu (g_nvar): v0 = step 6 (6a,
+// 6b, 6c), v1 = without 6a, v2 = without 6b, v3 = without 6c, v4 = step 5 itself (step5::gemm<true, true>, 128 x 256 at
+// every shape, the anchor), v5 = 6b's bands at every shape M <= 16; for verif.cu and compute-sanitizer only, whose
+// shapes are too small for the rules to choose 6b's stream or 6c: v6 = 6b's stream at every shape M <= 16, v7 = 6c at
+// every shape M > 16.
 // Step 6's plan keeps K whole (7a and 7b split it, step7.cu). The kernels of 6b and 6c run without step 7's L2
 // cache hints (kHint = false; 7d in step7.cu).
 // candidate_dirty, for verif.cu: the counters left non-zero by a call (each call must leave them at zero, as it found

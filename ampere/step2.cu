@@ -1,6 +1,7 @@
-// Step 2 of the Ampere rung, as a candidate for the judge: the path to the tensor cores (see step2.cuh). Its variants,
-// for the interleaved probe (arm v<i> sets g_var) and for verif.cu (g_nvar): v0 = step 2 (2a + 2b), v1 = step 2
-// without 2b (2a over step 1's padded stage), v2 = step 1 itself (step1::gemm<true, false, 256>, the anchor).
+// Step 2 of the Ampere rung, as a candidate for the judge: mma.sync and ldmatrix, a swizzle (see step2.cuh). Its
+// variants, for the interleaved probe (arm v<i> sets g_var) and for verif.cu (g_nvar): v0 = step 2 (2a + 2b),
+// v1 = step 2 without 2b (2a over step 1's padded stage), v2 = step 1 itself (step1::gemm<true, false, 256>, the
+// anchor).
 #include <cstdio>
 #include <cstdlib>
 #include "step1.cuh"

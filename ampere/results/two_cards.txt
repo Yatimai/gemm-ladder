@@ -1,23 +1,23 @@
 == two cards: two containers running at the same time have two different cards (a container keeps its card for its whole life); times in UTC
-step1  series 1: ampere/results/20261017-1952_step1_probe, Modal app from 17/10/2026 17:52:36 to 18:05:08 UTC, 102 ARM lines, 510 rounds: at least 680 s of work -> surely running from 17:53:49 to 18:03:56
-       series 2: ampere/results/20261017-1953_step1_probe, Modal app from 17/10/2026 17:53:02 to 18:05:32 UTC, 102 ARM lines, 510 rounds: at least 680 s of work -> surely running from 17:54:13 to 18:04:22
-       -> running together at least from 17:54:13 to 18:03:56 (583 s): TWO DIFFERENT CARDS
-step2  series 1: ampere/results/20261017-2013_step2_probe, Modal app from 17/10/2026 18:13:10 to 18:22:16 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 18:14:44 to 18:20:43
-       series 2: ampere/results/20261017-2014_step2_probe, Modal app from 17/10/2026 18:14:03 to 18:22:27 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 18:14:55 to 18:21:36
-       -> running together at least from 18:14:55 to 18:20:43 (348 s): TWO DIFFERENT CARDS
-step3  series 1: ampere/results/20261017-1917_step3_probe, Modal app from 17/10/2026 17:17:45 to 17:26:09 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 17:18:37 to 17:25:18
-       series 2: ampere/results/20261017-1918_step3_probe, Modal app from 17/10/2026 17:18:03 to 17:26:33 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 17:19:01 to 17:25:36
-       -> running together at least from 17:19:01 to 17:25:18 (377 s): TWO DIFFERENT CARDS
-step4  series 1: ampere/results/20261017-1917_step4_probe, Modal app from 17/10/2026 17:17:45 to 17:28:31 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 17:20:59 to 17:25:18
-       series 2: ampere/results/20261017-1918_step4_probe, Modal app from 17/10/2026 17:18:03 to 17:26:34 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 17:19:02 to 17:25:36
-       -> running together at least from 17:20:59 to 17:25:18 (259 s): TWO DIFFERENT CARDS
-step5  series 1: ampere/results/20261017-1952_step5_probe, Modal app from 17/10/2026 17:52:36 to 18:01:16 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 17:53:44 to 18:00:09
-       series 2: ampere/results/20261017-1953_step5_probe, Modal app from 17/10/2026 17:53:02 to 18:01:30 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 17:53:58 to 18:00:35
-       -> running together at least from 17:53:58 to 18:00:09 (371 s): TWO DIFFERENT CARDS
-step6  series 1: ampere/results/20261017-1917_step6_probe, Modal app from 17/10/2026 17:17:45 to 17:30:00 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 17:20:35 to 17:27:11
-       series 2: ampere/results/20261017-1918_step6_probe, Modal app from 17/10/2026 17:18:04 to 17:28:42 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 17:19:17 to 17:27:30
-       -> running together at least from 17:20:35 to 17:27:11 (397 s): TWO DIFFERENT CARDS
-step7  series 1: ampere/results/20261017-2013_step7_probe, Modal app from 17/10/2026 18:13:10 to 18:26:23 UTC, 102 ARM lines, 510 rounds: at least 680 s of work -> surely running from 18:15:04 to 18:24:30
-       series 2: ampere/results/20261017-2014_step7_probe, Modal app from 17/10/2026 18:14:03 to 18:26:44 UTC, 102 ARM lines, 510 rounds: at least 680 s of work -> surely running from 18:15:25 to 18:25:23
-       -> running together at least from 18:15:25 to 18:24:30 (545 s): TWO DIFFERENT CARDS
+step1  series 1: ampere/results/20261026-1733_step1_probe, Modal app from 26/10/2026 16:33:29 to 16:46:34 UTC, 102 ARM lines, 510 rounds: at least 680 s of work -> surely running from 16:35:15 to 16:44:49
+       series 2: ampere/results/20261026-1734_step1_probe, Modal app from 26/10/2026 16:34:02 to 16:46:36 UTC, 102 ARM lines, 510 rounds: at least 680 s of work -> surely running from 16:35:17 to 16:45:22
+       -> running together at least from 16:35:17 to 16:44:49 (572 s): TWO DIFFERENT CARDS
+step2  series 1: ampere/results/20261026-1747_step2_probe, Modal app from 26/10/2026 16:47:02 to 16:55:29 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 16:47:57 to 16:54:35
+       series 2: ampere/results/20261026-1748_step2_probe, Modal app from 26/10/2026 16:48:02 to 16:56:28 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 16:48:56 to 16:55:35
+       -> running together at least from 16:48:56 to 16:54:35 (339 s): TWO DIFFERENT CARDS
+step3  series 1: ampere/results/20261026-1756_step3_probe, Modal app from 26/10/2026 16:56:39 to 17:05:12 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 16:57:40 to 17:04:12
+       series 2: ampere/results/20261026-1757_step3_probe, Modal app from 26/10/2026 16:57:02 to 17:05:32 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 16:58:00 to 17:04:35
+       -> running together at least from 16:58:00 to 17:04:12 (372 s): TWO DIFFERENT CARDS
+step4  series 1: ampere/results/20261026-1718_step4_probe, Modal app from 26/10/2026 16:18:37 to 16:26:58 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 16:19:26 to 16:26:10
+       series 2: ampere/results/20261026-1719_step4_probe, Modal app from 26/10/2026 16:19:02 to 16:27:28 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 16:19:56 to 16:26:35
+       -> running together at least from 16:19:56 to 16:26:10 (374 s): TWO DIFFERENT CARDS
+step5  series 1: ampere/results/20261026-1646_step5_probe, Modal app from 26/10/2026 15:46:32 to 15:55:43 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 15:48:11 to 15:54:05
+       series 2: ampere/results/20261026-1647_step5_probe, Modal app from 26/10/2026 15:47:03 to 15:56:36 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 15:49:04 to 15:54:36
+       -> running together at least from 15:49:04 to 15:54:05 (301 s): TWO DIFFERENT CARDS
+step6  series 1: ampere/results/20261026-1805_step6_probe, Modal app from 26/10/2026 17:05:43 to 17:16:17 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 17:06:52 to 17:15:09
+       series 2: ampere/results/20261026-1806_step6_probe, Modal app from 26/10/2026 17:06:02 to 17:16:27 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 17:07:02 to 17:15:28
+       -> running together at least from 17:07:02 to 17:15:09 (488 s): TWO DIFFERENT CARDS
+step7  series 1: ampere/results/20261026-1646_step7_probe, Modal app from 26/10/2026 15:46:32 to 16:12:11 UTC, 170 ARM lines, 850 rounds: at least 1133 s of work -> surely running from 15:53:19 to 16:05:25
+       series 2: ampere/results/20261026-1647_step7_probe, Modal app from 26/10/2026 15:47:03 to 16:08:02 UTC, 170 ARM lines, 850 rounds: at least 1133 s of work -> surely running from 15:49:10 to 16:05:56
+       -> running together at least from 15:53:19 to 16:05:25 (726 s): TWO DIFFERENT CARDS
 TWO DIFFERENT CARDS AT THE 7 STEPS: at each step, the two containers that decide ran at the same time; nothing is said about the hosts

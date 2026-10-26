@@ -37,7 +37,7 @@
 
 namespace step5 {
 
-// ---------------------------------------------------------------- step 5: the issue
+// ---------------------------------------------------------- step 5: fragment double buffering, a serpentine HMMA order
 // Two mechanisms on the issue side, on step 4 (step4.cuh, v0: three stages of K64, its stores of C and its groups of
 // rows of tiles), whose rest is kept; neither changes the sums (the same C to the bit). CUTLASS's public loop for sm_80
 // has both (CUTLASS v4.4.1, include/cutlass/gemm/threadblock/mma_multistage.h and
@@ -51,6 +51,8 @@ namespace step5 {
 //      operand of two registers (a half of a fragment of B) runs in a serpentine: backwards for every other fragment of
 //      A, so that consecutive HMMA share one of their operands and the operand reuse cache can keep it. CUTLASS's
 //      warp-level loop visits its fragments in a serpentine too.
+// The counts below are read with nvcc 13.2 (a local compilation); the measured binaries are built by nvcc 13.1.1 (the
+// Modal images).
 // Compiled (nvcc 13.2, sm_80): 5a at 250 registers (step 4: 240), without 5a 236, no spill; one block per SM. Main
 // loop, per K64 and per warp (static counts): 5a 270 instructions (128 HMMA, 32 LDSM.x4, 12 LDGSTS, one barrier), no
 // branch but the loop's own (the issue of the last slices predicated); without 5a, step 4's 256. HMMA carrying a
