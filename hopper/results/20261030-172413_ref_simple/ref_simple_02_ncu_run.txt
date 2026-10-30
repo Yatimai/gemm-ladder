@@ -1,0 +1,11 @@
+kernels profiled: 2
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 214 (/tmp/s/verif_ref_simple)
+==WARNING== Unable to access the following 6 metrics: ctc__rx_bytes_data_user.sum, ctc__rx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__rx_bytes_data_user.sum.per_second, ctc__tx_bytes_data_user.sum, ctc__tx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__tx_bytes_data_user.sum.per_second.
+
+
+==PROF== Profiling "simple_wmma_gemm" - 0: 0%....50%....100% - 39 passes
+==PROF== Profiling "nvjet_sm90_hsh_256x128_64x4_1..." - 1: 0%....50%....100% - 39 passes
+once: done (cuBLASLt configuration given)
+==PROF== Disconnected from process 214
+==PROF== Report: /tmp/s/ref_simple_ncu.ncu-rep

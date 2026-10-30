@@ -1,0 +1,140 @@
+build: rc 0
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_Z4fillP6__halfmj' for 'sm_90a'
+ptxas info    : Function properties for _Z4fillP6__halfmj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 12 registers, used 0 barriers
+ptxas info    : Compile time = 3.485 ms
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_ZN13nvidia_sample12compute_gemmEPK6__halfS2_PS0_iii' for 'sm_90a'
+ptxas info    : Function properties for _ZN13nvidia_sample12compute_gemmEPK6__halfS2_PS0_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 128 registers, used 1 barriers
+ptxas info    : Compile time = 79.860 ms
+ptxas info    : Compiling entry function '_ZN13nvidia_sample16simple_wmma_gemmEPK6__halfS2_PS0_iii' for 'sm_90a'
+ptxas info    : Function properties for _ZN13nvidia_sample16simple_wmma_gemmEPK6__halfS2_PS0_iii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 32 registers, used 0 barriers
+ptxas info    : Compile time = 12.218 ms
+
+== plain run: rc 0
+shape 16 x 256 x 64: max error / max |ref| = 2.80e-04
+shape 144 x 256 x 64: max error / max |ref| = 3.03e-04
+shape 128 x 512 x 128: max error / max |ref| = 2.34e-04
+shape 208 x 512 x 192: max error / max |ref| = 3.35e-04
+shape 272 x 5376 x 128: max error / max |ref| = 3.96e-04
+shape 1168 x 512 x 64: max error / max |ref| = 2.83e-04
+shape 144 x 512 x 256: max error / max |ref| = 3.34e-04
+shape 16 x 1024 x 1024: max error / max |ref| = 3.36e-04
+shape 16 x 6144 x 128: max error / max |ref| = 2.32e-04
+shape 144 x 512 x 320: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 832: max error / max |ref| = 3.57e-04
+shape 2064 x 6656 x 320: max error / max |ref| = 3.26e-04
+shape 16 x 8704 x 64: max error / max |ref| = 3.29e-04
+shape 16 x 50944 x 64: max error / max |ref| = 2.95e-04
+shape 48 x 4096 x 128: max error / max |ref| = 3.02e-04
+shape 128 x 8448 x 128: max error / max |ref| = 4.23e-04
+shape 128 x 8704 x 128: max error / max |ref| = 3.96e-04
+shape 128 x 17152 x 64: max error / max |ref| = 2.70e-04
+shape 4224 x 2304 x 64: max error / max |ref| = 2.48e-04
+shape 1536 x 10496 x 320: max error / max |ref| = 2.39e-04
+shape 80 x 4096 x 640: max error / max |ref| = 3.98e-04
+shape 112 x 10240 x 448: max error / max |ref| = 4.03e-04
+shape 3344 x 1536 x 320: max error / max |ref| = 2.49e-04
+shape 512 x 10240 x 320: max error / max |ref| = 2.50e-04
+shape 16 x 28672 x 448: max error / max |ref| = 3.15e-04
+shape 16 x 65536 x 448: max error / max |ref| = 2.56e-04
+OK (tolerance 2e-3)
+== memcheck: rc 0
+========= COMPUTE-SANITIZER
+shape 16 x 256 x 64: max error / max |ref| = 2.80e-04
+shape 144 x 256 x 64: max error / max |ref| = 3.03e-04
+shape 128 x 512 x 128: max error / max |ref| = 2.34e-04
+shape 208 x 512 x 192: max error / max |ref| = 3.35e-04
+shape 272 x 5376 x 128: max error / max |ref| = 3.96e-04
+shape 1168 x 512 x 64: max error / max |ref| = 2.83e-04
+shape 144 x 512 x 256: max error / max |ref| = 3.34e-04
+shape 16 x 1024 x 1024: max error / max |ref| = 3.36e-04
+shape 16 x 6144 x 128: max error / max |ref| = 2.32e-04
+shape 144 x 512 x 320: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 832: max error / max |ref| = 3.57e-04
+shape 2064 x 6656 x 320: max error / max |ref| = 3.26e-04
+shape 16 x 8704 x 64: max error / max |ref| = 3.29e-04
+shape 16 x 50944 x 64: max error / max |ref| = 2.95e-04
+shape 48 x 4096 x 128: max error / max |ref| = 3.02e-04
+shape 128 x 8448 x 128: max error / max |ref| = 4.23e-04
+shape 128 x 8704 x 128: max error / max |ref| = 3.96e-04
+shape 128 x 17152 x 64: max error / max |ref| = 2.70e-04
+shape 4224 x 2304 x 64: max error / max |ref| = 2.48e-04
+shape 1536 x 10496 x 320: max error / max |ref| = 2.39e-04
+shape 80 x 4096 x 640: max error / max |ref| = 3.98e-04
+shape 112 x 10240 x 448: max error / max |ref| = 4.03e-04
+shape 3344 x 1536 x 320: max error / max |ref| = 2.49e-04
+shape 512 x 10240 x 320: max error / max |ref| = 2.50e-04
+shape 16 x 28672 x 448: max error / max |ref| = 3.15e-04
+shape 16 x 65536 x 448: max error / max |ref| = 2.56e-04
+OK (tolerance 2e-3)
+========= ERROR SUMMARY: 0 errors
+
+== racecheck: rc 0
+========= COMPUTE-SANITIZER
+shape 16 x 256 x 64: max error / max |ref| = 2.80e-04
+shape 144 x 256 x 64: max error / max |ref| = 3.03e-04
+shape 128 x 512 x 128: max error / max |ref| = 2.34e-04
+shape 208 x 512 x 192: max error / max |ref| = 3.35e-04
+shape 272 x 5376 x 128: max error / max |ref| = 3.96e-04
+shape 1168 x 512 x 64: max error / max |ref| = 2.83e-04
+shape 144 x 512 x 256: max error / max |ref| = 3.34e-04
+shape 16 x 1024 x 1024: max error / max |ref| = 3.36e-04
+shape 16 x 6144 x 128: max error / max |ref| = 2.32e-04
+shape 144 x 512 x 320: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 832: max error / max |ref| = 3.57e-04
+shape 2064 x 6656 x 320: max error / max |ref| = 3.26e-04
+shape 16 x 8704 x 64: max error / max |ref| = 3.29e-04
+shape 16 x 50944 x 64: max error / max |ref| = 2.95e-04
+shape 48 x 4096 x 128: max error / max |ref| = 3.02e-04
+shape 128 x 8448 x 128: max error / max |ref| = 4.23e-04
+shape 128 x 8704 x 128: max error / max |ref| = 3.96e-04
+shape 128 x 17152 x 64: max error / max |ref| = 2.70e-04
+shape 4224 x 2304 x 64: max error / max |ref| = 2.48e-04
+shape 1536 x 10496 x 320: max error / max |ref| = 2.39e-04
+shape 80 x 4096 x 640: max error / max |ref| = 3.98e-04
+shape 112 x 10240 x 448: max error / max |ref| = 4.03e-04
+shape 3344 x 1536 x 320: max error / max |ref| = 2.49e-04
+shape 512 x 10240 x 320: max error / max |ref| = 2.50e-04
+shape 16 x 28672 x 448: max error / max |ref| = 3.15e-04
+shape 16 x 65536 x 448: max error / max |ref| = 2.56e-04
+OK (tolerance 2e-3)
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+
+== synccheck: rc 0
+========= COMPUTE-SANITIZER
+shape 16 x 256 x 64: max error / max |ref| = 2.80e-04
+shape 144 x 256 x 64: max error / max |ref| = 3.03e-04
+shape 128 x 512 x 128: max error / max |ref| = 2.34e-04
+shape 208 x 512 x 192: max error / max |ref| = 3.35e-04
+shape 272 x 5376 x 128: max error / max |ref| = 3.96e-04
+shape 1168 x 512 x 64: max error / max |ref| = 2.83e-04
+shape 144 x 512 x 256: max error / max |ref| = 3.34e-04
+shape 16 x 1024 x 1024: max error / max |ref| = 3.36e-04
+shape 16 x 6144 x 128: max error / max |ref| = 2.32e-04
+shape 144 x 512 x 320: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 832: max error / max |ref| = 3.57e-04
+shape 2064 x 6656 x 320: max error / max |ref| = 3.26e-04
+shape 16 x 8704 x 64: max error / max |ref| = 3.29e-04
+shape 16 x 50944 x 64: max error / max |ref| = 2.95e-04
+shape 48 x 4096 x 128: max error / max |ref| = 3.02e-04
+shape 128 x 8448 x 128: max error / max |ref| = 4.23e-04
+shape 128 x 8704 x 128: max error / max |ref| = 3.96e-04
+shape 128 x 17152 x 64: max error / max |ref| = 2.70e-04
+shape 4224 x 2304 x 64: max error / max |ref| = 2.48e-04
+shape 1536 x 10496 x 320: max error / max |ref| = 2.39e-04
+shape 80 x 4096 x 640: max error / max |ref| = 3.98e-04
+shape 112 x 10240 x 448: max error / max |ref| = 4.03e-04
+shape 3344 x 1536 x 320: max error / max |ref| = 2.49e-04
+shape 512 x 10240 x 320: max error / max |ref| = 2.50e-04
+shape 16 x 28672 x 448: max error / max |ref| = 3.15e-04
+shape 16 x 65536 x 448: max error / max |ref| = 2.56e-04
+OK (tolerance 2e-3)
+========= ERROR SUMMARY: 0 errors
+

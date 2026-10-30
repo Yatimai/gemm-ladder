@@ -1,0 +1,1232 @@
+build: rc 0
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_Z4fillP6__halfmj' for 'sm_90a'
+ptxas info    : Function properties for _Z4fillP6__halfmj
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 12 registers, used 0 barriers
+ptxas info    : Compile time = 3.591 ms
+ptxas info    : 0 bytes gmem
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 282.518 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 61.995 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi128ELi2ELi6ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi128ELi2ELi6ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 154 registers, used 2 barriers
+ptxas info    : Compile time = 147.567 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 63.517 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 28.439 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi7ELi3ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi7ELi3ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 82 registers, used 2 barriers
+ptxas info    : Compile time = 26.982 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 24.200 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi5ELi5ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi5ELi5ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 66 registers, used 2 barriers
+ptxas info    : Compile time = 24.088 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 40.111 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 36.270 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi3ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi3ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 50 registers, used 2 barriers
+ptxas info    : Compile time = 33.015 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 31.199 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 35.860 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 28.616 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi1ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi1ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 34 registers, used 2 barriers
+ptxas info    : Compile time = 30.745 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 34.759 ms
+ptxas info    : Compiling entry function '_ZN5step75gemm5ILb0ELb1ELb1ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75gemm5ILb0ELb1ELb1ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 227.515 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi256ELi4ELN5step64PairE0ELi232ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi256ELi4ELN5step64PairE0ELi232ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 208.078 ms
+ptxas info    : Compiling entry function '_ZN5step79gemm_rowsILi128ELi256ELi4ELi232ELb0ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step79gemm_rowsILi128ELi256ELi4ELi232ELb0ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 203.221 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi320ELi3ELN5step64PairE0ELi232ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi320ELi3ELN5step64PairE0ELi232ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 280.611 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 285.870 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi128ELi6ELN5step64PairE0ELi0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi128ELi6ELN5step64PairE0ELi0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 77.351 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi64ELi128ELi8ELN5step64PairE0ELi0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi64ELi128ELi8ELN5step64PairE0ELi0ELb0ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 47.780 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb0ELb1ELb1ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 61.360 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 53.271 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 28.200 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 26.138 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 29.679 ms
+ptxas info    : Compiling entry function '_ZN5step75gemm5ILb1ELb1ELb0ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75gemm5ILb1ELb1ELb0ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 196.898 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 255.617 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 46.471 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 53.627 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 31.146 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 24.609 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 21.290 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb1ELb1ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 27.603 ms
+ptxas info    : Compiling entry function '_ZN5step75gemm5ILb1ELb0ELb0ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75gemm5ILb1ELb0ELb0ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 188.800 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi256ELi4ELN5step64PairE0ELi232ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi256ELi4ELN5step64PairE0ELi232ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 176.055 ms
+ptxas info    : Compiling entry function '_ZN5step79gemm_rowsILi128ELi256ELi4ELi232ELb1ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step79gemm_rowsILi128ELi256ELi4ELi232ELb1ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 184.417 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi320ELi3ELN5step64PairE0ELi232ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi320ELi3ELN5step64PairE0ELi232ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 246.421 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 250.103 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi128ELi6ELN5step64PairE0ELi0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi128ELi6ELN5step64PairE0ELi0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 69.717 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi64ELi128ELi8ELN5step64PairE0ELi0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi64ELi128ELi8ELN5step64PairE0ELi0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 47.181 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 45.998 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi128ELi2ELi6ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi128ELi2ELi6ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 154 registers, used 2 barriers
+ptxas info    : Compile time = 139.752 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 56.066 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 27.536 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi7ELi3ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi7ELi3ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 82 registers, used 2 barriers
+ptxas info    : Compile time = 26.981 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 24.250 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi5ELi5ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi5ELi5ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 66 registers, used 2 barriers
+ptxas info    : Compile time = 22.916 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 35.760 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 28.712 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi3ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi3ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 50 registers, used 2 barriers
+ptxas info    : Compile time = 30.924 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 23.969 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 30.680 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 33.952 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi1ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi1ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 34 registers, used 2 barriers
+ptxas info    : Compile time = 30.480 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb1ELb0ELb0ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 29.791 ms
+ptxas info    : Compiling entry function '_ZN5step75gemm5ILb1ELb1ELb1ELb0EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75gemm5ILb1ELb1ELb1ELb0EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 206.131 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi256ELi4ELN5step64PairE0ELi232ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi256ELi4ELN5step64PairE0ELi232ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 197.616 ms
+ptxas info    : Compiling entry function '_ZN5step79gemm_rowsILi128ELi256ELi4ELi232ELb1ELb0EEEv14CUtensorMap_stS1_S1_P6__halfiiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step79gemm_rowsILi128ELi256ELi4ELi232ELb1ELb0EEEv14CUtensorMap_stS1_S1_P6__halfiiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 190.932 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi320ELi3ELN5step64PairE0ELi232ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi320ELi3ELN5step64PairE0ELi232ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 116.326 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 124.249 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi128ELi6ELN5step64PairE0ELi0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi128ELi6ELN5step64PairE0ELi0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 43.404 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi64ELi128ELi8ELN5step64PairE0ELi0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi64ELi128ELi8ELN5step64PairE0ELi0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 43.566 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 53.521 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi128ELi2ELi6ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi128ELi2ELi6ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 154 registers, used 2 barriers
+ptxas info    : Compile time = 136.692 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 58.866 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 31.252 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi7ELi3ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi7ELi3ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 82 registers, used 2 barriers
+ptxas info    : Compile time = 26.515 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 24.939 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi5ELi5ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi5ELi5ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 66 registers, used 2 barriers
+ptxas info    : Compile time = 25.323 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 40.307 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 36.049 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi3ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi3ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 50 registers, used 2 barriers
+ptxas info    : Compile time = 36.045 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 31.897 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 35.930 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 25.801 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi1ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi1ELi8ELNS_4ModeE0ELb1ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 34 registers, used 2 barriers
+ptxas info    : Compile time = 31.647 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb1ELb1ELb1ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 30.451 ms
+ptxas info    : Compiling entry function '_ZN5step75gemm5ILb0ELb0ELb0ELb0EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75gemm5ILb0ELb0ELb0ELb0EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 214.127 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi256ELi4ELN5step64PairE0ELi232ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi256ELi4ELN5step64PairE0ELi232ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 219.674 ms
+ptxas info    : Compiling entry function '_ZN5step79gemm_rowsILi128ELi256ELi4ELi232ELb0ELb0EEEv14CUtensorMap_stS1_S1_P6__halfiiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step79gemm_rowsILi128ELi256ELi4ELi232ELb0ELb0EEEv14CUtensorMap_stS1_S1_P6__halfiiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 210.753 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi320ELi3ELN5step64PairE0ELi232ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi320ELi3ELN5step64PairE0ELi232ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 139.290 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi320ELi3ELN5step64PairE1ELi232ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 131.133 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi128ELi128ELi6ELN5step64PairE0ELi0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi128ELi128ELi6ELN5step64PairE0ELi0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 43.445 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi64ELi128ELi8ELN5step64PairE0ELi0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi64ELi128ELi8ELN5step64PairE0ELi0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 43.662 ms
+ptxas info    : Compiling entry function '_ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step74gemmILi64ELi128ELi8ELN5step64PairE1ELi0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS3_S3_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 47.003 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi128ELi2ELi6ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi128ELi2ELi6ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 154 registers, used 2 barriers
+ptxas info    : Compile time = 131.511 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi64ELi2ELi8ELNS_4ModeE2ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 56.728 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 26.992 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi7ELi3ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi7ELi3ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 82 registers, used 2 barriers
+ptxas info    : Compile time = 26.861 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 26.072 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi5ELi5ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi5ELi5ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 66 registers, used 2 barriers
+ptxas info    : Compile time = 23.713 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 37.498 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 27.249 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi3ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi3ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 50 registers, used 2 barriers
+ptxas info    : Compile time = 31.257 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi6ELi4ELNS_4ModeE1ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 22.479 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 32.264 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi4ELi6ELNS_4ModeE1ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 30.492 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi1ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi1ELi8ELNS_4ModeE0ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 34 registers, used 2 barriers
+ptxas info    : Compile time = 29.357 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi2ELi8ELNS_4ModeE1ELb0ELb0ELb0ELb0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 28.388 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi128ELi2ELi6ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi128ELi2ELi6ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 154 registers, used 2 barriers
+ptxas info    : Compile time = 53.159 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi64ELi2ELi8ELNS_4ModeE2EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi64ELi2ELi8ELNS_4ModeE2EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 21.062 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi8ELi3ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi8ELi3ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 21.507 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi7ELi3ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi7ELi3ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 82 registers, used 2 barriers
+ptxas info    : Compile time = 19.325 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi6ELi4ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi6ELi4ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 17.878 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi5ELi5ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi5ELi5ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 66 registers, used 2 barriers
+ptxas info    : Compile time = 15.700 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi4ELi6ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi4ELi6ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 14.172 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi8ELi3ELNS_4ModeE1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi8ELi3ELNS_4ModeE1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 22.168 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi3ELi8ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi3ELi8ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 50 registers, used 2 barriers
+ptxas info    : Compile time = 12.603 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi6ELi4ELNS_4ModeE1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi6ELi4ELNS_4ModeE1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 17.913 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi2ELi8ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi2ELi8ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 11.549 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi4ELi6ELNS_4ModeE1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi4ELi6ELNS_4ModeE1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 15.142 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi1ELi8ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi1ELi8ELNS_4ModeE0EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 34 registers, used 2 barriers
+ptxas info    : Compile time = 18.283 ms
+ptxas info    : Compiling entry function '_ZN5step713bands_norolesILi16ELi2ELi8ELNS_4ModeE1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step713bands_norolesILi16ELi2ELi8ELNS_4ModeE1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 11.655 ms
+ptxas info    : Compiling entry function '_ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75bandsILi16ELi8ELi3ELNS_4ModeE1ELb1ELb1ELb1ELb1EEEv14CUtensorMap_stS2_S2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 32.528 ms
+ptxas info    : Compiling entry function '_ZN5step75gemm5ILb1ELb1ELb1ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step75gemm5ILb1ELb1ELb1ELb1EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 168 registers, used 16 barriers
+ptxas info    : Compile time = 194.991 ms
+ptxas info    : Compiling entry function '_ZN5step717gemm_rows_norolesILi128ELi256ELi4EEEv14CUtensorMap_stS1_P6__halfiiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step717gemm_rows_norolesILi128ELi256ELi4EEEv14CUtensorMap_stS1_P6__halfiiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 198 registers, used 16 barriers
+ptxas info    : Compile time = 87.727 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi128ELi320ELi3ELNS_4PairE0ELb1EEEv14CUtensorMap_stS2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step64gemmILi128ELi320ELi3ELNS_4PairE0ELb1EEEv14CUtensorMap_stS2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 215 registers, used 16 barriers
+ptxas info    : Compile time = 124.071 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi128ELi320ELi3ELNS_4PairE1ELb1EEEv14CUtensorMap_stS2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step64gemmILi128ELi320ELi3ELNS_4PairE1ELb1EEEv14CUtensorMap_stS2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 204 registers, used 16 barriers
+ptxas info    : Compile time = 125.153 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi128ELi256ELi4ELNS_4PairE0ELb1EEEv14CUtensorMap_stS2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step64gemmILi128ELi256ELi4ELNS_4PairE0ELb1EEEv14CUtensorMap_stS2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 198 registers, used 16 barriers
+ptxas info    : Compile time = 86.472 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi128ELi128ELi6ELNS_4PairE0ELb1EEEv14CUtensorMap_stS2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step64gemmILi128ELi128ELi6ELNS_4PairE0ELb1EEEv14CUtensorMap_stS2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 131 registers, used 16 barriers
+ptxas info    : Compile time = 39.533 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi64ELi128ELi8ELNS_4PairE0ELb1EEEv14CUtensorMap_stS2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step64gemmILi64ELi128ELi8ELNS_4PairE0ELb1EEEv14CUtensorMap_stS2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 94 registers, used 16 barriers
+ptxas info    : Compile time = 29.388 ms
+ptxas info    : Compiling entry function '_ZN5step64gemmILi64ELi128ELi8ELNS_4PairE1ELb1EEEv14CUtensorMap_stS2_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step64gemmILi64ELi128ELi8ELNS_4PairE1ELb1EEEv14CUtensorMap_stS2_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 86 registers, used 16 barriers
+ptxas info    : Compile time = 30.299 ms
+ptxas info    : Compiling entry function '_ZN5step65bandsILi8ELi3EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step65bandsILi8ELi3EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 90 registers, used 2 barriers
+ptxas info    : Compile time = 20.894 ms
+ptxas info    : Compiling entry function '_ZN5step65bandsILi7ELi3EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step65bandsILi7ELi3EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 82 registers, used 2 barriers
+ptxas info    : Compile time = 18.455 ms
+ptxas info    : Compiling entry function '_ZN5step65bandsILi6ELi4EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step65bandsILi6ELi4EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 74 registers, used 2 barriers
+ptxas info    : Compile time = 16.198 ms
+ptxas info    : Compiling entry function '_ZN5step65bandsILi5ELi5EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step65bandsILi5ELi5EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 66 registers, used 2 barriers
+ptxas info    : Compile time = 15.077 ms
+ptxas info    : Compiling entry function '_ZN5step65bandsILi4ELi6EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step65bandsILi4ELi6EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 58 registers, used 2 barriers
+ptxas info    : Compile time = 13.676 ms
+ptxas info    : Compiling entry function '_ZN5step65bandsILi3ELi8EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step65bandsILi3ELi8EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 50 registers, used 2 barriers
+ptxas info    : Compile time = 12.521 ms
+ptxas info    : Compiling entry function '_ZN5step65bandsILi2ELi8EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step65bandsILi2ELi8EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 42 registers, used 2 barriers
+ptxas info    : Compile time = 11.660 ms
+ptxas info    : Compiling entry function '_ZN5step65bandsILi1ELi8EEEv14CUtensorMap_stS1_S1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step65bandsILi1ELi8EEEv14CUtensorMap_stS1_S1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 34 registers, used 2 barriers
+ptxas info    : Compile time = 16.933 ms
+ptxas info    : Compiling entry function '_ZN5step54gemmILb1ELb1EEEv14CUtensorMap_stS1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step54gemmILb1ELb1EEEv14CUtensorMap_stS1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 167 registers, used 16 barriers
+ptxas info    : Compile time = 96.008 ms
+ptxas info    : Compiling entry function '_ZN5step54gemmILb0ELb1EEEv14CUtensorMap_stS1_P6__halfiii' for 'sm_90a'
+ptxas info    : Function properties for _ZN5step54gemmILb0ELb1EEEv14CUtensorMap_stS1_P6__halfiii
+    0 bytes stack frame, 0 bytes spill stores, 0 bytes spill loads
+ptxas info    : Used 167 registers, used 16 barriers
+ptxas info    : Compile time = 97.150 ms
+
+== plain run: rc 0
+shape 16 x 256 x 64, v0: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v1: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v2: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v3: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v4: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v5: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v6: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v7: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v8: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v9: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v10: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v11: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v12: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v13: max error / max |ref| = 2.80e-04
+shape 16 x 256 x 64, v14: max error / max |ref| = 2.80e-04
+shape 144 x 256 x 64, v0: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v1: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v2: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v3: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v4: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v5: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v6: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v7: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v8: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v9: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v10: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v11: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v12: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v13: max error / max |ref| = 3.03e-04
+shape 144 x 256 x 64, v14: max error / max |ref| = 3.03e-04
+shape 128 x 512 x 128, v0: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v1: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v2: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v3: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v4: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v5: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v6: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v7: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v8: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v9: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v10: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v11: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v12: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v13: max error / max |ref| = 2.34e-04
+shape 128 x 512 x 128, v14: max error / max |ref| = 2.34e-04
+shape 208 x 512 x 192, v0: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v1: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v2: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v3: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v4: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v5: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v6: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v7: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v8: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v9: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v10: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v11: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v12: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v13: max error / max |ref| = 3.35e-04
+shape 208 x 512 x 192, v14: max error / max |ref| = 3.35e-04
+shape 272 x 5376 x 128, v0: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v1: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v2: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v3: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v4: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v5: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v6: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v7: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v8: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v9: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v10: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v11: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v12: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v13: max error / max |ref| = 3.96e-04
+shape 272 x 5376 x 128, v14: max error / max |ref| = 3.96e-04
+shape 1168 x 512 x 64, v0: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v1: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v2: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v3: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v4: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v5: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v6: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v7: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v8: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v9: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v10: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v11: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v12: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v13: max error / max |ref| = 2.83e-04
+shape 1168 x 512 x 64, v14: max error / max |ref| = 2.83e-04
+shape 144 x 512 x 256, v0: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v1: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v2: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v3: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v4: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v5: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v6: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v7: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v8: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v9: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v10: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v11: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v12: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v13: max error / max |ref| = 3.34e-04
+shape 144 x 512 x 256, v14: max error / max |ref| = 3.34e-04
+shape 16 x 1024 x 1024, v0: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v1: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v2: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v3: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v4: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v5: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v6: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v7: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v8: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v9: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v10: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v11: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v12: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v13: max error / max |ref| = 3.36e-04
+shape 16 x 1024 x 1024, v14: max error / max |ref| = 3.36e-04
+shape 16 x 6144 x 128, v0: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v1: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v2: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v3: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v4: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v5: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v6: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v7: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v8: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v9: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v10: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v11: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v12: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v13: max error / max |ref| = 2.32e-04
+shape 16 x 6144 x 128, v14: max error / max |ref| = 2.32e-04
+shape 144 x 512 x 320, v0: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v1: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v2: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v3: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v4: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v5: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v6: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v7: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v8: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v9: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v10: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v11: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v12: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v13: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 320, v14: max error / max |ref| = 2.87e-04
+shape 144 x 512 x 832, v0: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v1: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v2: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v3: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v4: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v5: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v6: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v7: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v8: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v9: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v10: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v11: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v12: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v13: max error / max |ref| = 3.57e-04
+shape 144 x 512 x 832, v14: max error / max |ref| = 3.57e-04
+shape 2064 x 6656 x 320, v0: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v1: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v2: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v3: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v4: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v5: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v6: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v7: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v8: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v9: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v10: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v11: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v12: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v13: max error / max |ref| = 3.26e-04
+shape 2064 x 6656 x 320, v14: max error / max |ref| = 3.26e-04
+shape 16 x 8704 x 64, v0: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v1: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v2: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v3: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v4: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v5: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v6: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v7: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v8: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v9: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v10: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v11: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v12: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v13: max error / max |ref| = 3.29e-04
+shape 16 x 8704 x 64, v14: max error / max |ref| = 3.29e-04
+shape 16 x 50944 x 64, v0: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v1: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v2: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v3: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v4: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v5: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v6: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v7: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v8: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v9: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v10: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v11: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v12: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v13: max error / max |ref| = 2.95e-04
+shape 16 x 50944 x 64, v14: max error / max |ref| = 2.95e-04
+shape 48 x 4096 x 128, v0: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v1: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v2: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v3: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v4: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v5: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v6: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v7: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v8: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v9: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v10: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v11: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v12: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v13: max error / max |ref| = 3.02e-04
+shape 48 x 4096 x 128, v14: max error / max |ref| = 3.02e-04
+shape 128 x 8448 x 128, v0: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v1: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v2: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v3: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v4: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v5: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v6: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v7: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v8: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v9: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v10: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v11: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v12: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v13: max error / max |ref| = 4.23e-04
+shape 128 x 8448 x 128, v14: max error / max |ref| = 4.23e-04
+shape 128 x 8704 x 128, v0: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v1: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v2: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v3: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v4: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v5: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v6: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v7: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v8: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v9: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v10: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v11: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v12: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v13: max error / max |ref| = 3.96e-04
+shape 128 x 8704 x 128, v14: max error / max |ref| = 3.96e-04
+shape 128 x 17152 x 64, v0: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v1: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v2: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v3: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v4: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v5: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v6: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v7: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v8: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v9: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v10: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v11: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v12: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v13: max error / max |ref| = 2.70e-04
+shape 128 x 17152 x 64, v14: max error / max |ref| = 2.70e-04
+shape 4224 x 2304 x 64, v0: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v1: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v2: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v3: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v4: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v5: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v6: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v7: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v8: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v9: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v10: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v11: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v12: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v13: max error / max |ref| = 2.48e-04
+shape 4224 x 2304 x 64, v14: max error / max |ref| = 2.48e-04
+shape 1536 x 10496 x 320, v0: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v1: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v2: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v3: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v4: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v5: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v6: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v7: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v8: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v9: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v10: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v11: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v12: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v13: max error / max |ref| = 2.39e-04
+shape 1536 x 10496 x 320, v14: max error / max |ref| = 2.39e-04
+shape 80 x 4096 x 640, v0: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v1: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v2: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v3: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v4: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v5: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v6: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v7: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v8: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v9: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v10: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v11: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v12: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v13: max error / max |ref| = 3.98e-04
+shape 80 x 4096 x 640, v14: max error / max |ref| = 3.98e-04
+shape 112 x 10240 x 448, v0: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v1: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v2: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v3: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v4: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v5: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v6: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v7: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v8: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v9: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v10: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v11: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v12: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v13: max error / max |ref| = 4.03e-04
+shape 112 x 10240 x 448, v14: max error / max |ref| = 4.03e-04
+shape 3344 x 1536 x 320, v0: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v1: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v2: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v3: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v4: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v5: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v6: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v7: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v8: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v9: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v10: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v11: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v12: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v13: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v14: max error / max |ref| = 2.49e-04
+shape 512 x 10240 x 320, v0: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v1: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v2: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v3: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v4: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v5: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v6: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v7: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v8: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v9: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v10: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v11: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v12: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v13: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v14: max error / max |ref| = 2.50e-04
+shape 16 x 28672 x 448, v0: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v1: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v2: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v3: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v4: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v5: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v6: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v7: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v8: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v9: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v10: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v11: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v12: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v13: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v14: max error / max |ref| = 3.15e-04
+shape 16 x 65536 x 448, v0: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v1: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v2: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v3: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v4: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v5: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v6: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v7: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v8: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v9: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v10: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v11: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v12: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v13: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v14: max error / max |ref| = 2.56e-04
+OK (tolerance 2e-3)
+== memcheck: rc 0
+x 320, v12: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v13: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v14: max error / max |ref| = 2.49e-04
+shape 512 x 10240 x 320, v0: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v1: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v2: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v3: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v4: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v5: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v6: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v7: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v8: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v9: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v10: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v11: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v12: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v13: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v14: max error / max |ref| = 2.50e-04
+shape 16 x 28672 x 448, v0: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v1: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v2: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v3: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v4: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v5: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v6: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v7: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v8: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v9: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v10: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v11: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v12: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v13: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v14: max error / max |ref| = 3.15e-04
+shape 16 x 65536 x 448, v0: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v1: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v2: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v3: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v4: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v5: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v6: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v7: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v8: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v9: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v10: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v11: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v12: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v13: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v14: max error / max |ref| = 2.56e-04
+OK (tolerance 2e-3)
+========= ERROR SUMMARY: 0 errors
+
+== racecheck: rc 0
+49e-04
+shape 3344 x 1536 x 320, v13: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v14: max error / max |ref| = 2.49e-04
+shape 512 x 10240 x 320, v0: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v1: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v2: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v3: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v4: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v5: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v6: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v7: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v8: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v9: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v10: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v11: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v12: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v13: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v14: max error / max |ref| = 2.50e-04
+shape 16 x 28672 x 448, v0: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v1: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v2: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v3: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v4: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v5: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v6: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v7: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v8: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v9: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v10: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v11: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v12: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v13: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v14: max error / max |ref| = 3.15e-04
+shape 16 x 65536 x 448, v0: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v1: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v2: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v3: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v4: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v5: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v6: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v7: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v8: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v9: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v10: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v11: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v12: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v13: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v14: max error / max |ref| = 2.56e-04
+OK (tolerance 2e-3)
+========= RACECHECK SUMMARY: 0 hazards displayed (0 errors, 0 warnings)
+
+== synccheck: rc 0
+x 320, v12: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v13: max error / max |ref| = 2.49e-04
+shape 3344 x 1536 x 320, v14: max error / max |ref| = 2.49e-04
+shape 512 x 10240 x 320, v0: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v1: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v2: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v3: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v4: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v5: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v6: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v7: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v8: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v9: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v10: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v11: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v12: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v13: max error / max |ref| = 2.50e-04
+shape 512 x 10240 x 320, v14: max error / max |ref| = 2.50e-04
+shape 16 x 28672 x 448, v0: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v1: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v2: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v3: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v4: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v5: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v6: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v7: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v8: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v9: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v10: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v11: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v12: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v13: max error / max |ref| = 3.15e-04
+shape 16 x 28672 x 448, v14: max error / max |ref| = 3.15e-04
+shape 16 x 65536 x 448, v0: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v1: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v2: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v3: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v4: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v5: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v6: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v7: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v8: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v9: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v10: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v11: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v12: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v13: max error / max |ref| = 2.56e-04
+shape 16 x 65536 x 448, v14: max error / max |ref| = 2.56e-04
+OK (tolerance 2e-3)
+========= ERROR SUMMARY: 0 errors
+

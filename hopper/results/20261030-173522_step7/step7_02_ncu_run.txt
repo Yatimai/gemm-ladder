@@ -1,0 +1,25 @@
+kernels profiled: 16
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 214 (/tmp/s/verif_step7)
+==WARNING== Unable to access the following 6 metrics: ctc__rx_bytes_data_user.sum, ctc__rx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__rx_bytes_data_user.sum.per_second, ctc__tx_bytes_data_user.sum, ctc__tx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__tx_bytes_data_user.sum.per_second.
+
+
+==PROF== Profiling "gemm_rows" - 0: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows" - 1: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows" - 2: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows" - 3: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows" - 4: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows" - 5: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm" - 6: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm" - 7: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows_noroles" - 8: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows" - 9: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows" - 10: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows" - 11: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows" - 12: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows" - 13: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm_rows" - 14: 0%....50%....100% - 39 passes
+==PROF== Profiling "nvjet_sm90_hsh_256x128_64x4_1..." - 15: 0%....50%....100% - 39 passes
+once: done (cuBLASLt configuration given)
+==PROF== Disconnected from process 214
+==PROF== Report: /tmp/s/step7_ncu.ncu-rep

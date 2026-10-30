@@ -1,0 +1,482 @@
+planted-bug test: 239 bugs, each in a copy of its header, the emulator built against each copy (2 jobs, in a temporary directory)
+  passes    unmodified copy: 7041 runs: 7041 ok, 0 failed; worst error / max |ref| of the runs that passed 4.46e-04 (tolerance 2e-03)
+  reported  nvidia_sample.cuh: no barrier after the copy of a slice (the MMA reads rows other warps have not stored)
+            first failed run: step0 compute_gemm, 132 blocks 16 x 256 x 64 forward
+  reported  nvidia_sample.cuh: no barrier after the MMA of a slice (the next copy overwrites rows still being read)
+            first failed run: step0 compute_gemm, 132 blocks 16 x 256 x 64 forward
+  reported  nvidia_sample.cuh: no barrier between the epilogue's fragment stores and its copy out
+            first failed run: step0 compute_gemm, 132 blocks 16 x 256 x 64 forward
+  reported  nvidia_sample.cuh: no barrier after the epilogue's copy out (the next half tile, or tile, overwrites it)
+            first failed run: step0 compute_gemm, 132 blocks 16 x 256 x 64 forward
+  reported  nvidia_sample.cuh: no M - 1 clamp of the rows of A (edge tiles read outside A)
+            first failed run: step0 compute_gemm, 132 blocks 16 x 256 x 64 forward
+  reported  nvidia_sample.cuh: no test of the rows of C against M (edge tiles write outside C)
+            first failed run: step0 compute_gemm, 132 blocks 16 x 256 x 64 forward
+  reported  nvidia_sample.cuh: the persistent grid steps by one tile (blocks share tiles)
+            first failed run: step0 compute_gemm, 132 blocks 16 x 256 x 64 forward
+  reported  nvidia_sample.cuh: the B fragments of the second half of the warps' columns taken from the first
+            first failed run: step0 compute_gemm, 132 blocks 16 x 256 x 64 forward
+  reported  nvidia_sample.cuh: a padding of 4 halves (wmma's pitch no longer a multiple of 16 bytes)
+            first failed run: step0 compute_gemm, 132 blocks 16 x 256 x 64 forward
+  reported  nvidia_sample.cuh: the epilogue's half tiles both from rows 0 to 63 of the tile
+            first failed run: step0 compute_gemm, 132 blocks 16 x 256 x 64 forward
+  reported  step1.cuh: 1a: wait_group 2 (the stage of slice t - 1 is stored again while its group may still be in flight)
+            first failed run: step1 v0 (step 1: 1a + 1b) 144 x 512 x 256 reverse
+  reported  step1.cuh: 2d without its barrier: wait_group 1 and no barrier before the stores of slice t + 1 (the other warpgroup's group t - 1 may still read that stage)
+            first failed run: step1 v0 (step 1: 1a + 1b) 144 x 512 x 256 reverse
+  reported  step1.cuh: no barrier after the stores of slice t + 1 (the MMA may read the stage before it is complete)
+            first failed run: step1 v0 (step 1: 1a + 1b) 128 x 512 x 128 forward
+  reported  step1.cuh: no fence.proxy.async after the stores (the MMA's async proxy may not see them)
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: slice t + 1 stored into the stage being read
+            first failed run: step1 v0 (step 1: 1a + 1b) 128 x 512 x 128 forward
+  reported  step1.cuh: the last slice's group never waited before the output (the loop's wait_group 0 only before a next slice, none after the loop)
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: no barrier before the output tile overwrites the stages
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 reverse
+  reported  step1.cuh: no wgmma.fence before the MMA of a slice
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: no commit of the MMA of a slice (wait_group retires nothing)
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 reverse
+  reported  step1.cuh: the accumulators reset at each slice (scaleD 0 at the first K16 of every slice)
+            first failed run: step1 v0 (step 1: 1a + 1b) 128 x 512 x 128 forward
+  reported  step1.cuh: A's descriptor with a stride of 512 bytes between atoms of 8 rows
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: B's descriptor with a leading offset of 4 KB between boxes of 64 columns
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: B's descriptor with no swizzle
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: A stored without the swizzle (the descriptor still reads it swizzled)
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: B stored without the swizzle
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: A's descriptor advanced by 16 bytes per K16 instead of 32
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: B's descriptor advanced by 1 KB per K16 instead of 2
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: both warpgroups on rows 0 to 63 of A
+            first failed run: step1 v0 (step 1: 1a + 1b) 144 x 256 x 64 forward
+  reported  step1.cuh: B's rows of the slice taken from row k0 + r % 32
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: the output's second row of a lane 4 rows down instead of 8
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: the output's columns of a lane at 8 j + t instead of 8 j + 2 t
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: no M - 1 clamp of the rows of A (edge tiles read outside A)
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: no test of the rows of C against M (edge tiles write outside C)
+            first failed run: step1 v0 (step 1: 1a + 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: the tiles' columns at 128 per block whatever the tile (blocks share columns)
+            first failed run: step1 v0 (step 1: 1a + 1b) 128 x 512 x 128 forward
+  reported  step1.cuh: v3: A stored without the swizzle (the descriptor still reads it swizzled)
+            first failed run: step1 v3 (without 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: v3: B stored without the swizzle
+            first failed run: step1 v3 (without 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: v3: B's rows of the slice taken from row k0 + r % 32
+            first failed run: step1 v3 (without 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: v3: warps 0 to 3 copy half of A's slice (the other half left from an earlier slice)
+            first failed run: step1 v3 (without 1b) 144 x 256 x 64 forward
+  reported  step1.cuh: v3: no fence.proxy.async after the copy (the MMA's async proxy may not see it)
+            first failed run: step1 v3 (without 1b) 16 x 256 x 64 forward
+  reported  step1.cuh: v3: no M - 1 clamp of the rows of A (edge tiles read outside A)
+            first failed run: step1 v3 (without 1b) 16 x 256 x 64 forward
+  reported  step2.cuh: 2d: slice t - 1's stage released, and loaded again, before wait_group 1 retires its MMA
+            first failed run: step2 v0 (step 2: 3 stages) 144 x 512 x 256 reverse
+  reported  step2.cuh: 2a: 8 KB fewer announced than the stage's boxes (the phase completes before the last box lands)
+            first failed run: step2 v0 (step 2: 3 stages) 16 x 256 x 64 forward
+  reported  step2.cuh: 2a: 8 KB more announced than the stage's boxes (the phase never completes)
+            first failed run: step2 v0 (step 2: 3 stages) 16 x 256 x 64 forward
+  reported  step2.cuh: the wait for a full stage with the other parity (the MMA reads it before its loads land)
+            first failed run: step2 v0 (step 2: 3 stages) 16 x 256 x 64 forward
+  reported  step2.cuh: the wait for an empty stage with the other parity (a load overwrites a stage still read)
+            first failed run: step2 v0 (step 2: 3 stages) 144 x 512 x 256 reverse
+  reported  step2.cuh: no wait for the empty stage (a load may overwrite the other warpgroup's stage)
+            first failed run: step2 v0 (step 2: 3 stages) 144 x 512 x 256 reverse
+  reported  step2.cuh: the empty barrier counting one arrival (the first warpgroup to release the stage frees it)
+            first failed run: step2 v0 (step 2: 3 stages) 144 x 512 x 256 reverse
+  reported  step2.cuh: only warpgroup 0 releases stages (the empty barrier never completes)
+            first failed run: step2 v0 (step 2: 3 stages) 144 x 512 x 256 forward
+  reported  step2.cuh: 2d: the stage of slice t - 1 released after wait_group 2 (its group may still read it)
+            first failed run: step2 v0 (step 2: 3 stages) 144 x 512 x 256 reverse
+  reported  step2.cuh: the empty barriers on the full ones but one (they overlap)
+            first failed run: step2 v0 (step 2: 3 stages) 16 x 256 x 64 forward
+  reported  step2.cuh: no barrier between the initialization of the mbarriers and their first use
+            first failed run: step2 v0 (step 2: 3 stages) 16 x 256 x 64 reverse
+  reported  step2.cuh: the first kStages - 1 slices loaded before the loop instead of kStages (a slice is never loaded)
+            first failed run: step2 v1 (2 stages) 128 x 512 x 128 forward
+  reported  step2.cuh: slice p + kStages - 1 loaded into the released stage instead of p + kStages
+            first failed run: step2 v0 (step 2: 3 stages) 144 x 512 x 256 forward
+  reported  step2.cuh: A's box at row 0 whatever the tile
+            first failed run: step2 v0 (step 2: 3 stages) 144 x 256 x 64 forward
+  reported  step2.cuh: B's boxes 32 columns apart instead of 64
+            first failed run: step2 v0 (step 2: 3 stages) 16 x 256 x 64 forward
+  reported  step2.cuh: B's boxes 4 KB apart in the stage instead of 8 KB
+            first failed run: step2 v0 (step 2: 3 stages) 16 x 256 x 64 forward
+  reported  step2.cuh: A's map with boxes of 64 rows (the stage's rows 64 to 127 never loaded)
+            first failed run: step2 v0 (step 2: 3 stages) 16 x 256 x 64 forward
+  reported  step2.cuh: the MMA's stage taken from t % 2 whatever the number of stages
+            first failed run: step2 v0 (step 2: 3 stages) 144 x 512 x 256 forward
+  reported  step2.cuh: no wait_group 0 before the output
+            first failed run: step2 v0 (step 2: 3 stages) 16 x 256 x 64 forward
+  reported  step4.cuh: 4a: both blocks of a cluster on the same tile (clusters along M)
+            first failed run: step4 v0 (step 4: 4a, 4b) 144 x 256 x 64 forward
+  reported  step4.cuh: 4a: a block after the last column of tiles writes (clusters along N, an odd number of columns)
+            first failed run: step4 v0 (step 4: 4a, 4b) 16 x 256 x 64 forward
+  reported  step4.cuh: step 4: thread 0 refills a stage before both warpgroups have released it
+            first failed run: step4 v0 (step 4: 4a, 4b) 144 x 512 x 640 reverse
+  reported  step4.cuh: step 4: one warpgroup's release only (the empty barrier never completes)
+            first failed run: step4 v0 (step 4: 4a, 4b) 144 x 512 x 640 forward
+  reported  step4.cuh: step 4: thread 0's stage from t % 3 with 4 stages in the ring
+            first failed run: step4 v0 (step 4: 4a, 4b) 144 x 512 x 256 forward
+  reported  step4.cuh: step 4: no barrier before the output tile overwrites the stages (a warpgroup's MMA may still read them)
+            first failed run: step4 v0 (step 4: 4a, 4b) 16 x 256 x 64 reverse
+  reported  step4.cuh: step 4: no barrier between the output tile's stores and its copy out
+            first failed run: step4 v0 (step 4: 4a, 4b) 16 x 256 x 64 forward
+  reported  step5.cuh: step 5: the pairs of halves stored without the box's swizzle (the copy reads it swizzled)
+            first failed run: step5 v0 (step 5), 66 clusters 16 x 256 x 64 forward
+  reported  step5.cuh: step 5: a lane's second row of the fragment 4 rows down instead of 8
+            first failed run: step5 v0 (step 5), 66 clusters 16 x 256 x 64 forward
+  reported  step5.cuh: step 5: a lane's pair of halves 2 bytes from the next lane's instead of 4
+            first failed run: step5 v0 (step 5), 66 clusters 16 x 256 x 64 forward
+  reported  step5.cuh: step 5: the copy out without the box's swizzle
+            first failed run: step5 v0 (step 5), 66 clusters 16 x 256 x 64 forward
+  reported  step5.cuh: 5b: the last group of rows taken as full (pairs outside the matrix, others never taken)
+            first failed run: step5 order of the tiles, 24589 shapes
+  reported  step5.cuh: step 5: warp 0 refills a stage before both warpgroups have released it (its wait on the empty barrier left out)
+            first failed run: step5 v0 (step 5), 66 clusters 144 x 512 x 640 reverse
+  reported  step5.cuh: step 5: slice t - 1's stage released before wait_group 1 retires its MMA
+            first failed run: step5 v0 (step 5), 66 clusters 144 x 512 x 640 reverse
+  reported  step5.cuh: step 5: the loads issued by every lane of warp 0 (elect.sync left out)
+            first failed run: step5 v0 (step 5), 66 clusters 16 x 256 x 64 forward
+  reported  step5.cuh: step 5: the next pair's tile never taken (warp 0 loads the first pair's slices again)
+            first failed run: step5 v0 (step 5), 2 clusters 272 x 5376 x 128 forward
+  reported  step5.cuh: step 5: the cluster's slices counted for one pair of tiles (warp 0 stops loading after it)
+            first failed run: step5 v0 (step 5), 2 clusters 272 x 5376 x 128 forward
+  reported  step5.cuh: step 5: every warp taken as the loader (each one's elected lane issues the slices: their bytes complete several times)
+            first failed run: step5 v0 (step 5), 66 clusters 16 x 256 x 64 forward
+  reported  step5.cuh: step 5: no named barrier between the zone's stores and the copy out
+            first failed run: step5 v0 (step 5), 66 clusters 16 x 256 x 64 forward
+  reported  step5.cuh: step 5: a block after the last column of tiles writes (clusters along N, an odd number of columns)
+            first failed run: step5 v0 (step 5), 66 clusters 16 x 256 x 64 forward
+  reported  step5.cuh: step 5: warp 0 waits for the empty stage with the other parity (it overwrites a stage still read)
+            first failed run: step5 v0 (step 5), 66 clusters 144 x 512 x 640 reverse
+  reported  step5.cuh: step 5: the warpgroups release the stage of slice t instead of t - 1 (still read by the group in flight)
+            first failed run: step5 v0 (step 5), 66 clusters 144 x 512 x 640 forward
+  reported  step5.cuh: step 5: the output's named barrier counting 256 threads (each warpgroup's barrier waits for the other's threads)
+            first failed run: step5 v0 (step 5), 66 clusters 16 x 256 x 64 forward
+  reported  step5.cuh: step 5: the copy out indexed by the thread's index in the block (the second warpgroup's threads start at row 8 of its zone)
+            first failed run: step5 v0 (step 5), 66 clusters 144 x 256 x 64 forward
+  reported  step5.cuh: step 5: warp 0's stage from li % 3 with 4 stages in the ring
+            first failed run: step5 v0 (step 5), 66 clusters 144 x 512 x 256 forward
+  reported  step5.cuh: 5a: warp 0's stage from the tile's own slice (its ring started again at each tile, out of step with the warpgroups')
+            first failed run: step5 v0 (step 5), 2 clusters 272 x 5376 x 128 forward
+  reported  step5.cuh: 5a: a tile's last slice not released (warp 0 waits for it forever)
+            first failed run: step5 v0 (step 5), 2 clusters 272 x 5376 x 128 forward
+  reported  step5.cuh: 5a: the cluster's index from the block's (each cluster takes the pairs of two)
+            first failed run: step5 v0 (step 5), 66 clusters 144 x 256 x 64 forward
+  reported  step5.cuh: step 5: the descriptors rebuilt at the stage of the tile's own slice (t % 4)
+            first failed run: step5 v0 (step 5), 2 clusters 272 x 5376 x 128 forward
+  reported  step5.cuh: step 5: both warpgroups on rows 0 to 63 (the warpgroup's index taken as 0)
+            first failed run: step5 v0 (step 5), 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: 6a: A's boxes of 8 rows instead of 16 (rows 8 to 15 never loaded)
+            first failed run: step6 6a bands J=1, 8 stages 16 x 256 x 64 forward
+  reported  step6.cuh: 6a: the MMA's A (our B) read K-major (no tnspA)
+            first failed run: step6 6a bands J=1, 8 stages 16 x 256 x 64 forward
+  reported  step6.cuh: the rule: the bands' J rounded down (no band at all below one wave of 64 columns)
+            first failed run: step6 rule, 262157 shapes
+  reported  step6.cuh: the rule: 128 x 320 against 128 x 256 by their waves alone (its area forgotten)
+            first failed run: step7 rule, 1048413 checks
+  reported  step6.cuh: the rule: 7e in pairs in one wave too (its class forgotten)
+            first failed run: step7 rule, 1048413 checks
+  reported  step6.cuh: the rule (7e's branch, step 7): M > 128 back to step 5's tile in pairs where 6c runs
+            first failed run: step7 rule, 1048413 checks
+  reported  step6.cuh: the rule: M > 128 back to step 5's tile in pairs where 6c runs (step 6)
+            first failed run: step6 rule, 262157 shapes
+  reported  step6.cuh: the rule: step 5's tile at an N it cannot take (step 6, N not a multiple of 256)
+            first failed run: step6 rule, 262157 shapes
+  reported  step6.cuh: the rule: step 6 with 7e's tile (its switch forgotten)
+            first failed run: step6 rule, 262157 shapes
+  reported  step7.cuh: the bands without warp specialization (v8), 7a: both blocks store their rows at the band's first row
+            first failed run: step7 v8: 7a bands 64 rows in pairs 128 x 512 x 128 forward
+  reported  step7.cuh: the rule, 7a: the 64-row pairs without their condition of one wave
+            first failed run: step7 rule, 1048413 checks
+  reported  step7.cuh: the rule, 7d: the 128-row bands without their condition of one wave
+            first failed run: step7 rule, 1048413 checks
+  reported  step6.cuh: the tiles: warp 0 refills a stage before both warpgroups have released it (its wait left out)
+            first failed run: step6 6b 64x128 pairs, 2 clusters 144 x 512 x 256 reverse
+  reported  step6.cuh: the tiles: the next tile never taken (warp 0 loads the first tile's slices again)
+            first failed run: step6 6b 64x128 pairs, 2 clusters 144 x 256 x 64 forward
+  reported  step6.cuh: the tiles: the loads issued by every lane of warp 0 (elect.sync left out)
+            first failed run: step6 6b 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles: slice t - 1's stage released before wait_group 1 retires its MMA
+            first failed run: step6 6b 64x128 pairs, 2 clusters 144 x 512 x 256 reverse
+  reported  step6.cuh: the bands: the stage refilled before the wait that retires its MMA
+            first failed run: step6 6a bands J=1, 8 stages 16 x 1024 x 1024 reverse
+  reported  step6.cuh: the bands: the loads issued by every lane of warp 0 (elect.sync left out)
+            first failed run: step6 6a bands J=1, 8 stages 16 x 256 x 64 forward
+  reported  step6.cuh: the bands: every warp taken as the loader (each one's elected lane issues the slices: their bytes complete several times)
+            first failed run: step6 6a bands J=1, 8 stages 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles, 7e: the n128 of 128 x 320 on B's first boxes
+            first failed run: step7 v8: 7e 128x320 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles: the descriptors rebuilt at the stage of the tile's own slice (t % NS)
+            first failed run: step6 6b 64x128 pairs, 2 clusters 144 x 256 x 64 forward
+  reported  step6.cuh: the tiles, 6b: the two warpgroups of 64 x 128 on the same columns of B
+            first failed run: step6 6b 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles, 6b: the second warpgroup of 64 x 128 writing the first one's columns
+            first failed run: step6 6b 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles, 7e: the n128 of 128 x 320 on accumulators that overlap the n192's
+            first failed run: step7 v8: 7e 128x320 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles, 7e: the output's passes after the second forgotten (128 x 320's last 64 columns)
+            first failed run: step7 v8: 7e 128x320 pairs, 66 clusters 128 x 512 x 128 forward
+  reported  step6.cuh: the tiles: the threads' copy out of the zone without the swizzle
+            first failed run: step6 6b 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles: the threads' copy out on the first rows of each round only
+            first failed run: step6 6b 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles, pairs: the second warpgroup out of the cluster barrier (the cluster's wait never returns)
+            first failed run: step6 6b 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles: the pairs of halves stored without the box's swizzle (the copy reads it swizzled)
+            first failed run: step6 6b 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles: a lane's second row of the fragment 4 rows down instead of 8
+            first failed run: step6 6b 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles: the pass's last group of 8 columns left out (the loop one short)
+            first failed run: step6 6b 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles: both blocks of a pair along M on the same row of tiles
+            first failed run: step6 6b 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step6.cuh: the tiles, 6c: the n256 MMA reading B from its second box on (B's columns shifted by 64)
+            first failed run: step6 6c 128x256 alone, 132 blocks 16 x 256 x 64 forward
+  reported  step6.cuh: the bands: the descriptors' offset from the slice's index instead of its stage
+            first failed run: step6 6a bands J=1, 8 stages 16 x 1024 x 1024 forward
+  reported  step6.cuh: the bands: the stage's offset in bytes instead of units of 16 bytes
+            first failed run: step6 6a bands J=1, 8 stages 16 x 1024 x 1024 forward
+  reported  step6.cuh: the bands: every box of the output stored from the zone's first box
+            first failed run: step6 6a bands J=2, 8 stages 16 x 256 x 64 forward
+  reported  step6.cuh: the bands: the MMA's A advanced by 1 KB per K16 instead of 2
+            first failed run: step6 6a bands J=1, 8 stages 16 x 256 x 64 forward
+  reported  step6.cuh: the bands: 8 KB fewer announced than a band's stage brings
+            first failed run: step6 6a bands J=1, 8 stages 16 x 256 x 64 forward
+  reported  step6.cuh: the bands: the transposed store given the fragment's second and third 8 x 8 matrices swapped
+            first failed run: step6 6a bands J=1, 8 stages 16 x 256 x 64 forward
+  reported  step6.cuh: the bands: every band's MMA on the first range of accumulators
+            first failed run: step6 6a bands J=2, 8 stages 16 x 256 x 64 forward
+  reported  step6.cuh: the bands: the output's chunk from the wrong half of the lanes
+            first failed run: step6 6a bands J=1, 8 stages 16 x 256 x 64 forward
+  reported  step7.cuh: the bands without warp specialization (v8): the loads issued by every lane of warp 0 (elect.sync left out)
+            first failed run: step7 v8: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: the bands without warp specialization (v8): the stage refilled before the wait that retires its MMA
+            first failed run: step7 v8: 7b bands 16 rows J=2 in clusters of 8 16 x 1024 x 1024 reverse
+  reported  step7.cuh: the bands without warp specialization (v8), 7a: both blocks load A's first 64 rows
+            first failed run: step7 v8: 7a bands 64 rows in pairs 128 x 512 x 128 forward
+  reported  step7.cuh: the bands without warp specialization (v8): every warp taken as the loader (each one's elected lane issues the slices: their bytes complete several times)
+            first failed run: step7 v8: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: the bands without warp specialization (v8), 7a: the two blocks of a cluster on two bands
+            first failed run: step7 v8: 7a bands 64 rows in pairs 16 x 256 x 64 forward
+  reported  step7.cuh: the bands without warp specialization (v8): the MMA's B (our A) advanced by 16 bytes per K16 instead of 32
+            first failed run: step7 v8: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: the bands without warp specialization (v8), in clusters (7a, 7b): warp 0 out of the cluster barrier (the cluster's wait never returns)
+            first failed run: step7 v8: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: the bands without warp specialization (v8): the descriptors' offset from the slice's index instead of its stage
+            first failed run: step7 v8: 7b bands 16 rows J=2 in clusters of 8 16 x 1024 x 1024 forward
+  reported  step7.cuh: the rule, 7c: groups of up to 32 rows
+            first failed run: step7 rule, 1048413 checks
+  reported  step5.cuh: step 5: one warpgroup's release only (the empty barrier never completes)
+            first failed run: step5 v0 (step 5), 66 clusters 144 x 512 x 640 forward
+  reported  step5.cuh: step 5: its own A from row 0 (every block on the rows of the first tiles)
+            first failed run: step5 v0 (step 5), 66 clusters 144 x 256 x 64 forward
+  reported  step5.cuh: step 5: each block's empty barriers counting four arrivals (they never complete)
+            first failed run: step5 v0 (step 5), 66 clusters 144 x 512 x 640 forward
+  reported  step6.cuh: the tiles: one warpgroup's release only (the empty barrier never completes)
+            first failed run: step6 6b 64x128 pairs, 2 clusters 144 x 512 x 256 forward
+  reported  step6.cuh: the tiles: a block's empty barriers counting four arrivals (they never complete)
+            first failed run: step6 6b 64x128 pairs, 2 clusters 144 x 512 x 256 forward
+  reported  step7.cuh: 7g: the stage's offset in bytes instead of units of 16 bytes
+            first failed run: step7 v8: 7a bands 64 rows in pairs 128 x 512 x 128 forward
+  reported  step7.cuh: 7h: the empty barriers counting two arrivals (the other block's loads may overwrite a stage still read)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7h: both blocks load A's first 64 rows (clusters along N)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 128 x 512 x 128 forward
+  reported  step7.cuh: step 5's tile: the descriptors' stage from the tile's own slices (the stage of slice t of a tile taken as t % 4)
+            first failed run: step7 v0: step 5's tile in pairs, 2 clusters 16 x 2048 x 320 forward
+  reported  step7.cuh: step 5's tile: the loading warp's ring started again at each tile (its stages and phases out of step with the computing warpgroups')
+            first failed run: step7 v0: step 5's tile in pairs, 2 clusters 16 x 2048 x 320 forward
+  reported  step7.cuh: 7i, step 5's tile: no wait of the loading warp for its last stages (a block may leave while its multicast loads still land in the other block)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: step 5's tile: the cluster's index from the block's (each cluster takes the pairs of two)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7j: the second box stored at the first box's columns
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: the bands with warp specialization: below 8 stages, the stage released before its MMA are retired
+            first failed run: step7 v0: 7b bands 16 rows J=4 in clusters of 8 16 x 1024 x 1024 reverse
+  reported  step7.cuh: the bands with warp specialization: the MMA's A advanced by 1 KB per K16 instead of 2
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: the tiles with warp specialization, 6b: the two warpgroups of 64 x 128 on the same columns of B
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: the tiles with warp specialization, 6b: the second warpgroup of 64 x 128 writing the first one's columns
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7e: the n128 of 128 x 320 on B's first boxes
+            first failed run: step7 v0: 7e 128x320 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7e: the n128 of 128 x 320 on accumulators that overlap the n192's
+            first failed run: step7 v0: 7e 128x320 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7e: B's third box loaded by both blocks of the pair (its bytes complete twice)
+            first failed run: step7 v0: 7e 128x320 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: the tiles with warp specialization: the output's passes after the second forgotten (128 x 320's last 64 columns)
+            first failed run: step7 v0: 7e 128x320 pairs, 66 clusters 128 x 512 x 128 forward
+  reported  step7.cuh: the tiles with warp specialization, 6c: the n256 MMA reading B from its second box on (B's columns shifted by 64)
+            first failed run: step7 v0: 7c 6c, 132 blocks 16 x 256 x 64 forward
+  reported  step7.cuh: the bands with warp specialization at 8 stages: slice t - 1's stage released before wait_group 1 retires its MMA
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 1024 x 1024 reverse
+  reported  step7.cuh: the bands with warp specialization: the MMA's B (our A) advanced by 16 bytes per K16 instead of 32
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: 7a, pairs along M: both blocks load A's first 64 rows
+            first failed run: step7 v0: 7a bands 64 rows in pairs 128 x 512 x 128 forward
+  reported  step7.cuh: 7a, pairs along M: both blocks multicast all of B's boxes (each stage receives its bytes twice)
+            first failed run: step7 v0: 7a bands 64 rows in pairs 16 x 256 x 64 forward
+  reported  step7.cuh: 7a, pairs along M: the two blocks of a cluster on two bands
+            first failed run: step7 v0: 7a bands 64 rows in pairs 16 x 256 x 64 forward
+  reported  step7.cuh: 7a, pairs along M: both blocks store their rows at the band's first row
+            first failed run: step7 v0: 7a bands 64 rows in pairs 128 x 512 x 128 forward
+  reported  step7.cuh: the rule, 7b: its clusters of eight without their condition (more than one per GPC, or a second wave)
+            first failed run: step7 rule, 1048413 checks
+  reported  step7.cuh: the rule, 7b: two clusters of eight per GPC (as many as the GPU holds)
+            first failed run: step7 rule, 1048413 checks
+  reported  step7.cuh: the rule, 7c: the rounds not kept (the largest group taken whatever its grid)
+            first failed run: step7 rule, 1048413 checks
+  reported  step7.cuh: the rule, 7c: the grid not a whole number of groups (all the blocks held)
+            first failed run: step7 rule, 1048413 checks
+  reported  step7.cuh: 7f, step 5's tile: the loading warp does not wait for the empty stage
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 1024 x 1024 forward
+  reported  step7.cuh: 7f, step 5's tile: the loading warp waits for the empty stage with the other parity (it overwrites a stage still read)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 1024 x 1024 forward
+  reported  step7.cuh: 7f, step 5's tile: the loads issued by every lane of the loading warp (elect.sync left out)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7f, step 5's tile: warps 1 to 3 of the loading warpgroup do not leave (they load too)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7f, step 5's tile: setmaxnreg in warp 0 of the loading warpgroup only (not the same in its warpgroup)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7f, step 5's tile: one computing warpgroup releases the stages (the empty barrier never completes)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7f, step 5's tile: slice t - 1's stage released before wait_group 1 retires its MMA
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 1024 x 1024 reverse
+  reported  step7.cuh: 7f, step 5's tile: the release of slice t instead of t - 1 (still read by the group in flight)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7f, step 5's tile: the output's named barrier counting 256 threads (each warpgroup's barrier waits for the other's threads)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7h, step 5's tile: A's halves multicast to the block itself only (the other block never gets them)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7h, step 5's tile: no release on the other block (its empty barrier never completes)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7h, step 5's tile: the release on the other block always on its stage 0
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 128 x 512 x 128 forward
+  reported  step7.cuh: 7h, step 5's tile: the other block's empty barrier mapped to its own (a stage refilled while the other block may still read it)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 1024 x 1024 random
+  reported  step7.cuh: 7i, step 5's tile: a tile's last slice not released (the loading warp's last wait never returns)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7j, step 5's tile: no wait for the TMA's reads before the zone is written again
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 reverse
+  reported  step7.cuh: 7j, step 5's tile: no fence.proxy.async between the zone's stores and the TMA stores
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: step 5's tile: the first pass's accumulators stored at both passes
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7j, step 5's tile: no named barrier between the warpgroup's zone stores and the TMA stores
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7j, step 5's tile: no wait for the TMA stores before the block leaves
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7j, step 5's tile: the TMA stores not committed (no wait covers them)
+            first failed run: step7 v0: step 5's tile in pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: without 7j, step 5's tile: the copy out 64 rows down (the warpgroup's rows written at the other's)
+            first failed run: step7 v9, 7f alone: step 5's tile in pairs, 2 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: without 7h, step 5's tile: each block's own A taken 64 rows down
+            first failed run: step7 v9, 7f alone: step 5's tile in pairs, 2 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: without 7h, step 5's tile: the empty barriers counting four arrivals (they never complete)
+            first failed run: step7 v9, 7f alone: step 5's tile in pairs, 2 clusters 16 x 1024 x 1024 forward
+  reported  step7.cuh: without 7i, step 5's tile: no cluster barrier at the end (a block may leave while the other still arrives on its barriers)
+            first failed run: step7 v12, without 7i: step 5's tile in pairs, 2 clusters 128 x 512 x 128 forward
+  reported  step7.cuh: without 7g, step 5's tile: the descriptors rebuilt at the stage of the tile's own slice (t % 4)
+            first failed run: step7 v9, 7f alone: step 5's tile in pairs, 2 clusters 16 x 2048 x 320 forward
+  reported  step7.cuh: without 7g, step 5's tile: both warpgroups on rows 0 to 63 (the warpgroup's index taken as 0)
+            first failed run: step7 v9, 7f alone: step 5's tile in pairs, 2 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7f, the tiles: the loading warp does not wait for the empty stage
+            first failed run: step7 v0: 64x128 pairs, 2 clusters 144 x 512 x 256 forward
+  reported  step7.cuh: 7f, the tiles: the loads issued by every lane of the loading warp (elect.sync left out)
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7f, the tiles: the loading warpgroup keeping 64 registers (the computing ones' setmaxnreg.inc never served)
+            first failed run: step7 v0: 7c 6c, 132 blocks 16 x 256 x 64 forward
+  reported  step7.cuh: 7f, the tiles: one computing warpgroup releases the stages (the empty barrier never completes)
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7f, the tiles: warps 1 to 3 of the loading warpgroup do not leave (they load too)
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7g, the tiles: the descriptors' stage from the tile's own slices (the stage of slice t taken as t % NS)
+            first failed run: step7 v0: 64x128 pairs, 2 clusters 144 x 256 x 64 forward
+  reported  step7.cuh: 7g, the tiles: both warpgroups of the 128-row tiles on rows 0 to 63 (the warpgroup's index taken as 0)
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7h, the tiles: both blocks of a pair load all of B's boxes (their bytes complete twice)
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7h, the tiles: a pair's empty barriers counting two arrivals (the other block's loads may overwrite a stage still read)
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7h, the tiles: no release on the other block of a pair (its empty barrier never completes)
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7i, the tiles: no wait of the loading warp for its last stages (a block may leave while its multicast loads still land in the other)
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7i, the tiles: a tile's last slice not released (the loading warp's last wait never returns)
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7i, the tiles: the cluster's slices counted for one tile (the loading warp's last waits on stages already released)
+            first failed run: step7 v0: 64x128 pairs, 2 clusters 144 x 256 x 64 forward
+  reported  step7.cuh: the tiles, pairs: both blocks of a pair on the same row of tiles
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7j, the tiles: no wait for the TMA's reads before the zone is written again
+            first failed run: step7 v0: 7c 6c, 132 blocks 16 x 256 x 64 reverse
+  reported  step7.cuh: 7j, the tiles: no fence.proxy.async between the zone's stores and the TMA stores
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: the tiles, the output: each lane's second row written over its first (rows rg + 8 never written)
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: the tiles, the output: the zone's boxes written without the 128-byte swizzle
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: the tiles, the output: the pass's last 8 columns never written
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: 7j, the tiles: the last box before column N left out
+            first failed run: step7 v0: 64x128 pairs, 66 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: without 7j, the tiles: the copy out without the box's swizzle
+            first failed run: step7 v9, 7f alone: 64x128 pairs, 2 clusters 16 x 256 x 64 forward
+  reported  step7.cuh: without 7j, the tiles: the copy out on the first rows of each round only
+            first failed run: step7 v9, 7f alone: 128x128, 3 blocks 16 x 256 x 64 forward
+  reported  step7.cuh: without 7i, the tiles: no cluster barrier at the end (a block may leave while the other still arrives on its barriers)
+            first failed run: step7 v12, without 7i: 64x128 pairs, 2 clusters 16 x 256 x 64 random
+  reported  step7.cuh: without 7g, the tiles: the descriptors rebuilt at the stage of the tile's own slice (t % NS)
+            first failed run: step7 v9, 7f alone: 64x128 pairs, 2 clusters 144 x 256 x 64 forward
+  reported  step7.cuh: without 7h, the tiles: a pair's empty barriers counting four arrivals (they never complete)
+            first failed run: step7 v9, 7f alone: 64x128 pairs, 2 clusters 144 x 512 x 256 forward
+  reported  step7.cuh: 7f, the bands: the loading warp does not wait for the empty stage
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 1024 x 1024 forward
+  reported  step7.cuh: 7f, the bands: the loads issued by every lane of the loading warp (elect.sync left out)
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: 7f, the bands: the output's named barrier counting the loading warp too (it has left)
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: 7g, the bands: the descriptors' offset from the slice's index instead of its stage
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 1024 x 1024 forward
+  reported  step7.cuh: without 7g, the bands: the descriptors' offset from the slice's index instead of its stage
+            first failed run: step7 v9, 7f alone: 7b bands 16 rows J=2 in clusters of 8 16 x 1024 x 1024 forward
+  reported  step7.cuh: 7h, the bands in clusters: their empty barriers counting one arrival (another block's loads may overwrite a stage)
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: 7h, the bands in clusters: the release reaching one other block only (the others' loading warps wait forever)
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: 7h, 7b: A multicast to the cluster's first four blocks only (the others wait for it forever)
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: 7h, 7b: A loaded by every block of the cluster, each multicast to the eight (its bytes complete eight times)
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: 7i, the bands in clusters: no wait of the loading warp for its last stages (a block may leave while its multicast loads still land in another)
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: 7i, the bands in clusters at 8 stages: the last stage not released (the loading warps' last wait never returns)
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: without 7i, the bands: no cluster barrier at the end (a block may leave while another still arrives on its barriers)
+            first failed run: step7 v12, without 7i: 7b bands 16 rows J=4 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: without 7h, the bands in clusters: the empty barriers counting the cluster's blocks (they never complete)
+            first failed run: step7 v9, 7f alone: 7b bands 16 rows J=4 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: 7l: the hinted loads of B one box to the right (the emulator runs the hinted path as a plain load)
+            first failed run: step7 v0: 7b bands 16 rows J=2 in clusters of 8 16 x 256 x 64 forward
+  reported  step7.cuh: 7l, 7a: the hinted multicast loads of B one box to the right
+            first failed run: step7 v0: 7a bands 64 rows in pairs 16 x 256 x 64 forward
+  reported  step7.cuh: 7d, 7a: the band's rows 16 to MM stored over its first 16 (the passes of 16 rows on one place)
+            first failed run: step7 v0: 7a bands 64 rows in pairs 16 x 256 x 64 forward
+  reported  step7.cuh: the rule, 7c: a grid of all the blocks held (not a whole number of groups)
+            first failed run: step7 rule, 1048413 checks
+239 of 239 planted bugs reported as failures; the unmodified copy passes
+PLANTED-BUG TEST OK

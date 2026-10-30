@@ -1,0 +1,4 @@
+NVIDIA H100 80GB HBM3, 610.57.04, 1980 MHz, 700.00 W
+Build cuda_13.1.r13.1/compiler.37061995_0
+Version 2025.4.1.0 (build 37053803) (public-release)
+Fri Oct 30 16:21:16 UTC 2026

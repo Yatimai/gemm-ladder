@@ -1,0 +1,14 @@
+kernels profiled: 5
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 214 (/tmp/s/verif_step5)
+==WARNING== Unable to access the following 6 metrics: ctc__rx_bytes_data_user.sum, ctc__rx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__rx_bytes_data_user.sum.per_second, ctc__tx_bytes_data_user.sum, ctc__tx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__tx_bytes_data_user.sum.per_second.
+
+
+==PROF== Profiling "gemm" - 0: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm" - 1: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm" - 2: 0%....50%....100% - 39 passes
+==PROF== Profiling "gemm" - 3: 0%....50%....100% - 39 passes
+==PROF== Profiling "nvjet_sm90_hsh_256x128_64x4_1..." - 4: 0%....50%....100% - 39 passes
+once: done (cuBLASLt configuration given)
+==PROF== Disconnected from process 214
+==PROF== Report: /tmp/s/step5_ncu.ncu-rep

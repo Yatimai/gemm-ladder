@@ -1,0 +1,54 @@
+candidate hopper/step7.cu; step7.cu md5 be99d9375102a146f626d2717effb232; step2.cuh md5 ee6cbf5f667517a46f1eb2d6264198e5; step7.cuh md5 682bad5fba8e68c9ca6791102ccce3d7; step3.cuh md5 cbfebe9029e4d2fa87d09d7429af85a7; step1.cuh md5 c1cf343a5e077de25ffab8a8f8656fe5; step4.cuh md5 4dcfc9ba62ebc48ba66fc7c7b7d07f63; step6.cuh md5 6ed0fe098c8d50f9bac2f5e5a288e5c9; step5.cuh md5 bdbe279c5f3fef7df3346b049a95f201; nvidia_sample.cuh md5 a19e6adb4f5acfbbab27c4e5f5420008
+probe.cu md5 aa7ee2d6; modal_probe.py md5 7608c03c; variant NVIDIA_H100_80GB_HBM3|700W|lt130201|cuda13030 (try 1/8)
+card NVIDIA_H100_80GB_HBM3|700W|lt130201|cuda13030
+NVIDIA H100 80GB HBM3, 610.57.04, 1980 MHz, 700.00 W, 44
+Fri Oct 30 18:55:10 UTC 2026
+build rc 0
+
+== ncu try: rc 0
+1 pass
+ncu: done
+==PROF== Disconnected from process 111
+[111] probe@127.0.0.1
+  fill(__half *, unsigned long, unsigned int) (1024, 1, 1)x(256, 1, 1), Context 1, Stream 7, Device 0, CC 9.0
+    Warning: Data collection happened without fixed GPU frequencies. Profiling results may be inconsistent.
+    Section: Command line profiler metrics
+    ---------------------- ----------- ------------
+    Metric Name            Metric Unit Metric Value
+    ---------------------- ----------- ------------
+    gpu__time_duration.sum          us         3.62
+    ---------------------- ----------- ------------
+
+== ncu v0 128x8192x8192 : rc 0
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 145 (/tmp/s/probe)
+==WARNING== Unable to access the following 6 metrics: ctc__rx_bytes_data_user.sum, ctc__rx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__rx_bytes_data_user.sum.per_second, ctc__tx_bytes_data_user.sum, ctc__tx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__tx_bytes_data_user.sum.per_second.
+
+
+==PROF== Profiling "bands" - 0 (1/6): 0%....50%....100% - 39 passes
+==PROF== Profiling "bands" - 1 (2/6): 0%....50%....100% - 39 passes
+ncu: done
+==PROF== Disconnected from process 145
+==PROF== Report: /tmp/s/ncu_v0_128x8192x8192.ncu-rep
+== ncu v12 128x8192x8192 : rc 0
+==WARNING== Note: Running with unmodified GPU clocks. If not controlled otherwise, profiling results may be inconsistent.
+==PROF== Connected to process 263 (/tmp/s/probe)
+==WARNING== Unable to access the following 6 metrics: ctc__rx_bytes_data_user.sum, ctc__rx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__rx_bytes_data_user.sum.per_second, ctc__tx_bytes_data_user.sum, ctc__tx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__tx_bytes_data_user.sum.per_second.
+
+
+==PROF== Profiling "bands" - 0 (1/6): 0%....50%....100% - 39 passes
+==PROF== Profiling "bands" - 1 (2/6): 0%....50%....100% - 39 passes
+ncu: done
+==PROF== Disconnected from process 263
+==PROF== Report: /tmp/s/ncu_v12_128x8192x8192.ncu-rep
+== ncu x:42000000120000002300000001000000000000000000000002000000000005000100000099fc0100020000000200000002000200440000000000000000000000 128x8192x8192 : rc 0
+y be inconsistent.
+==PROF== Connected to process 381 (/tmp/s/probe)
+==WARNING== Unable to access the following 6 metrics: ctc__rx_bytes_data_user.sum, ctc__rx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__rx_bytes_data_user.sum.per_second, ctc__tx_bytes_data_user.sum, ctc__tx_bytes_data_user.sum.pct_of_peak_sustained_elapsed, ctc__tx_bytes_data_user.sum.per_second.
+
+
+==PROF== Profiling "nvjet_sm90_hsh_128x64_64x8_1x..." - 0 (1/6): 0%....50%....100% - 39 passes
+==PROF== Profiling "nvjet_sm90_hsh_128x64_64x8_1x..." - 1 (2/6): 0%....50%....100% - 39 passes
+ncu: done
+==PROF== Disconnected from process 381
+==PROF== Report: /tmp/s/ncu_x_42000000120000002300000001000000000000000000000002000000000005000100000099fc0100020000000200000002000200440000000000000000000000_128x8192x8192.ncu-rep

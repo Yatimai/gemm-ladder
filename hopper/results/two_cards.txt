@@ -1,0 +1,23 @@
+== two cards: two containers running at the same time have two different cards (a container keeps its card for its whole life); times in UTC
+step1  series 1: hopper/results/20261030-1956_step1_probe, Modal app from 30/10/2026 18:56:53 to 19:07:13 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 18:57:48 to 19:06:19
+       series 2: hopper/results/20261030-1957_step1_probe, Modal app from 30/10/2026 18:57:01 to 19:07:27 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 18:58:02 to 19:06:27
+       -> running together at least from 18:58:02 to 19:06:19 (498 s): TWO DIFFERENT CARDS
+step2  series 1: hopper/results/20261030-1834_step2_probe, Modal app from 30/10/2026 17:34:56 to 17:45:20 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 17:35:55 to 17:44:22
+       series 2: hopper/results/20261030-1835_step2_probe, Modal app from 30/10/2026 17:35:02 to 17:45:25 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 17:36:00 to 17:44:28
+       -> running together at least from 17:36:00 to 17:44:22 (503 s): TWO DIFFERENT CARDS
+step3  series 1: hopper/results/20261030-2007_step3_probe, Modal app from 30/10/2026 19:07:46 to 19:14:19 UTC, 51 ARM lines, 255 rounds: at least 340 s of work -> surely running from 19:08:40 to 19:13:26
+       series 2: hopper/results/20261030-2008_step3_probe, Modal app from 30/10/2026 19:08:02 to 19:14:22 UTC, 51 ARM lines, 255 rounds: at least 340 s of work -> surely running from 19:08:43 to 19:13:42
+       -> running together at least from 19:08:43 to 19:13:26 (283 s): TWO DIFFERENT CARDS
+step4  series 1: hopper/results/20261030-2014_step4_probe, Modal app from 30/10/2026 19:14:41 to 19:21:11 UTC, 51 ARM lines, 255 rounds: at least 340 s of work -> surely running from 19:15:32 to 19:20:21
+       series 2: hopper/results/20261030-2015_step4_probe, Modal app from 30/10/2026 19:15:01 to 19:21:23 UTC, 51 ARM lines, 255 rounds: at least 340 s of work -> surely running from 19:15:44 to 19:20:41
+       -> running together at least from 19:15:44 to 19:20:21 (277 s): TWO DIFFERENT CARDS
+step5  series 1: hopper/results/20261030-1859_step5_probe, Modal app from 30/10/2026 17:59:52 to 18:08:23 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 18:00:51 to 18:07:25
+       series 2: hopper/results/20261030-1900_step5_probe, Modal app from 30/10/2026 18:00:02 to 18:08:27 UTC, 68 ARM lines, 340 rounds: at least 453 s of work -> surely running from 18:00:55 to 18:07:35
+       -> running together at least from 18:00:55 to 18:07:25 (390 s): TWO DIFFERENT CARDS
+step6  series 1: hopper/results/20261030-1908_step6_probe, Modal app from 30/10/2026 18:08:46 to 18:19:07 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 18:09:42 to 18:18:12
+       series 2: hopper/results/20261030-1909_step6_probe, Modal app from 30/10/2026 18:09:02 to 18:19:20 UTC, 85 ARM lines, 425 rounds: at least 566 s of work -> surely running from 18:09:55 to 18:18:28
+       -> running together at least from 18:09:55 to 18:18:12 (498 s): TWO DIFFERENT CARDS
+step7  series 1: hopper/results/20261030-1919_step7_probe, Modal app from 30/10/2026 18:19:39 to 18:54:38 UTC, 289 ARM lines, 1445 rounds: at least 1926 s of work -> surely running from 18:22:33 to 18:51:45
+       series 2: hopper/results/20261030-1920_step7_probe, Modal app from 30/10/2026 18:20:02 to 18:54:45 UTC, 289 ARM lines, 1445 rounds: at least 1926 s of work -> surely running from 18:22:40 to 18:52:08
+       -> running together at least from 18:22:40 to 18:51:45 (1746 s): TWO DIFFERENT CARDS
+TWO DIFFERENT CARDS AT THE 7 STEPS: at each step, the two containers that decide ran at the same time; nothing is said about the hosts
